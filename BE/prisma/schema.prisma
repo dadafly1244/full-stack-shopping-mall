@@ -5,15 +5,169 @@ generator client {
 generator nexusPrisma {
    provider = "nexus-prisma"
 }
- 
-/// This is a user!
-model User {
-  /// This is an id!
-  id  String  @id
-}
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+
+model User {
+  id  String @id @default(uuid())
+  user_id String @unique
+  email String @unique
+  name String // 추가
+  passward String
+  gender Gender @default(PREFER_NOT_TO_SAY)
+  phone_number String
+  status UserStatus @default(ACTIVE)
+  permissions UserPermissions @default(USER)
+  store_id String?  // admin만 값을 가질 수 있는 칼럼
+  main_image_path String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  carts Cart[]
+  orders Order[]
+  reviews  Review[]
+
+  @@map("user")
+}
+
+model Product {
+  id String @id @default(uuid())
+  name String
+  desc String?
+  price Int @default(0)
+  sale Int?
+  count Int @default(0)
+  is_deleted Boolean @default(false)
+  status ProductStatus @default(OUT_OF_STOCK)
+  main_image_path String
+  desc_images_path Json?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  category_id  Int // 카테고리 연결
+  store_id String // 상점 연결
+
+  store    Store    @relation(fields: [store_id], references: [id])
+  category Category @relation(fields: [category_id], references: [id])
+  carts    Cart[]
+  reviews  Review[]
+
+  @@map("product")
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+  name String @unique
+  category_parent_id Int?
+
+  parent Category?  @relation("CategoryHierarchy", fields: [category_parent_id], references: [id])
+  subcategories Category[] @relation("CategoryHierarchy")
+
+  products Product[]
+  
+  @@map("category")
+}
+
+model Store {
+  id String @id @default(uuid())
+  business_registration_number String @unique
+  name String
+  desc String?
+  product_id Int
+
+  products Product[]
+
+  @@map("store")
+}
+
+model Cart {
+  id String @id @default(uuid())
+  product_id String
+  user_id    String
+  count Int @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_ordered Boolean  @default(false) // 장바구니 항목은 주문 여부와 관계없이 존재할 수 있고, 부분배송도 가능!
+
+
+  users User @relation(fields: [user_id], references: [id])
+  product Product @relation(fields: [product_id], references: [id])
+  orders  Order[] @relation("OrderToCart") //다대다관계 만들었
+
+  @@map("cart")
+}
+
+model Order {
+  id String @id @default(uuid())
+  user_id String
+  status OrderStatus @default(READY_TO_ORDER)
+  address String?
+  is_deleted String?
+  price_at_order Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  users User @relation(fields: [user_id], references: [id])
+  carts Cart[] @relation("OrderToCart")
+  @@map("order")
+}
+
+model Review{
+  id String @id @default(uuid())
+  title String @default("문의합니다")
+  desc String?
+  score Float @default(3.0)
+  images_path Json?
+  is_deleted Boolean @default(false)
+  user_id String
+  product_id String
+  parent_review_id String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  parentReview Review? @relation("ReviewToReview", fields: [parent_review_id], references: [id])
+  childReviews Review[] @relation("ReviewToReview")
+  
+  user User @relation(fields: [user_id], references: [id])
+  product Product @relation(fields: [product_id], references: [id])
+
+  @@map("review")
+}
+
+enum Gender{
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum UserStatus{
+  ACTIVE
+  INACTIVE
+  SUSPENDED // 정지 - user만 받는것
+}
+
+enum UserPermissions{
+  USER
+  ADMIN
+}
+
+enum ProductStatus{
+  AVAILABLE
+  TEMPORARILY_OUT_OF_STOCK
+  OUT_OF_STOCK
+  DISCONTINUED // 단종
+  PROHIBITION_ON_SALE // 판매금지
+}
+
+enum OrderStatus{
+  READY_TO_ORDER // 주문 전
+  ORDER // 주문
+  DELIVERED // 배달완료
+  CANCELLED // 주문취소
+  REFUND // 환불
+  UNKNOWN //알수없음
+}
