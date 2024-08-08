@@ -42,7 +42,20 @@ MariaDB [(none)]> grant [권한 종류] on DB이름. 테이블 이름 to 사용�
 ```
 MariaDB [mysql]> select host, user, password from mysql.user;
 ```
-![mysql table 사용자 조회]()
+![mysql table 사용자 조회](./readmeImages/사용자%20조회.png)
+
+### mariaDB 새로운 database 생성
+```
+MariaDB [(none)]> CREATE DATABASE 데이터베이스이름
+```
+
+### prisma, nexus 사용방법 
+* 참고 공식문서 
+    - https://www.prisma.io/docs/getting-started/quickstart
+    - https://graphql-nexus.github.io/nexus-prisma/docs/usage 
+* 
+
+
 
 
 cf. [참고글](https://jinozblog.tistory.com/118), [참고2](https://codemonkyu.tistory.com/entry/MariaDB-MariaDB-%EA%B4%80%EB%A6%AC-%EC%A0%91%EC%86%8D-%EB%B0%8F-%EA%B0%84%EB%8B%A8-%EC%82%AC%EC%9A%A9%EB%B2%95)

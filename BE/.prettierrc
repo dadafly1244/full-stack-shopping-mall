@@ -1,0 +1,6 @@
+{
+  "prettier.bracketSpacing": true,
+  "prettier.printWidth": 120,
+  "prettier.tabWidth": 2,
+  "prettier.trailingComma": "es5"
+}
