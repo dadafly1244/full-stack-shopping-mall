@@ -1,12 +1,24 @@
-import { makeSchema } from "nexus";
+import { makeSchema, scalarType, asNexusMethod } from "nexus";
+import { DateTimeResolver } from "graphql-scalars";
 import { join } from "path";
-import * as types from "./types/index";
+import * as allTypes from "#/graphql/types";
+import * as Resolvers from "#/graphql/resolvers";
+
+export const JSONScalar = scalarType({
+  name: "JSON",
+  asNexusMethod: "json",
+  // check out graphql-type-json for inspiration on how to handle the rest of the scalar constructor
+});
+
+export const GQLDate = asNexusMethod(DateTimeResolver, "date");
+
 export const schema = makeSchema({
-  types,
+  types: [allTypes, Resolvers, JSONScalar, GQLDate],
   plugins: [],
+  shouldGenerateArtifacts: true,
   outputs: {
-    schema: join(__dirname, "generated/schema.graphql"),
-    typegen: join(__dirname, "generated/nexus.ts"),
+    schema: join(__dirname, "generated/schema.gen.graphql"),
+    typegen: join(__dirname, "generated/nexusTypes.gen.ts"),
   },
   contextType: {
     module: join(__dirname, "context.ts"),
@@ -19,5 +31,10 @@ export const schema = makeSchema({
         alias: "prisma",
       },
     ],
+    mapping: {
+      Date: "Date",
+      DateTime: "Date",
+      UUID: "string",
+    },
   },
 });
