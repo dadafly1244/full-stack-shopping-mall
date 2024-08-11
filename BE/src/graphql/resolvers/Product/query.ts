@@ -13,8 +13,8 @@ export const ProductQuery = extendType({
   definition(t) {
     t.nonNull.list.nonNull.field("products", {
       type: "Product",
-      resolve: (_, __, ctx) => {
-        return ctx.prisma.product.findMany();
+      resolve: async (_, __, context) => {
+        return await context.prisma.product.findMany();
       },
     });
     t.field("product", {
@@ -22,8 +22,8 @@ export const ProductQuery = extendType({
       args: {
         id: nonNull(stringArg()),
       },
-      resolve: (_, { id }, ctx) => {
-        return ctx.prisma.product.findUnique({
+      resolve: async (_, { id }, context) => {
+        return await context.prisma.product.findUnique({
           where: { id },
         });
       },

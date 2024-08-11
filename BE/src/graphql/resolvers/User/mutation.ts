@@ -19,8 +19,8 @@ export const UserMutation = extendType({
         password: nonNull(stringArg()),
         gender: nonNull("Gender"),
       },
-      resolve: (_, args, ctx) => {
-        return ctx.prisma.user.create({
+      resolve: async (_, args, context) => {
+        return await context.prisma.user.create({
           data: args,
         });
       },

@@ -15,10 +15,10 @@ export const GQLDate = asNexusMethod(DateTimeResolver, "date");
 export const schema = makeSchema({
   types: [allTypes, Resolvers, JSONScalar, GQLDate],
   plugins: [],
-  shouldGenerateArtifacts: true,
+  shouldGenerateArtifacts: false,
   outputs: {
-    schema: join(__dirname, "generated/schema.gen.graphql"),
-    typegen: join(__dirname, "generated/nexusTypes.gen.ts"),
+    schema: join(__dirname, "generated/schema.graphql"),
+    typegen: join(__dirname, "generated/nexusTypes.ts"),
   },
   contextType: {
     module: join(__dirname, "context.ts"),

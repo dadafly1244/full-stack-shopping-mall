@@ -26,8 +26,8 @@ export const ProductMutation = extendType({
         category_id: nonNull(intArg()),
         store_id: nonNull(stringArg()),
       },
-      resolve: (_, args, ctx) => {
-        return ctx.prisma.product.create({
+      resolve: async (_, args, context) => {
+        return await context.prisma.product.create({
           data: args,
         });
       },

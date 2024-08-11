@@ -2,9 +2,9 @@ generator client {
   provider = "prisma-client-js"
 }
  
-generator nexusPrisma {
-   provider = "nexus-prisma"
-}
+// generator nexusPrisma {
+//    provider = "nexus-prisma"
+// }
 
 datasource db {
   provider = "mysql"
@@ -76,9 +76,9 @@ model Store {
   business_registration_number String @unique
   name String
   desc String?
-  product_id Int
+  product_id String
 
-  products Product[]
+  product Product[] 
 
   @@map("store")
 }

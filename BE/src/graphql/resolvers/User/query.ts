@@ -13,8 +13,8 @@ export const UserQuery = extendType({
   definition(t) {
     t.nonNull.list.nonNull.field("users", {
       type: "User",
-      resolve: (_, __, ctx) => {
-        return ctx.prisma.user.findMany();
+      resolve: async (_, __, context) => {
+        return await context.prisma.user.findMany();
       },
     });
     // 다른 쿼리들 추가...
