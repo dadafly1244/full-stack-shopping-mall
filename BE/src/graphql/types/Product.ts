@@ -8,8 +8,6 @@ import {
   extendType,
 } from "nexus";
 
-import { ProductStatusEnum } from "#/graphql/types/enumType";
-
 export const ProductType = objectType({
   name: "Product",
   definition(t) {
@@ -20,7 +18,7 @@ export const ProductType = objectType({
     t.int("sale");
     t.nonNull.int("count");
     t.nonNull.boolean("is_deleted");
-    t.nonNull.field("status", { type: ProductStatusEnum });
+    t.nonNull.field("status", { type: "ProductStatus" });
     t.nonNull.string("main_image_path");
     t.nullable.field("desc_images_path", { type: "JSON" });
     t.nonNull.field("created_at", { type: "DateTime" });

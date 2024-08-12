@@ -1,9 +1,4 @@
 import { objectType } from "nexus";
-import {
-  GenderEnum,
-  UserStatusEnum,
-  UserPermissionsEnum,
-} from "#/graphql/types/enumType";
 
 export const UserType = objectType({
   name: "User",
@@ -11,10 +6,10 @@ export const UserType = objectType({
     t.nonNull.id("id");
     t.nonNull.string("user_id");
     t.nonNull.string("email");
-    t.nonNull.field("gender", { type: GenderEnum });
+    t.nonNull.field("gender", { type: "Gender" });
     t.string("phone_number");
-    t.nonNull.field("status", { type: UserStatusEnum });
-    t.nonNull.field("permissions", { type: UserPermissionsEnum });
+    t.nonNull.field("status", { type: "UserStatus" });
+    t.nonNull.field("permissions", { type: "UserPermissions" });
     t.nonNull.field("created_at", { type: "DateTime" });
     t.nonNull.field("updated_at", { type: "DateTime" });
 
