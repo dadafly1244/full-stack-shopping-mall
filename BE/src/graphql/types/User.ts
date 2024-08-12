@@ -12,6 +12,8 @@ export const UserType = objectType({
     t.nonNull.field("permissions", { type: "UserPermissions" });
     t.nonNull.field("created_at", { type: "DateTime" });
     t.nonNull.field("updated_at", { type: "DateTime" });
+    t.nullable.string("access_token");
+    t.nullable.string("refresh_token");
 
     t.list.nonNull.field("carts", {
       type: "Cart",
