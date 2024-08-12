@@ -41,3 +41,13 @@ export const UserType = objectType({
     });
   },
 });
+
+export const AuthPayloadType = objectType({
+  name: "AuthPayload",
+  definition(t) {
+    t.nonNull.string("token");
+    t.nonNull.field("user", {
+      type: "User",
+    });
+  },
+});
