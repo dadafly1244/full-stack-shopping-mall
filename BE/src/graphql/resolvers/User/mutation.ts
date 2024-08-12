@@ -6,6 +6,8 @@ import {
   intArg,
   booleanArg,
   extendType,
+  arg,
+  nullable,
 } from "nexus";
 
 export const UserMutation = extendType({
@@ -16,8 +18,12 @@ export const UserMutation = extendType({
       args: {
         user_id: nonNull(stringArg()),
         email: nonNull(stringArg()),
+        name: nonNull(stringArg()),
         password: nonNull(stringArg()),
-        gender: nonNull("Gender"),
+        gender: nonNull(arg({ type: "Gender" })),
+        phone_number: nullable(stringArg()),
+        status: nonNull(arg({ type: "UserStatus" })),
+        permissions: nonNull(arg({ type: "UserPermissions" })),
       },
       resolve: async (_, args, context) => {
         return await context.prisma.user.create({
@@ -25,6 +31,5 @@ export const UserMutation = extendType({
         });
       },
     });
-    // 다른 뮤테이션들 추가...
   },
 });

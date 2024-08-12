@@ -5,7 +5,9 @@ export const UserType = objectType({
   definition(t) {
     t.nonNull.id("id");
     t.nonNull.string("user_id");
+    t.nonNull.string("name");
     t.nonNull.string("email");
+    t.nonNull.string("password");
     t.nonNull.field("gender", { type: "Gender" });
     t.string("phone_number");
     t.nonNull.field("status", { type: "UserStatus" });
