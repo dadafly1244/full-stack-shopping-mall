@@ -1,12 +1,11 @@
 import { objectType } from "nexus";
-import { OrderStatusEnum } from "#/graphql/types/enumType";
 
 export const OrderType = objectType({
   name: "Order",
   definition(t) {
     t.nonNull.string("id");
     t.nonNull.string("user_id");
-    t.nonNull.field("status", { type: OrderStatusEnum });
+    t.nonNull.field("status", { type: "OrderStatus" });
     t.string("address");
     t.string("is_deleted");
     t.nonNull.int("price_at_order");
