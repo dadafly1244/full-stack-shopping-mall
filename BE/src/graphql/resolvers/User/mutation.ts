@@ -253,22 +253,30 @@ export const AuthMutation = extendType({
         const deleteUser = await context.prisma.user.delete({
           where: { user_id: args.user_id },
         });
-        return deleteUser.user_id && deleteUser.user_id === args.user_id;
+        return {
+          user: deleteUser,
+        };
       },
     });
   },
 });
 
-const validUser = (_: any, args: any, context: any) => {
+const validUser = async (_: any, args: any, context: any) => {
   const { user_id } = args;
   let decoded: AuthTokenPayload = {
     userId: "",
     userRole: "",
   };
-  const token = context.req.headers.token;
+  const user = await context.prisma.user.findUnique({
+    where: { user_id: user_id },
+  });
+  if (!user) {
+    return false;
+  }
+  const token = context.req.headers.authorization.replace("Bearer ", "");
   try {
     decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as AuthTokenPayload;
-    return decoded.userRole == "USER" && user_id === decoded.userId;
+    return decoded.userRole === "USER" && user.id === decoded.userId;
   } catch (error) {
     throw new GraphQLError("권한을 가진 사용자가 아닙니다.", {
       extensions: {
@@ -279,7 +287,7 @@ const validUser = (_: any, args: any, context: any) => {
 };
 
 const isAdmin = (_: any, __: any, context: any) => {
-  const token = context.req.headers.token;
+  const token = context.req.headers.authorization;
   let decoded: AuthTokenPayload = {
     userId: "",
     userRole: "",
