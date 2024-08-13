@@ -24,6 +24,7 @@ model User {
   permissions UserPermissions @default(USER)
   store_id String?  // admin만 값을 가질 수 있는 칼럼
   main_image_path String?
+  refresh_token String? @db.Text
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 

@@ -14,7 +14,7 @@ async function startServer() {
   });
 
   const { url } = await startStandaloneServer(server, {
-    context: async () => createContext(),
+    context: createContext,
     listen: { port: 4000 },
   });
 

@@ -45,7 +45,8 @@ export const UserType = objectType({
 export const AuthPayloadType = objectType({
   name: "AuthPayload",
   definition(t) {
-    t.nonNull.string("token");
+    t.nullable.string("token");
+    t.nullable.string("refresh_token");
     t.nonNull.field("user", {
       type: "User",
     });
