@@ -75,6 +75,47 @@ $ openssl rand -hex 64
 npx prisma migrate dev --name
 ```
 
+## ERROR
+
+1. `Object literal may only specify known properties, and 'authorize' does not exist in type 'NexusOutputFieldConfig<"Mutation", "withdrawal">'.ts(2353)`
+
+사용자 정의 typings를 추가해서 해결했습니다. [참고](https://github.com/graphql-nexus/nexus/issues/327)
+
+- ./typings/index.ts 파일 추가
+
+```js
+import { FieldAuthorizeResolver } from '@nexus/schema/dist/plugins/fieldAuthorizePlugin'
+
+declare global {
+
+  interface NexusGenPluginFieldConfig<TypeName extends string, FieldName extends string> {
+    /**
+     * Authorization for an individual field. Returning "true"
+     * or "Promise<true>" means the field can be accessed.
+     * Returning "false" or "Promise<false>" will respond
+     * with a "Not Authorized" error for the field.
+     * Returning or throwing an error will also prevent the
+     * resolver from executing.
+     */
+    authorize?: FieldAuthorizeResolver<TypeName, FieldName>
+  }
+}
+```
+
+- ./tsconfig.json에 설정 추가
+
+```js
+ {
+  "compilerOptions": {
+    ...,
+    "types": [
+      // Required for custom typings  if using serverless-offline & serverless-typescript:
+      "./typings"
+    ],
+  },
+}
+```
+
 cf. [참고글](https://jinozblog.tistory.com/118), [참고2](https://codemonkyu.tistory.com/entry/MariaDB-MariaDB-%EA%B4%80%EB%A6%AC-%EC%A0%91%EC%86%8D-%EB%B0%8F-%EA%B0%84%EB%8B%A8-%EC%82%AC%EC%9A%A9%EB%B2%95)
 
 ---

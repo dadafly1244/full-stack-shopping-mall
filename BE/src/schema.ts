@@ -20,13 +20,13 @@ export const GQLDate = asNexusMethod(DateTimeResolver, "date");
 export const schema = makeSchema({
   types: [allTypes, Resolvers, JSONScalar, GQLDate],
   plugins: [fieldAuthorizePlugin()],
-  shouldGenerateArtifacts: false,
+  shouldGenerateArtifacts: true,
   outputs: {
     schema: join(process.cwd(), "generated/schema.graphql"),
     typegen: join(process.cwd(), "generated/nexusTypes.ts"),
   },
   contextType: {
-    module: join(process.cwd(), "context.ts"),
+    module: join(process.cwd(), "src/apollo/context.ts"),
     export: "Context",
   },
   sourceTypes: {
