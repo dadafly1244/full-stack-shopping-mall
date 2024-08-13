@@ -1,4 +1,9 @@
-import { makeSchema, scalarType, asNexusMethod } from "nexus";
+import {
+  makeSchema,
+  fieldAuthorizePlugin,
+  scalarType,
+  asNexusMethod,
+} from "nexus";
 import { DateTimeResolver } from "graphql-scalars";
 import { join } from "path";
 import * as allTypes from "#/graphql/types";
@@ -14,14 +19,14 @@ export const GQLDate = asNexusMethod(DateTimeResolver, "date");
 
 export const schema = makeSchema({
   types: [allTypes, Resolvers, JSONScalar, GQLDate],
-  plugins: [],
+  plugins: [fieldAuthorizePlugin()],
   shouldGenerateArtifacts: false,
   outputs: {
-    schema: join(__dirname, "generated/schema.graphql"),
-    typegen: join(__dirname, "generated/nexusTypes.ts"),
+    schema: join(process.cwd(), "generated/schema.graphql"),
+    typegen: join(process.cwd(), "generated/nexusTypes.ts"),
   },
   contextType: {
-    module: join(__dirname, "context.ts"),
+    module: join(process.cwd(), "context.ts"),
     export: "Context",
   },
   sourceTypes: {

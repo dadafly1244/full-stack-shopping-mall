@@ -10,6 +10,7 @@
     "build:schema": "ts-node src/schema/index.ts",
     "generate": "npm -s run generate:prisma",
     "generate:prisma": "prisma generate",
+    "generate1": "ts-node -r tsconfig-paths/register --transpile-only src/schema.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "starddt": "ts-node ./src",
     "start": "ts-node-dev --no-notify --transpileOnly --respawn ./src",

@@ -24,5 +24,6 @@ export const createContext: ContextFunction = async ({ req }) => {
     prisma,
     userId: token?.userId,
     userRole: token?.userRole,
+    req,
   };
 };
