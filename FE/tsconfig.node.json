@@ -8,9 +8,9 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noEmit": true,
-    "baseUrl": "./src",
+    "baseUrl": "./",
     "paths": {
-      "#/*": ["/*"]
+      "#/*": ["./src/*"]
     }
   },
   "include": ["vite.config.ts"]
