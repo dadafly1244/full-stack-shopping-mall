@@ -1,6 +1,15 @@
-import { atom } from 'recoil';
+import { atom } from "recoil";
 
 export const sampleAtom = atom({
-  key: 'sampleAtom',
-  default: '',
+  key: "sampleAtom",
+  default: "",
+});
+
+export const userState = atom({
+  key: "userState",
+  default: {
+    name: "",
+    userId: "",
+    gender: "",
+  },
 });

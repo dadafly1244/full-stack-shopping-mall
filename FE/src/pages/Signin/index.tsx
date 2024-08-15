@@ -1,8 +1,14 @@
 import DetermineInput, { DetermineInputProps } from "#/common/DetermineInput";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import { SIGN_IN_USER } from "#/apollo/mutation";
 import { twJoin } from "tailwind-merge";
+import Cookies from "js-cookie";
+import { useSetRecoilState } from "recoil";
+import { userState } from "#/store/atoms";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+
 interface CustomDetermineInputProps extends Omit<DetermineInputProps, "isRight"> {
   isRight: (value: string) => boolean;
   key: keyof SigninType;
@@ -13,6 +19,7 @@ interface SigninType {
   password: string;
   user_id: string;
 }
+
 const signinForm: CustomDetermineInputProps[] = [
   {
     type: "determineInput",
@@ -38,13 +45,37 @@ const signinForm: CustomDetermineInputProps[] = [
 ];
 
 const SigninPage = () => {
+  const navigate = useNavigate();
   const [formState, setFormState] = useState<SigninType>({
     password: "",
     user_id: "",
   });
 
-  const isValid = true;
+  const setUserState = useSetRecoilState(userState);
+
   const [signinFc, { data: signinUserData, loading, error }] = useMutation(SIGN_IN_USER);
+
+  useEffect(() => {
+    if (signinUserData) {
+      const { token, refresh_token, user } = signinUserData.signin;
+
+      // Store the refresh_token in localStorage
+      localStorage.setItem("refresh_token", refresh_token);
+
+      // Store the token in cookies
+      Cookies.set("token", token, { expires: 7 });
+
+      // Update Recoil state with user information
+      setUserState({
+        name: user.name,
+        userId: user.userId,
+        gender: user.gender,
+      });
+
+      // Navigate to home page
+      navigate("/home");
+    }
+  }, [signinUserData, setUserState, navigate]); // Ensure the useEffect only runs when `signinUserData` changes
 
   const handleSignin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,7 +87,7 @@ const SigninPage = () => {
         },
       });
     } catch (error) {
-      console.error("Error during signup: ", error);
+      console.error("Error during signin: ", error);
     }
   };
 
@@ -64,8 +95,7 @@ const SigninPage = () => {
     <>
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
-      {console.log(signinUserData)}
-      {!signinUserData && (
+      {
         <form onSubmit={handleSignin}>
           <div className="grid gap-6 mb-6 md:grid-cols-2">
             {signinForm.map((item) => {
@@ -94,17 +124,24 @@ const SigninPage = () => {
           </div>
           <button
             type="submit"
-            disabled={!isValid}
+            disabled={loading || !!error}
             className={twJoin(
-              isValid
-                ? "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                : "text-white bg-gray-200 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-gray-600"
+              "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
+              !loading && !error ? "cursor-pointer" : "cursor-not-allowed"
             )}
           >
-            Submitt
+            Submit
           </button>
         </form>
-      )}
+      }
+      <Link
+        to="/signup"
+        className={
+          "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        }
+      >
+        회원가입
+      </Link>
     </>
   );
 };
