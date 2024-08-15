@@ -18,13 +18,14 @@ export enum UserPermissions {
 }
 
 export const SIGN_IN_USER = gql`
-  mutation SignIn($email: String!, $password: String!) {
-    signin(email: $email, password: $password) {
+  mutation signin($user_id: String!, $password: String!) {
+    signin(user_id: $user_id, password: $password) {
       token
+      refresh_token
       user {
         name
+        gender
         user_id
-        refresh_token
       }
     }
   }

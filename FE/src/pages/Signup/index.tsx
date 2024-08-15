@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@apollo/client";
-import {
-  SIGN_UP_USER,
-  Gender,
-  UserStatus,
-  UserPermissions,
-} from "#/apollo/mutation";
+import { SIGN_UP_USER, Gender, UserStatus, UserPermissions } from "#/apollo/mutation";
 
 import { getEnumValue } from "#/utils/getEnumValue";
 
@@ -15,8 +10,7 @@ import DetermineInput, { DetermineInputProps } from "#/common/DetermineInput";
 import SelectBox, { SelectProps } from "#/common/SelectBox";
 import { twJoin } from "tailwind-merge";
 
-interface CustomDetermineInputProps
-  extends Omit<DetermineInputProps, "isRight"> {
+interface CustomDetermineInputProps extends Omit<DetermineInputProps, "isRight"> {
   isRight: (value: string) => boolean;
   key: keyof SignupType;
   type: "determineInput";
@@ -48,8 +42,7 @@ const signupForm: FormItem[] = [
     placeholder: "이름을 입력해주세요.",
     wrongMessage: "1~20자 사이로 입력하세요.",
     rightMessage: "% ^ ^ %",
-    isRight: (name: string): boolean =>
-      /^[a-zA-Zㄱ-ㅎ가-힣]{1,20}$/.test(name.trim()),
+    isRight: (name: string): boolean => /^[a-zA-Zㄱ-ㅎ가-힣]{1,20}$/.test(name.trim()),
     isRequired: true,
   },
   {
@@ -67,13 +60,10 @@ const signupForm: FormItem[] = [
     key: "password",
     label: "비밀번호",
     placeholder: "비밀번호를 입력하세요.",
-    wrongMessage:
-      "영어 소문자, 숫자, 특수문자(!@#$%^&*) 포함해서 8~30 글자 입력하세요.",
+    wrongMessage: "영어 소문자, 숫자, 특수문자(!@#$%^&*) 포함해서 8~30 글자 입력하세요.",
     rightMessage: "% ^ ^ %",
     isRight: (password: string): boolean =>
-      /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(
-        password.trim()
-      ),
+      /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(password.trim()),
     isRequired: true,
   },
   {
@@ -83,8 +73,7 @@ const signupForm: FormItem[] = [
     placeholder: "email 주소를 입력하세요.",
     wrongMessage: "바른 email 주소를 입력하세요.",
     rightMessage: "% ^ ^ %",
-    isRight: (email: string): boolean =>
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()),
+    isRight: (email: string): boolean => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()),
     isRequired: true,
   },
   {
@@ -94,10 +83,7 @@ const signupForm: FormItem[] = [
     placeholder: "휴대폰 번호를 입력하세요.",
     wrongMessage: "바른 휴대폰 번호를 입력하세요.",
     rightMessage: "% ^ ^ %",
-    isRight: (phone: string): boolean =>
-      /^01([0|1|6|7|8|9])-?\d{3,4}-?\d{4}$/.test(
-        formatPhoneNumber(phone.trim())
-      ),
+    isRight: (phone: string): boolean => /^01([0|1|6|7|8|9])-?\d{3,4}-?\d{4}$/.test(formatPhoneNumber(phone.trim())),
     formatter: formatPhoneNumber,
     isRequired: false,
   },
@@ -115,16 +101,6 @@ const signupForm: FormItem[] = [
   },
 ];
 
-const signupValidForSubmit = (obj: SignupType, formList: FormItem[]) => {
-  const isValid = formList.every((form) => {
-    if (form.type === "determineInput") {
-      if (form?.isRequired && String(obj[form.key]).trim().length > 0)
-        return true;
-    } else return false;
-  });
-  return isValid;
-};
-
 const SignupPage = () => {
   const [formState, setFormState] = useState<SignupType>({
     email: "",
@@ -136,9 +112,15 @@ const SignupPage = () => {
     status: UserStatus.ACTIVE,
     permissions: UserPermissions.USER,
   });
-
-  const [signupFc, { data: signupUserData, loading, error }] =
-    useMutation(SIGN_UP_USER);
+  const [isValidOjb, setIsValidOjb] = useState({
+    email: false,
+    password: false,
+    name: false,
+    user_id: false,
+    phone_number: false,
+  });
+  const isValid = Object.entries(isValidOjb).every((a) => a);
+  const [signupFc, { data: signupUserData, loading, error }] = useMutation(SIGN_UP_USER);
 
   const handleSignup = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -160,33 +142,21 @@ const SignupPage = () => {
     }
   };
 
-  {
-    loading && <p>Loading...</p>;
-  }
-  {
-    error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>;
-  }
-  {
-    signupUserData && (
-      <p>Sign up successful! Welcome, {signupUserData.signup.user.name}.</p>
-    );
-  }
-
   return (
     <div>
       {loading && <p>Loading...</p>}
-      {error && (
-        <p style={{ color: "red" }}>An error occurred: {error.message}</p>
-      )}
-      {signupUserData && (
-        <p>Sign up successful! Welcome, {signupUserData.signup.user.name}.</p>
-      )}
+      {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
+      {signupUserData && <p>Sign up successful! Welcome, {signupUserData.signup.user.name}.</p>}
       {!signupUserData && (
         <form onSubmit={handleSignup}>
           <div className="grid gap-6 mb-6 md:grid-cols-2">
             {signupForm.map((item) => {
               if (item.type === "determineInput") {
                 const determineItem = item as DetermineInputProps;
+                setIsValidOjb((prev) => ({
+                  ...prev,
+                  [item.key]: item?.isRight(item.key),
+                }));
                 return (
                   <DetermineInput
                     key={determineItem.key}
@@ -194,9 +164,7 @@ const SignupPage = () => {
                     placeholder={determineItem?.placeholder as string}
                     wrongMessage={determineItem?.wrongMessage as string}
                     rightMessage={determineItem?.rightMessage as string}
-                    isRight={(value: string): boolean =>
-                      (item.isRight as (value: string) => boolean)(value)
-                    }
+                    isRight={(value: string): boolean => (item.isRight as (value: string) => boolean)(value)}
                     isRequired={determineItem?.isRequired}
                     className={determineItem?.className}
                     onChange={(value) => {
@@ -228,9 +196,9 @@ const SignupPage = () => {
           </div>
           <button
             type="submit"
-            disabled={signupValidForSubmit(formState, signupForm)}
+            disabled={!isValid}
             className={twJoin(
-              signupValidForSubmit(formState, signupForm)
+              isValid
                 ? "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                 : "text-white bg-gray-200 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-gray-600"
             )}
