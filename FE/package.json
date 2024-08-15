@@ -11,12 +11,15 @@
   },
   "dependencies": {
     "@apollo/client": "^3.11.3",
+    "@types/js-cookie": "^3.0.6",
     "@types/react-router-dom": "^5.3.3",
     "graphql": "^16.9.0",
+    "js-cookie": "^3.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.0",
     "recoil": "^0.7.7",
+    "tailwind-merge": "^2.5.2",
     "vite-tsconfig-paths": "^5.0.1"
   },
   "devDependencies": {
