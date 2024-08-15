@@ -39,43 +39,41 @@ const Select = (props: SelectProps) => {
     }
   };
   return (
-    <div>
-      <form className="mb-6 mx-auto">
-        <label
-          htmlFor={`select-${label}`}
-          className={
-            (twJoin(
-              "block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-            ),
-            isRight(_value) ? " text-green-900" : " text-red-900")
-          }
-        >
-          {label}
-        </label>
-        <select
-          id={`select-${label}`}
-          defaultValue={placeholder}
-          value={_value}
-          onChange={handleChange}
-          className={twJoin(
-            "bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ",
-            className,
-            disabled && "bg-gray-50 border text-gray-400",
-            isRight(_value)
-              ? "border-green-500 text-green-900 placeholder-green-700 dark:placeholder-green-500"
-              : "border-red-500 text-red-900 placeholder-red-700 dark:placeholder-red-500"
-          )}
-        >
-          {placeholder && <option value="defaultValue">선택해 주세요.</option>}
-          {options.map((o) => {
-            return (
-              <option key={o.value} value={o.value} disabled={disabled}>
-                {o.label}
-              </option>
-            );
-          })}
-        </select>
-      </form>
+    <div className="mb-6 mx-auto">
+      <label
+        htmlFor={`select-${label}`}
+        className={
+          (twJoin(
+            "block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          ),
+          isRight(_value) ? " text-green-900" : " text-red-900")
+        }
+      >
+        {label}
+      </label>
+      <select
+        id={`select-${label}`}
+        defaultValue={placeholder}
+        value={_value}
+        onChange={handleChange}
+        className={twJoin(
+          "bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ",
+          className,
+          disabled && "bg-gray-50 border text-gray-400",
+          isRight(_value)
+            ? "border-green-500 text-green-900 placeholder-green-700 dark:placeholder-green-500"
+            : "border-red-500 text-red-900 placeholder-red-700 dark:placeholder-red-500"
+        )}
+      >
+        {placeholder && <option value="defaultValue">선택해 주세요.</option>}
+        {options.map((o) => {
+          return (
+            <option key={o.value} value={o.value} disabled={disabled}>
+              {o.label}
+            </option>
+          );
+        })}
+      </select>
     </div>
   );
 };
