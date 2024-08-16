@@ -17,6 +17,20 @@ export const UserQuery = extendType({
         return await context.prisma.user.findMany();
       },
     });
-    // 다른 쿼리들 추가...
+    t.nonNull.list.nonNull.field("users", {
+      type: "User",
+      resolve: async (_, args, context) => {
+        const { user_id, email } = args;
+
+        const user = await context.prisma.user.findUnique({
+          where: { user_id: user_id, email: email },
+        });
+        if (!user) {
+          return true;
+        } else {
+          return false;
+        }
+      },
+    });
   },
 });
