@@ -50,6 +50,7 @@ type Mutation {
   signin(password: String!, user_id: String!): AuthPayload!
   signout(id: String!): AuthPayload!
   signup(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): AuthPayload!
+  userSuspendedByAdmin(password: String!, user_id: String!): AuthPayload
   withdrawal(password: String!, user_id: String!): AuthPayload
 }
 
@@ -105,7 +106,7 @@ enum ProductStatus {
 }
 
 type Query {
-  is_duplicated(email: String, user_id: String): UserBoolean
+  isDuplicated(email: String, user_id: String): UserBoolean
   product(id: String!): Product
   products: [Product!]!
   users: [User]!

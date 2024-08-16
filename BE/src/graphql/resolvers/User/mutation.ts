@@ -8,7 +8,6 @@ import {
   extendType,
   arg,
   nullable,
-  fieldAuthorizePlugin,
 } from "nexus";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -16,6 +15,7 @@ import "dotenv/config";
 import { AuthTokenPayload } from "#/utils/auth";
 import { ApolloServerErrorCode } from "@apollo/server/errors";
 import { GraphQLError } from "graphql";
+import { UserStatus } from "@prisma/client";
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "";
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "";
@@ -199,6 +199,9 @@ export const AuthMutation = extendType({
             throw new Error("User not found");
           }
 
+          if (user.refresh_token !== refresh_token) {
+            throw new Error("refresh_token not matched");
+          }
           // 새로운 access 토큰 생성
           const newAccessToken = jwt.sign(
             { userId: user.id, userRole: user.permissions },
@@ -250,8 +253,43 @@ export const AuthMutation = extendType({
           throw new Error("Invalid password");
         }
 
-        const deleteUser = await context.prisma.user.delete({
+        const deleteUser = await context.prisma.user.update({
           where: { user_id: args.user_id },
+          data: {
+            status: UserStatus.INACTIVE,
+          },
+        });
+        return {
+          user: deleteUser,
+        };
+      },
+    });
+    // 회원 정지 userSuspendedByAdmin
+    t.nullable.field("userSuspendedByAdmin", {
+      type: "AuthPayload",
+      args: {
+        user_id: nonNull(stringArg()),
+        password: nonNull(stringArg()),
+      },
+      authorize: isAdmin,
+      resolve: async (_, args, context) => {
+        const user = await context.prisma.user.findUnique({
+          where: { user_id: args.user_id },
+        });
+
+        if (!user) {
+          throw new Error("No such user found");
+        }
+        const valid = await bcrypt.compare(args.password, user.password);
+        if (!valid) {
+          throw new Error("Invalid password");
+        }
+
+        const deleteUser = await context.prisma.user.update({
+          where: { user_id: args.user_id },
+          data: {
+            status: UserStatus.SUSPENDED,
+          },
         });
         return {
           user: deleteUser,
@@ -295,7 +333,7 @@ const isAdmin = (_: any, __: any, context: any) => {
   try {
     decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as AuthTokenPayload;
 
-    return decoded.userRole == "ADMIN";
+    return decoded.userRole === "ADMIN";
   } catch (error) {
     throw new GraphQLError("관리자 권한이 필요합니다.", {
       extensions: {

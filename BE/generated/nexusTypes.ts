@@ -180,6 +180,7 @@ export interface NexusGenFieldTypes {
     signin: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signout: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
+    userSuspendedByAdmin: NexusGenRootTypes['AuthPayload'] | null; // AuthPayload
     withdrawal: NexusGenRootTypes['AuthPayload'] | null; // AuthPayload
   }
   Order: { // field return type
@@ -215,7 +216,7 @@ export interface NexusGenFieldTypes {
     updated_at: NexusGenScalars['DateTime']; // DateTime!
   }
   Query: { // field return type
-    is_duplicated: NexusGenRootTypes['UserBoolean'] | null; // UserBoolean
+    isDuplicated: NexusGenRootTypes['UserBoolean'] | null; // UserBoolean
     product: NexusGenRootTypes['Product'] | null; // Product
     products: NexusGenRootTypes['Product'][]; // [Product!]!
     users: Array<NexusGenRootTypes['User'] | null>; // [User]!
@@ -298,6 +299,7 @@ export interface NexusGenFieldTypeNames {
     signin: 'AuthPayload'
     signout: 'AuthPayload'
     signup: 'AuthPayload'
+    userSuspendedByAdmin: 'AuthPayload'
     withdrawal: 'AuthPayload'
   }
   Order: { // field return type name
@@ -333,7 +335,7 @@ export interface NexusGenFieldTypeNames {
     updated_at: 'DateTime'
   }
   Query: { // field return type name
-    is_duplicated: 'UserBoolean'
+    isDuplicated: 'UserBoolean'
     product: 'Product'
     products: 'Product'
     users: 'User'
@@ -429,13 +431,17 @@ export interface NexusGenArgTypes {
       status: NexusGenEnums['UserStatus']; // UserStatus!
       user_id: string; // String!
     }
+    userSuspendedByAdmin: { // args
+      password: string; // String!
+      user_id: string; // String!
+    }
     withdrawal: { // args
       password: string; // String!
       user_id: string; // String!
     }
   }
   Query: {
-    is_duplicated: { // args
+    isDuplicated: { // args
       email?: string | null; // String
       user_id?: string | null; // String
     }
