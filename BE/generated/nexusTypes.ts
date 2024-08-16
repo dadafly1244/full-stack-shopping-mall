@@ -133,6 +133,9 @@ export interface NexusGenObjects {
     updated_at: NexusGenScalars['DateTime']; // DateTime!
     user_id: string; // String!
   }
+  UserBoolean: { // root type
+    duplicated: boolean; // Boolean!
+  }
 }
 
 export interface NexusGenInterfaces {
@@ -212,9 +215,10 @@ export interface NexusGenFieldTypes {
     updated_at: NexusGenScalars['DateTime']; // DateTime!
   }
   Query: { // field return type
+    is_duplicated: NexusGenRootTypes['UserBoolean'] | null; // UserBoolean
     product: NexusGenRootTypes['Product'] | null; // Product
     products: NexusGenRootTypes['Product'][]; // [Product!]!
-    users: NexusGenRootTypes['User'][]; // [User!]!
+    users: Array<NexusGenRootTypes['User'] | null>; // [User]!
   }
   Review: { // field return type
     childReviews: Array<NexusGenRootTypes['Review'] | null> | null; // [Review]
@@ -256,6 +260,9 @@ export interface NexusGenFieldTypes {
     status: NexusGenEnums['UserStatus']; // UserStatus!
     updated_at: NexusGenScalars['DateTime']; // DateTime!
     user_id: string; // String!
+  }
+  UserBoolean: { // field return type
+    duplicated: boolean; // Boolean!
   }
 }
 
@@ -326,6 +333,7 @@ export interface NexusGenFieldTypeNames {
     updated_at: 'DateTime'
   }
   Query: { // field return type name
+    is_duplicated: 'UserBoolean'
     product: 'Product'
     products: 'Product'
     users: 'User'
@@ -370,6 +378,9 @@ export interface NexusGenFieldTypeNames {
     status: 'UserStatus'
     updated_at: 'DateTime'
     user_id: 'String'
+  }
+  UserBoolean: { // field return type name
+    duplicated: 'Boolean'
   }
 }
 
@@ -424,6 +435,10 @@ export interface NexusGenArgTypes {
     }
   }
   Query: {
+    is_duplicated: { // args
+      email?: string | null; // String
+      user_id?: string | null; // String
+    }
     product: { // args
       id: string; // String!
     }

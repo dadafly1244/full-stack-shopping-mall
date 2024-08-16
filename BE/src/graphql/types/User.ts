@@ -52,3 +52,10 @@ export const AuthPayloadType = objectType({
     });
   },
 });
+
+export const UserBooleanType = objectType({
+  name: "UserBoolean",
+  definition(t) {
+    t.nonNull.boolean("duplicated");
+  },
+});

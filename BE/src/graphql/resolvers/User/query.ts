@@ -2,6 +2,7 @@ import {
   objectType,
   enumType,
   nonNull,
+  nullable,
   stringArg,
   intArg,
   booleanArg,
@@ -11,25 +12,39 @@ import {
 export const UserQuery = extendType({
   type: "Query",
   definition(t) {
-    t.nonNull.list.nonNull.field("users", {
+    t.nonNull.list.field("users", {
       type: "User",
       resolve: async (_, __, context) => {
         return await context.prisma.user.findMany();
       },
     });
-    t.nonNull.list.nonNull.field("users", {
-      type: "User",
-      resolve: async (_, args, context) => {
-        const { user_id, email } = args;
+  },
+});
 
-        const user = await context.prisma.user.findUnique({
-          where: { user_id: user_id, email: email },
-        });
-        if (!user) {
-          return true;
-        } else {
-          return false;
-        }
+export const UserBooleanQuery = extendType({
+  type: "Query",
+
+  definition(t) {
+    t.field("isDuplicated", {
+      type: "UserBoolean",
+      args: {
+        user_id: nullable(stringArg()),
+        email: nullable(stringArg()),
+      },
+      resolve: async (_, args, context) => {
+        let user;
+        if (args?.user_id) {
+          user = await context.prisma.user.findUnique({
+            where: { user_id: args.user_id },
+          });
+        } else if (args?.email) {
+          user = await context.prisma.user.findUnique({
+            where: { email: args.email },
+          });
+        } else throw new Error("id나 email를 입력해주세요");
+
+        if (!user) return { duplicated: false };
+        else return { duplicated: true };
       },
     });
   },

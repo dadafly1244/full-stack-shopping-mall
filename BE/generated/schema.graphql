@@ -105,9 +105,10 @@ enum ProductStatus {
 }
 
 type Query {
+  is_duplicated(email: String, user_id: String): UserBoolean
   product(id: String!): Product
   products: [Product!]!
-  users: [User!]!
+  users: [User]!
 }
 
 type Review {
@@ -152,6 +153,10 @@ type User {
   status: UserStatus!
   updated_at: DateTime!
   user_id: String!
+}
+
+type UserBoolean {
+  duplicated: Boolean!
 }
 
 enum UserPermissions {
