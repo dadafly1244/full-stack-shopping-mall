@@ -180,7 +180,9 @@ export interface NexusGenFieldTypes {
     signin: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signout: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
-    userSuspendedByAdmin: NexusGenRootTypes['AuthPayload'] | null; // AuthPayload
+    updateUser: NexusGenRootTypes['User']; // User!
+    updateUserStateActive: NexusGenRootTypes['User']; // User!
+    updateUserStateSuspended: NexusGenRootTypes['User']; // User!
     withdrawal: NexusGenRootTypes['AuthPayload'] | null; // AuthPayload
   }
   Order: { // field return type
@@ -216,10 +218,11 @@ export interface NexusGenFieldTypes {
     updated_at: NexusGenScalars['DateTime']; // DateTime!
   }
   Query: { // field return type
+    filteredUsers: Array<NexusGenRootTypes['User'] | null>; // [User]!
     isDuplicated: NexusGenRootTypes['UserBoolean'] | null; // UserBoolean
     product: NexusGenRootTypes['Product'] | null; // Product
     products: NexusGenRootTypes['Product'][]; // [Product!]!
-    users: Array<NexusGenRootTypes['User'] | null>; // [User]!
+    usersList: Array<NexusGenRootTypes['User'] | null>; // [User]!
   }
   Review: { // field return type
     childReviews: Array<NexusGenRootTypes['Review'] | null> | null; // [Review]
@@ -299,7 +302,9 @@ export interface NexusGenFieldTypeNames {
     signin: 'AuthPayload'
     signout: 'AuthPayload'
     signup: 'AuthPayload'
-    userSuspendedByAdmin: 'AuthPayload'
+    updateUser: 'User'
+    updateUserStateActive: 'User'
+    updateUserStateSuspended: 'User'
     withdrawal: 'AuthPayload'
   }
   Order: { // field return type name
@@ -335,10 +340,11 @@ export interface NexusGenFieldTypeNames {
     updated_at: 'DateTime'
   }
   Query: { // field return type name
+    filteredUsers: 'User'
     isDuplicated: 'UserBoolean'
     product: 'Product'
     products: 'Product'
-    users: 'User'
+    usersList: 'User'
   }
   Review: { // field return type name
     childReviews: 'Review'
@@ -431,9 +437,20 @@ export interface NexusGenArgTypes {
       status: NexusGenEnums['UserStatus']; // UserStatus!
       user_id: string; // String!
     }
-    userSuspendedByAdmin: { // args
-      password: string; // String!
+    updateUser: { // args
+      email: string; // String!
+      gender: NexusGenEnums['Gender']; // Gender!
+      id: string; // String!
+      name: string; // String!
+      permissions: NexusGenEnums['UserPermissions']; // UserPermissions!
+      phone_number?: string | null; // String
       user_id: string; // String!
+    }
+    updateUserStateActive: { // args
+      id: string; // String!
+    }
+    updateUserStateSuspended: { // args
+      id: string; // String!
     }
     withdrawal: { // args
       password: string; // String!
@@ -441,6 +458,15 @@ export interface NexusGenArgTypes {
     }
   }
   Query: {
+    filteredUsers: { // args
+      email?: string | null; // String
+      gender?: NexusGenEnums['Gender'] | null; // Gender
+      name?: string | null; // String
+      permissions?: NexusGenEnums['UserPermissions'] | null; // UserPermissions
+      phone_number?: string | null; // String
+      status?: NexusGenEnums['UserStatus'] | null; // UserStatus
+      user_id?: string | null; // String
+    }
     isDuplicated: { // args
       email?: string | null; // String
       user_id?: string | null; // String

@@ -25,6 +25,7 @@ export const UserMutation = extendType({
   type: "Mutation",
   definition(t) {
     t.nonNull.field("createUser", {
+      // 관리자: 회원 생성
       type: "User",
       args: {
         user_id: nonNull(stringArg()),
@@ -36,10 +37,92 @@ export const UserMutation = extendType({
         status: nonNull(arg({ type: "UserStatus" })),
         permissions: nonNull(arg({ type: "UserPermissions" })),
       },
+      authorize: isAdmin,
       resolve: async (_, args, context) => {
+        const password = await bcrypt.hash(args.password, 10);
+
+        const refresh_token = jwt.sign(
+          { userId: args.user_id, userRole: args.permissions },
+          REFRESH_TOKEN_SECRET,
+          {
+            expiresIn: "1h",
+          },
+        );
         return await context.prisma.user.create({
-          data: args,
+          data: {
+            password,
+            refresh_token,
+            ...args,
+          },
         });
+      },
+    });
+    t.nonNull.field("updateUserStateSuspended", {
+      // 관리자 : 회원 자격 정지
+      type: "User",
+      args: {
+        id: nonNull(stringArg()),
+      },
+      authorize: isAdmin,
+      resolve: async (_, args, context) => {
+        const deleteUser = await context.prisma.user.update({
+          where: { id: args.id },
+          data: {
+            status: UserStatus.SUSPENDED,
+          },
+        });
+        return {
+          user: deleteUser,
+        };
+      },
+    });
+    t.nonNull.field("updateUserStateActive", {
+      // 관리자 : 회원 자격 활성화
+      type: "User",
+      args: {
+        id: nonNull(stringArg()),
+      },
+      authorize: isAdmin,
+      resolve: async (_, args, context) => {
+        const activeUser = await context.prisma.user.update({
+          where: { id: args.id },
+          data: {
+            status: UserStatus.ACTIVE,
+          },
+        });
+        return {
+          user: activeUser,
+        };
+      },
+    });
+    t.nonNull.field("updateUser", {
+      // 관리자 : 회원 정보 수정
+      type: "User",
+      args: {
+        id: nonNull(stringArg()),
+        user_id: nonNull(stringArg()),
+        email: nonNull(stringArg()),
+        name: nonNull(stringArg()),
+        gender: nonNull(arg({ type: "Gender" })),
+        phone_number: nullable(stringArg()),
+        permissions: nonNull(arg({ type: "UserPermissions" })),
+      },
+      authorize: isAdmin,
+      resolve: async (_, args, context) => {
+        const updatedUser = await context.prisma.user.update({
+          where: { id: args.id },
+          data: {
+            user_id: args.user_id,
+            email: args.email,
+            name: args.name,
+            gender: args.name,
+            phone_number: args.phone_number,
+            permissions: args.permissions,
+          },
+        });
+        return {
+          user: updatedUser,
+        };
       },
     });
   },
@@ -77,7 +160,7 @@ export const AuthMutation = extendType({
           { userId: user_id, userRole: permissions },
           REFRESH_TOKEN_SECRET,
           {
-            expiresIn: "10m",
+            expiresIn: "1h",
           },
         );
 
@@ -98,7 +181,7 @@ export const AuthMutation = extendType({
           { userId: user.id, userRole: user.permissions },
           ACCESS_TOKEN_SECRET,
           {
-            expiresIn: "1m",
+            expiresIn: "10m",
           },
         );
 
@@ -132,7 +215,7 @@ export const AuthMutation = extendType({
           { userId: user.id, userRole: user.permissions },
           ACCESS_TOKEN_SECRET,
           {
-            expiresIn: "1m",
+            expiresIn: "10m",
           },
         );
 
@@ -140,7 +223,7 @@ export const AuthMutation = extendType({
           { userId: user.id, userRole: user.permissions },
           REFRESH_TOKEN_SECRET,
           {
-            expiresIn: "10m",
+            expiresIn: "1h",
           },
         );
         const updatedUser = await context.prisma.user.update({
@@ -207,14 +290,14 @@ export const AuthMutation = extendType({
           const newAccessToken = jwt.sign(
             { userId: user.id, userRole: user.permissions },
             ACCESS_TOKEN_SECRET,
-            { expiresIn: "1m" },
+            { expiresIn: "10m" },
           );
 
           // 새로운 refresh 토큰 생성
           const newRefreshToken = jwt.sign(
             { userId: user.id, userRole: user.permissions },
             REFRESH_TOKEN_SECRET,
-            { expiresIn: "10m" },
+            { expiresIn: "1h" },
           );
 
           // 새로운 refresh 토큰을 DB에 저장
@@ -258,38 +341,6 @@ export const AuthMutation = extendType({
           where: { user_id: args.user_id },
           data: {
             status: UserStatus.INACTIVE,
-          },
-        });
-        return {
-          user: deleteUser,
-        };
-      },
-    });
-    // 회원 정지 userSuspendedByAdmin
-    t.nullable.field("userSuspendedByAdmin", {
-      type: "AuthPayload",
-      args: {
-        user_id: nonNull(stringArg()),
-        password: nonNull(stringArg()),
-      },
-      authorize: isAdmin,
-      resolve: async (_, args, context) => {
-        const user = await context.prisma.user.findUnique({
-          where: { user_id: args.user_id },
-        });
-
-        if (!user) {
-          throw new Error("No such user found");
-        }
-        const valid = await bcrypt.compare(args.password, user.password);
-        if (!valid) {
-          throw new Error("Invalid password");
-        }
-
-        const deleteUser = await context.prisma.user.update({
-          where: { user_id: args.user_id },
-          data: {
-            status: UserStatus.SUSPENDED,
           },
         });
         return {

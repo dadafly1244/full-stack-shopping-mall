@@ -16,7 +16,7 @@ export const UserQuery = extendType({
   type: "Query",
   definition(t) {
     t.nonNull.list.field("usersList", {
-      //사용자 조회
+      //관리자 : 전체 사용자 조회
       type: "User",
       authorize: isAdmin,
       resolve: async (_, __, context) => {
@@ -24,6 +24,7 @@ export const UserQuery = extendType({
       },
     });
     t.nonNull.list.field("filteredUsers", {
+      // 관리자: 사용자 검색
       type: "User",
       args: {
         name: nullable(stringArg()),
@@ -63,6 +64,7 @@ export const UserQuery = extendType({
 });
 
 export const UserBooleanQuery = extendType({
+  //이메일, id 중복 체크
   type: "Query",
   definition(t) {
     t.field("isDuplicated", {
