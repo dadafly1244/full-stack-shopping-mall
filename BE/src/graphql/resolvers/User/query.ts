@@ -32,19 +32,21 @@ export const UserBooleanQuery = extendType({
         email: nullable(stringArg()),
       },
       resolve: async (_, args, context) => {
-        let user;
-        if (args?.user_id) {
-          user = await context.prisma.user.findUnique({
-            where: { user_id: args.user_id },
-          });
-        } else if (args?.email) {
-          user = await context.prisma.user.findUnique({
-            where: { email: args.email },
-          });
-        } else throw new Error("id나 email를 입력해주세요");
+        if (!args?.user_id && !args?.email) {
+          throw new Error("user_id 또는 email을 입력해주세요");
+        }
 
-        if (!user) return { duplicated: false };
-        else return { duplicated: true };
+        const conditions = [];
+        if (args.user_id) conditions.push({ user_id: args.user_id });
+        if (args.email) conditions.push({ email: args.email });
+
+        const user = await context.prisma.user.findFirst({
+          where: {
+            OR: conditions,
+          },
+        });
+
+        return { duplicated: !!user };
       },
     });
   },

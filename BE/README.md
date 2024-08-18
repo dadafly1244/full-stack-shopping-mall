@@ -133,6 +133,13 @@ declare global {
 }
 ```
 
+2. 다른 환경에서 prisma 실행하는 방법
+
+```shell
+npx prisma migrate deploy # 마이그레이션을 실행하여 데이터베이스 스키마를 최신 상태로 만들기
+npx prisma generate # 새로운 스키마에 맞춰 Prisma 클라이언트를 업데이트
+```
+
 -
 
 cf. [참고글](https://jinozblog.tistory.com/118), [참고2](https://codemonkyu.tistory.com/entry/MariaDB-MariaDB-%EA%B4%80%EB%A6%AC-%EC%A0%91%EC%86%8D-%EB%B0%8F-%EA%B0%84%EB%8B%A8-%EC%82%AC%EC%9A%A9%EB%B2%95)
