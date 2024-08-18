@@ -13,12 +13,13 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import "dotenv/config";
 import { AuthTokenPayload } from "#/utils/auth";
-import { ApolloServerErrorCode } from "@apollo/server/errors";
-import { GraphQLError } from "graphql";
 import { UserStatus } from "@prisma/client";
-
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "";
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "";
+import {
+  validUser,
+  isAdmin,
+  ACCESS_TOKEN_SECRET,
+  REFRESH_TOKEN_SECRET,
+} from "#/graphql/validators";
 
 export const UserMutation = extendType({
   type: "Mutation",
@@ -298,47 +299,3 @@ export const AuthMutation = extendType({
     });
   },
 });
-
-const validUser = async (_: any, args: any, context: any) => {
-  const { user_id } = args;
-  let decoded: AuthTokenPayload = {
-    userId: "",
-    userRole: "",
-  };
-  const user = await context.prisma.user.findUnique({
-    where: { user_id: user_id },
-  });
-  if (!user) {
-    return false;
-  }
-  const token = context.req.headers.authorization.replace("Bearer ", "");
-  try {
-    decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as AuthTokenPayload;
-    return decoded.userRole === "USER" && user.id === decoded.userId;
-  } catch (error) {
-    throw new GraphQLError("권한을 가진 사용자가 아닙니다.", {
-      extensions: {
-        code: "FORBIDDEN",
-      },
-    });
-  }
-};
-
-const isAdmin = (_: any, __: any, context: any) => {
-  const token = context.req.headers.authorization;
-  let decoded: AuthTokenPayload = {
-    userId: "",
-    userRole: "",
-  };
-  try {
-    decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as AuthTokenPayload;
-
-    return decoded.userRole === "ADMIN";
-  } catch (error) {
-    throw new GraphQLError("관리자 권한이 필요합니다.", {
-      extensions: {
-        code: "FORBIDDEN",
-      },
-    });
-  }
-};

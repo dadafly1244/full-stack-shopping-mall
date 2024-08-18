@@ -7,23 +7,63 @@ import {
   intArg,
   booleanArg,
   extendType,
+  arg,
 } from "nexus";
+import { isAdmin } from "#/graphql/validators";
+import { Prisma } from "@prisma/client";
 
 export const UserQuery = extendType({
   type: "Query",
   definition(t) {
-    t.nonNull.list.field("users", {
+    t.nonNull.list.field("usersList", {
+      //사용자 조회
       type: "User",
+      authorize: isAdmin,
       resolve: async (_, __, context) => {
         return await context.prisma.user.findMany();
       },
+    });
+    t.nonNull.list.field("filteredUsers", {
+      type: "User",
+      args: {
+        name: nullable(stringArg()),
+        user_id: nullable(stringArg()),
+        email: nullable(stringArg()),
+        phone_number: nullable(stringArg()),
+        status: nullable(arg({ type: "UserStatus" })),
+        permissions: nullable(arg({ type: "UserPermissions" })),
+        gender: nullable(arg({ type: "Gender" })),
+      },
+      authorize: isAdmin,
+      resolve: async (_, args, context) => {
+        const where: Prisma.UserWhereInput = {};
+        if (args.name) where.name = { contains: args.name };
+        if (args.user_id) where.user_id = { contains: args.user_id };
+        if (args.email) where.email = { contains: args.email };
+        if (args.phone_number)
+          where.phone_number = { contains: args.phone_number };
+        if (args.status) where.status = args.status;
+        if (args.permissions) where.permissions = args.permissions;
+        if (args.gender) where.gender = args.gender;
+        const users = await context.prisma.user.findMany({ where });
+        return users;
+      },
+      /** 사용예시 
+       * query {
+          filteredUsers(name: "다영", phone_number: "04") {
+            user {
+              name
+              phone_number
+            }
+          }
+        }
+       */
     });
   },
 });
 
 export const UserBooleanQuery = extendType({
   type: "Query",
-
   definition(t) {
     t.field("isDuplicated", {
       type: "UserBoolean",
