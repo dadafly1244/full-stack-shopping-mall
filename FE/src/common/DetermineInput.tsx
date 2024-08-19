@@ -1,6 +1,6 @@
-import { ReactElement, useState } from "react";
-import { twJoin } from "tailwind-merge";
-
+import { ReactElement, useState, useEffect } from "react";
+import { cva } from "class-variance-authority";
+import { cn } from "#/utils/utils";
 export interface DetermineInputProps {
   label: string;
   key?: string;
@@ -14,6 +14,7 @@ export interface DetermineInputProps {
   className?: string;
   formatter?: (value: string) => string;
   onChange?: (value: string) => void;
+  variant?: "default" | "pass" | "nonePass";
 }
 
 const DetermineInput = (props: DetermineInputProps): ReactElement => {
@@ -28,8 +29,53 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
     onChange,
     formatter,
     inputWidth,
+    variant = "default",
   } = props;
+
+  const labelVariants = cva(`block mb-2 text-sm font-medium`, {
+    variants: {
+      variant: {
+        default: "text-gray-700 dark:text-white-500",
+        pass: "text-green-700 dark:text-green-500",
+        nonePass: "text-red-700 dark:text-red-500",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  });
+
+  const InputVariants = cva(`border text-sm rounded-lg block w-full p-2.5`, {
+    variants: {
+      variant: {
+        default: "bg-gary-50 border-gray-500 text-gray-900",
+        pass: "bg-green-50 border-green-500 text-green-900 dark:text-green-400 placeholder-green-700 dark:placeholder-green-500 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-green-500",
+        nonePass:
+          "bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 dark:bg-gray-700 focus:border-red-500 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  });
+
+  const PVariants = cva("mt-2 text-sm", {
+    variants: {
+      variant: {
+        default: "text-gary-600 dark:text-gary-500",
+        pass: "text-green-600 dark:text-green-500",
+        nonePass: "text-red-600 dark:text-red-500",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  });
+
   const [_inputValue, setInputValue] = useState("");
+  const [debouncedInput, setDebouncedInput] = useState(_inputValue);
+  const [_valiant, setValiant] = useState(variant);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
 
@@ -44,18 +90,29 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
       setInputValue(formatter(_inputValue));
     }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedInput(_inputValue);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [_inputValue]);
+
+  useEffect(() => {
+    if (debouncedInput === "") {
+      setValiant("default");
+    } else if (isRight(debouncedInput)) {
+      setValiant("pass");
+    } else {
+      setValiant("nonePass");
+    }
+  }, [debouncedInput, isRight]);
+
   return (
     <div>
       <div className="mb-6">
-        <label
-          htmlFor={`determineInput-${label}`}
-          className={twJoin(
-            "block mb-2 text-sm font-medium",
-            isRight(_inputValue)
-              ? " text-green-700 dark:text-green-500"
-              : " text-red-700 dark:text-red-500"
-          )}
-        >
+        <label htmlFor={`determineInput-${label}`} className={cn(labelVariants({ variant: _valiant }), className)}>
           {label ? label : "입력"} {isRequired ? "(필수)" : ""}
         </label>
         <input
@@ -64,25 +121,13 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
           value={_inputValue}
           required={isRequired}
           width={inputWidth}
-          className={twJoin(
-            isRight(_inputValue)
-              ? "bg-green-50 border border-green-500 text-green-900 dark:text-green-400 placeholder-green-700 dark:placeholder-green-500 text-sm rounded-lg focus:ring-green-500 focus:border-green-500 block w-full p-2.5 dark:bg-gray-700 dark:border-green-500"
-              : "bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 dark:bg-gray-700 focus:border-red-500 block w-full p-2.5 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500",
-            className
-          )}
+          className={cn(InputVariants({ variant: _valiant }), className)}
           placeholder={placeholder}
           onChange={handleChange}
           onBlur={handleBlur}
         />
-        <p
-          className={twJoin(
-            "mt-2 text-sm",
-            isRight(_inputValue)
-              ? " text-green-600 dark:text-green-500"
-              : "text-red-600 dark:text-red-500"
-          )}
-        >
-          {isRight(_inputValue) ? rightMessage : wrongMessage}
+        <p className={cn(PVariants({ variant: _valiant }), className)}>
+          {isRight(debouncedInput) ? rightMessage : wrongMessage}
         </p>
       </div>
     </div>

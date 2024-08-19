@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import { SIGN_IN_USER } from "#/apollo/mutation";
 import { twJoin } from "tailwind-merge";
-import Cookies from "js-cookie";
 import { useSetRecoilState } from "recoil";
 import { userState } from "#/store/atoms";
 import { useNavigate } from "react-router-dom";
@@ -61,9 +60,9 @@ const SigninPage = () => {
 
       // Store the refresh_token in localStorage
       localStorage.setItem("refresh_token", refresh_token);
+      localStorage.setItem("token", token);
 
       // Store the token in cookies
-      Cookies.set("token", token, { expires: 7 });
 
       // Update Recoil state with user information
       setUserState({
