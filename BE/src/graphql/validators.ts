@@ -13,9 +13,6 @@ export const validUser = async (_: any, args: any, context: any) => {
   const user = await context.prisma.user.findUnique({
     where: { user_id: user_id },
   });
-  if (!user) {
-    return false;
-  }
   const token = context.req.headers.authorization.replace("Bearer ", "");
   try {
     decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as AuthTokenPayload;

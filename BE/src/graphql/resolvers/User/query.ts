@@ -87,6 +87,7 @@ export const UserBooleanQuery = extendType({
             OR: conditions,
           },
         });
+        if (!user) return { duplicated: false };
 
         return { duplicated: !!user };
       },

@@ -142,9 +142,43 @@ npx prisma generate # 새로운 스키마에 맞춰 Prisma 클라이언트를 �
 
 -
 
-cf. [참고글](https://jinozblog.tistory.com/118), [참고2](https://codemonkyu.tistory.com/entry/MariaDB-MariaDB-%EA%B4%80%EB%A6%AC-%EC%A0%91%EC%86%8D-%EB%B0%8F-%EA%B0%84%EB%8B%A8-%EC%82%AC%EC%9A%A9%EB%B2%95)
+3. `ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/tmp/mysql.sock' (2)`에러
 
----
+- 파일 경로 및 심볼릭 링크가 정확하지 않아서 발생한다고 함.
+- mariadb를 지우고 다시 설치하는 것이 가장 확실한 방법...
+
+- 해결방법
+
+  - `$brew services stop mysql`
+  - 만약 launchctl을 등록했다면, `sudo launchctl unload -w ~/Library/LaunchAgents/homebrew.mxcl.mysql.plist` 내려주는 것이 필요
+  - `brew uninstall --force mysql`
+  - 설치경로 확인 : `which mysql` : /opt/homebrew/bin/mysql
+  - 경로에 맞게 다음내용 지우기
+    `shell 
+sudo rm -rf /opt/homebrew/mysql
+sudo rm -rf /opt/homebrew/bin/mysql
+sudo rm -rf /opt/homebrew/var/mysql
+sudo rm -rf /opt/homebrew/Cellar/mysql
+sudo rm -rf /opt/homebrew/mysql*
+sudo rm -rf /tmp/mysql.sock.lock
+sudo rm -rf /tmp/mysqlx.sock.lock
+sudo rm -rf /tmp/mysql.sock
+sudo rm -rf /tmp/mysqlx.sock
+sudo rm ~/Library/LaunchAgents/homebrew.mxcl.mysql.plist
+sudo rm -rf /Library/StartupItems/MySQLCOM
+sudo rm -rf /Library/PreferencePanes/My*
+`
+
+- **완전 삭제이후 컴퓨터 재부팅**
+- 재설치 : `brew install mysql`
+- mysql 서비스 시작 : `brew services start mysql`
+- 비번 없이 root 로그인 : `mysql -u root`
+- root 비밀번호 설정하기: `mysql_secure_installation`( VALIDATE PASSWORD PLUGIN 설치여부 물어볼 때는 N(아니오)를 선택할 것.)
+
+- [참고 블로그](<https://linked2ev.github.io/database/2021/06/11/MySQL,-MariaDB-ERROR-2002-(HY000)-Can't-connect-to-local-MySQL-server-through-socket-'tmp-mysql.sock'-(2)/>), [참고 블로그2](https://linked2ev.github.io/database/2021/04/15/MariaDB-3.-MariaDB-%EC%84%A4%EC%B9%98-for-Mac/), [참고3](https://velog.io/@delvering17/MariaDB-MariaDB-ERROR-2002-HY000-Cant-connect-to-local-server-through-socket-tmpmysql.sock-2)
+  , [도움1](<https://github.com/rangyu/TIL/blob/master/mysql/MySQL-%EC%99%84%EC%A0%84-%EC%82%AD%EC%A0%9C%ED%95%98%EA%B3%A0-%EC%9E%AC%EC%84%A4%EC%B9%98%ED%95%98%EA%B8%B0-(MacOS).md>), [도움2](https://velog.io/@dhengh0205/Mysql-%EC%99%84%EC%A0%84-%EC%82%AD%EC%A0%9C)
+
+## cf. [참고글](https://jinozblog.tistory.com/118), [참고2](https://codemonkyu.tistory.com/entry/MariaDB-MariaDB-%EA%B4%80%EB%A6%AC-%EC%A0%91%EC%86%8D-%EB%B0%8F-%EA%B0%84%EB%8B%A8-%EC%82%AC%EC%9A%A9%EB%B2%95)
 
 [prisma](https://www.prisma.io/docs/orm/overview/prisma-in-your-stack/graphql)에 참고할 글 많음
 
