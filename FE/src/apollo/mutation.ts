@@ -61,3 +61,20 @@ export const SIGN_UP_USER = gql`
     }
   }
 `;
+
+export const USER_PROFILE = gql`
+  mutation userProfile($user_id: String!, $password: String!) {
+    signin(user_id: $user_id, password: $password) {
+      token
+      refresh_token
+      user {
+        name
+        user_id
+        email
+        phone_number
+        gender
+        status
+      }
+    }
+  }
+`;
