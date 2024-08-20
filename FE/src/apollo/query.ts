@@ -15,3 +15,9 @@ export const CHECK_EMAIL = gql`
     }
   }
 `;
+
+export const USER_INFO_ADMIN = gql`
+  query userInfo {
+    
+  }
+`;
