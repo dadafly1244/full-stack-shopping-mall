@@ -53,6 +53,7 @@ export const SIGN_UP_USER = gql`
       permissions: $permissions
     ) {
       token
+      refresh_token
       user {
         name
         user_id

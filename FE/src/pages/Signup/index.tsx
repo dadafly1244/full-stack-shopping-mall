@@ -9,8 +9,10 @@ import { formatPhoneNumber } from "#/utils/formatter";
 // import { FormGenerator } from "#/common/FormBase";
 import DetermineInput, { DetermineInputProps } from "#/common/DetermineInput";
 import SelectBox, { SelectProps } from "#/common/SelectBox";
-import { twJoin } from "tailwind-merge";
 import { useNavigate } from "react-router-dom";
+import { cn } from "#/utils/utils";
+import { useSetRecoilState } from "recoil";
+import { userState } from "#/store/atoms";
 
 interface CustomDetermineInputProps extends Omit<DetermineInputProps, "isRight"> {
   isRight: (value: string) => boolean;
@@ -50,15 +52,8 @@ const SignupPage = () => {
     status: UserStatus.ACTIVE,
     permissions: UserPermissions.USER,
   });
-  const [isValidOjb, setIsValidOjb] = useState({
-    email: false,
-    password: false,
-    name: false,
-    user_id: false,
-    phone_number: true,
-    gender: true,
-  });
-  const isValid = Object.values(isValidOjb).every(Boolean);
+  const setUserState = useSetRecoilState(userState);
+
   const [signupFc, { data: signupUserData, loading, error }] = useMutation(SIGN_UP_USER);
   const [checkIdFc] = useLazyQuery(CHECK_ID);
   const [checkEmailFc] = useLazyQuery(CHECK_EMAIL);
@@ -162,79 +157,105 @@ const SignupPage = () => {
     },
   ];
 
-  const handleSignup = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
-      signupFc({
-        variables: {
-          email: formState.email,
-          password: formState.password,
-          name: formState.name,
-          user_id: formState.user_id,
-          gender: getEnumValue(Gender, formState.gender),
-          phone_number: formState.phone_number,
-          permissions: getEnumValue(UserPermissions, formState.permissions),
-          status: getEnumValue(UserStatus, formState.status),
-        },
-      });
-    } catch (error) {
-      console.error("Error during signup: ", error);
-    }
-  };
   const isPasswordMatch = (confirmPassword: string): boolean => {
     return (
       confirmPassword === formState.password &&
       /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(confirmPassword.trim())
     );
   };
-  const canUseThisId = async (id: string): Promise<boolean> => {
+  const canUseThisId = async (id: string) => {
     const result = await checkIdFc({ variables: { id: id } });
-    return !!result.data.isDuplicated.duplicated;
+    return !!result.data?.isDuplicated.duplicated;
   };
 
-  const canUseThisEmail = async (email: string): Promise<boolean> => {
+  const canUseThisEmail = async (email: string) => {
     const result = await checkEmailFc({ variables: { email: email } });
-    return !!result.data.isDuplicated.duplicated;
+    return !!result.data?.isDuplicated.duplicated;
   };
 
   useEffect(() => {
     if (signupUserData?.signup?.user?.name) {
       alert(`<p>Sign up successful! Welcome, ${signupUserData.signup.user.name}.</p>`);
-      navigate("/signin");
+
+      const { token, refresh_token, user } = signupUserData.signup;
+
+      localStorage.setItem("refresh_token", refresh_token);
+      localStorage.setItem("token", token);
+
+      setUserState({
+        name: user.name,
+        userId: user.userId,
+        gender: user.gender,
+      });
+      navigate("/");
     }
-  }, [signupUserData, navigate]);
+  }, [signupUserData, setUserState, navigate]);
+
   const isDetermineInput = (item: FormItem): item is CustomDetermineInputProps => {
     return item.type === "determineInput";
   };
 
   type valueType = string | Gender | UserStatus | UserPermissions;
-  const validateField = async (key: keyof SignupType, value: valueType) => {
-    const field = signupForm.find((f) => f.key === key);
-    if (field && isDetermineInput(field)) {
-      if (key === "confirmPassword") {
-        return isPasswordMatch(value as string);
-      } else if (key === "user_id") {
-        return (await canUseThisId(value as string)) && field.isRight(value as string);
-      } else if (key === "email") {
-        return (await canUseThisEmail(value as string)) && field.isRight(value as string);
-      }
-      return field.isRight(value as string);
-    }
-    return false;
-  };
 
   const handleInputChange = (key: keyof SignupType, value: valueType) => {
     setFormState((prev) => ({
       ...prev,
       [key]: value,
     }));
-    setIsValidOjb((prev) => ({
-      ...prev,
-      [key]: validateField(key, value),
-      ...(key === "password" ? { confirmPassword: isPasswordMatch(formState.confirmPassword) } : {}),
-      gender: true,
-    }));
   };
+
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    e.preventDefault();
+
+    // 모든 필드 검증
+    const validationResults = await Promise.all(
+      Object.keys(formState).map(async (key) => {
+        const typedKey = key as keyof SignupType;
+        const value = formState[typedKey];
+
+        // signupForm에서 필드 찾기
+        const field = signupForm.find((f) => f.key === typedKey);
+        if (field && isDetermineInput(field)) {
+          if (typedKey === "confirmPassword") {
+            return isPasswordMatch(value as string);
+          } else if (typedKey === "user_id") {
+            return !(await canUseThisId(value as string)) && field.isRight(value as string);
+          } else if (typedKey === "email") {
+            return !(await canUseThisEmail(value as string)) && field.isRight(value as string);
+          } else if (typedKey === "phone_number") {
+            // 빈 값인 경우 검증하지 않음
+            if (value === "") return true;
+            return /^01([0|1|6|7|8|9])-?\d{3,4}-?\d{4}$/.test(formatPhoneNumber(value as string));
+          }
+          return field.isRight(value as string);
+        }
+        return true;
+      })
+    );
+    console.log(validationResults);
+    if (validationResults.every(Boolean)) {
+      try {
+        await signupFc({
+          variables: {
+            email: formState.email,
+            password: formState.password,
+            name: formState.name,
+            user_id: formState.user_id,
+            gender: getEnumValue(Gender, formState.gender),
+            phone_number: formState.phone_number,
+            permissions: getEnumValue(UserPermissions, formState.permissions),
+            status: getEnumValue(UserStatus, formState.status),
+          },
+        });
+      } catch (error) {
+        console.error("Error during signup: ", error);
+      }
+    } else {
+      alert("형식을 다시 확인해주세요.");
+    }
+  };
+
   return (
     <div>
       {loading && <p>Loading...</p>}
@@ -276,12 +297,7 @@ const SignupPage = () => {
         </div>
         <button
           type="submit"
-          disabled={!isValid}
-          className={twJoin(
-            isValid
-              ? "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              : "text-white bg-gray-200 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-gray-600"
-          )}
+          className={cn(`bg-blue-500 text-white border text-sm rounded-lg block min-w-20 p-2.5 ml-4`)}
         >
           Submit
         </button>

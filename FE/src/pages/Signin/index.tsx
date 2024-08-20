@@ -58,23 +58,18 @@ const SigninPage = () => {
     if (signinUserData) {
       const { token, refresh_token, user } = signinUserData.signin;
 
-      // Store the refresh_token in localStorage
       localStorage.setItem("refresh_token", refresh_token);
       localStorage.setItem("token", token);
 
-      // Store the token in cookies
-
-      // Update Recoil state with user information
       setUserState({
         name: user.name,
         userId: user.userId,
         gender: user.gender,
       });
 
-      // Navigate to home page
-      navigate("/home");
+      navigate("/");
     }
-  }, [signinUserData, setUserState, navigate]); // Ensure the useEffect only runs when `signinUserData` changes
+  }, [signinUserData, setUserState, navigate]);
 
   const handleSignin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
