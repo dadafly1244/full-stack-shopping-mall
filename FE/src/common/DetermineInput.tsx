@@ -1,4 +1,4 @@
-import { ReactElement, useState, useEffect } from "react";
+import { ReactElement, useState, useEffect, useCallback } from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "#/utils/utils";
 export interface DetermineInputProps {
@@ -15,6 +15,8 @@ export interface DetermineInputProps {
   formatter?: (value: string) => string;
   onChange?: (value: string) => void;
   variant?: "default" | "pass" | "nonePass";
+  button?: string | (() => Promise<string>);
+  buttonClick?: (value: string) => Promise<boolean>;
 }
 
 const DetermineInput = (props: DetermineInputProps): ReactElement => {
@@ -30,6 +32,8 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
     formatter,
     inputWidth,
     variant = "default",
+    button: initialButtonText,
+    buttonClick,
   } = props;
 
   const labelVariants = cva(`block mb-2 text-sm font-medium`, {
@@ -109,23 +113,76 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
     }
   }, [debouncedInput, isRight]);
 
+  const [buttonText, setButtonText] = useState<string>(typeof initialButtonText === "string" ? initialButtonText : "");
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+
+  const handleButtonClick = useCallback(async () => {
+    setIsButtonDisabled(true);
+    setButtonText("loading...");
+
+    try {
+      const result = !(await buttonClick?.(debouncedInput));
+      setButtonText(result ? "사용가능" : "사용불가");
+    } catch (error) {
+      setButtonText("Error");
+      console.error("Button click error:", error);
+    } finally {
+      setIsButtonDisabled(false);
+    }
+  }, [buttonClick, debouncedInput]);
+
+  useEffect(() => {
+    if (typeof initialButtonText === "function") {
+      const updateButtonText = async () => {
+        try {
+          const text = await initialButtonText();
+          setButtonText(text);
+        } catch (error) {
+          console.error("Error updating button text:", error);
+          setButtonText("Error");
+        }
+      };
+      updateButtonText();
+    }
+  }, [initialButtonText]);
+
+  useEffect(() => {
+    if (typeof initialButtonText === "string") {
+      setButtonText(initialButtonText);
+    }
+  }, [debouncedInput, initialButtonText]);
+
   return (
     <div>
       <div className="mb-6">
         <label htmlFor={`determineInput-${label}`} className={cn(labelVariants({ variant: _valiant }), className)}>
           {label ? label : "입력"} {isRequired ? "(필수)" : ""}
         </label>
-        <input
-          type={label === "비밀번호" ? "password" : "text"}
-          id={`determineInput-${label}`}
-          value={_inputValue}
-          required={isRequired}
-          width={inputWidth}
-          className={cn(InputVariants({ variant: _valiant }), className)}
-          placeholder={placeholder}
-          onChange={handleChange}
-          onBlur={handleBlur}
-        />
+        <div className="flex h-10">
+          <input
+            type={label.includes("비밀번호") ? "password" : "text"}
+            id={`determineInput-${label}`}
+            value={_inputValue}
+            required={isRequired}
+            width={inputWidth}
+            className={cn(InputVariants({ variant: _valiant }), className)}
+            placeholder={placeholder}
+            onChange={handleChange}
+            onBlur={handleBlur}
+          />
+          {buttonText && (
+            <button
+              type="button"
+              onClick={handleButtonClick}
+              disabled={isButtonDisabled}
+              className={`bg-gray-500 border text-sm rounded-lg block min-w-20 p-2.5 ml-4 ${
+                isButtonDisabled ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              {buttonText}
+            </button>
+          )}
+        </div>
         <p className={cn(PVariants({ variant: _valiant }), className)}>
           {isRight(debouncedInput) ? rightMessage : wrongMessage}
         </p>
