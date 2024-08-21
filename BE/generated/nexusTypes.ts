@@ -136,6 +136,19 @@ export interface NexusGenObjects {
   UserBoolean: { // root type
     duplicated: boolean; // Boolean!
   }
+  UserPayload: { // root type
+    created_at?: NexusGenScalars['DateTime'] | null; // DateTime
+    email?: string | null; // String
+    gender?: NexusGenEnums['Gender'] | null; // Gender
+    id?: string | null; // ID
+    name?: string | null; // String
+    password?: string | null; // String
+    permissions?: NexusGenEnums['UserPermissions'] | null; // UserPermissions
+    phone_number?: string | null; // String
+    status?: NexusGenEnums['UserStatus'] | null; // UserStatus
+    updated_at?: NexusGenScalars['DateTime'] | null; // DateTime
+    user_id?: string | null; // String
+  }
 }
 
 export interface NexusGenInterfaces {
@@ -181,8 +194,8 @@ export interface NexusGenFieldTypes {
     signout: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     updateUser: NexusGenRootTypes['User']; // User!
-    updateUserStateActive: NexusGenRootTypes['User']; // User!
-    updateUserStateSuspended: NexusGenRootTypes['User']; // User!
+    updateUserStateActive: NexusGenRootTypes['AuthPayload']; // AuthPayload!
+    updateUserStateSuspended: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     withdrawal: NexusGenRootTypes['AuthPayload'] | null; // AuthPayload
   }
   Order: { // field return type
@@ -268,6 +281,19 @@ export interface NexusGenFieldTypes {
   UserBoolean: { // field return type
     duplicated: boolean; // Boolean!
   }
+  UserPayload: { // field return type
+    created_at: NexusGenScalars['DateTime'] | null; // DateTime
+    email: string | null; // String
+    gender: NexusGenEnums['Gender'] | null; // Gender
+    id: string | null; // ID
+    name: string | null; // String
+    password: string | null; // String
+    permissions: NexusGenEnums['UserPermissions'] | null; // UserPermissions
+    phone_number: string | null; // String
+    status: NexusGenEnums['UserStatus'] | null; // UserStatus
+    updated_at: NexusGenScalars['DateTime'] | null; // DateTime
+    user_id: string | null; // String
+  }
 }
 
 export interface NexusGenFieldTypeNames {
@@ -303,8 +329,8 @@ export interface NexusGenFieldTypeNames {
     signout: 'AuthPayload'
     signup: 'AuthPayload'
     updateUser: 'User'
-    updateUserStateActive: 'User'
-    updateUserStateSuspended: 'User'
+    updateUserStateActive: 'AuthPayload'
+    updateUserStateSuspended: 'AuthPayload'
     withdrawal: 'AuthPayload'
   }
   Order: { // field return type name
@@ -389,6 +415,19 @@ export interface NexusGenFieldTypeNames {
   }
   UserBoolean: { // field return type name
     duplicated: 'Boolean'
+  }
+  UserPayload: { // field return type name
+    created_at: 'DateTime'
+    email: 'String'
+    gender: 'Gender'
+    id: 'ID'
+    name: 'String'
+    password: 'String'
+    permissions: 'UserPermissions'
+    phone_number: 'String'
+    status: 'UserStatus'
+    updated_at: 'DateTime'
+    user_id: 'String'
   }
 }
 

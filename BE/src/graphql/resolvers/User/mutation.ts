@@ -59,7 +59,7 @@ export const UserMutation = extendType({
     });
     t.nonNull.field("updateUserStateSuspended", {
       // 관리자 : 회원 자격 정지
-      type: "User",
+      type: "AuthPayload",
       args: {
         id: nonNull(stringArg()),
       },
@@ -78,7 +78,7 @@ export const UserMutation = extendType({
     });
     t.nonNull.field("updateUserStateActive", {
       // 관리자 : 회원 자격 활성화
-      type: "User",
+      type: "AuthPayload",
       args: {
         id: nonNull(stringArg()),
       },

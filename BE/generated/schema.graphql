@@ -51,8 +51,8 @@ type Mutation {
   signout(id: String!): AuthPayload!
   signup(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): AuthPayload!
   updateUser(email: String!, gender: Gender!, id: String!, name: String!, permissions: UserPermissions!, phone_number: String, user_id: String!): User!
-  updateUserStateActive(id: String!): User!
-  updateUserStateSuspended(id: String!): User!
+  updateUserStateActive(id: String!): AuthPayload!
+  updateUserStateSuspended(id: String!): AuthPayload!
   withdrawal(password: String!, user_id: String!): AuthPayload
 }
 
@@ -161,6 +161,20 @@ type User {
 
 type UserBoolean {
   duplicated: Boolean!
+}
+
+type UserPayload {
+  created_at: DateTime
+  email: String
+  gender: Gender
+  id: ID
+  name: String
+  password: String
+  permissions: UserPermissions
+  phone_number: String
+  status: UserStatus
+  updated_at: DateTime
+  user_id: String
 }
 
 enum UserPermissions {
