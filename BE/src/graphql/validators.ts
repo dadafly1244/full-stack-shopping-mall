@@ -27,14 +27,13 @@ export const validUser = async (_: any, args: any, context: any) => {
 };
 
 export const isAdmin = (_: any, __: any, context: any) => {
-  const token = context.req.headers.authorization;
+  const token = context.req.headers.authorization.replace("Bearer ", "");
   let decoded: AuthTokenPayload = {
     userId: "",
     userRole: "",
   };
   try {
     decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as AuthTokenPayload;
-
     return decoded.userRole === "ADMIN";
   } catch (error) {
     throw new GraphQLError("관리자 권한이 필요합니다.", {
