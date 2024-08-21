@@ -163,20 +163,6 @@ type UserBoolean {
   duplicated: Boolean!
 }
 
-type UserPayload {
-  created_at: DateTime
-  email: String
-  gender: Gender
-  id: ID
-  name: String
-  password: String
-  permissions: UserPermissions
-  phone_number: String
-  status: UserStatus
-  updated_at: DateTime
-  user_id: String
-}
-
 enum UserPermissions {
   ADMIN
   USER

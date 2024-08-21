@@ -7,6 +7,7 @@ import {
   intArg,
   booleanArg,
   extendType,
+  list,
   arg,
 } from "nexus";
 import { isAdmin } from "#/graphql/validators";
@@ -49,16 +50,6 @@ export const UserQuery = extendType({
         const users = await context.prisma.user.findMany({ where });
         return users;
       },
-      /** 사용예시 
-       * query {
-          filteredUsers(name: "다영", phone_number: "04") {
-            user {
-              name
-              phone_number
-            }
-          }
-        }
-       */
     });
   },
 });
