@@ -1,26 +1,79 @@
-import { useQuery } from "@apollo/client";
+import { useEffect, useState } from "react";
 import Table, { TableColumn } from "#/common/Table";
 import { USER_INFO_ADMIN } from "#/apollo/query";
 import { UserType, UserStatus } from "#/utils/types";
-import { useMutation } from "@apollo/client";
+import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import { ACTIVE_USER_ADMIN, SUSPENDED_USER_ADMIN } from "#/apollo/mutation";
+import { FILTERED_USER_INFO_ADMIN } from "#/apollo/query";
+import { SearchFilters, CheckboxStates } from "#/utils/types";
+import UserSearchComponent from "#/pages/Admin/UserSearchComponent";
 
+const init_filters = {
+  name: "",
+  user_id: "",
+  email: "",
+  phone_number: "",
+  status: null,
+  permissions: null,
+  gender: null,
+};
 const UserInfoTab = () => {
-  const { data, loading, error } = useQuery(USER_INFO_ADMIN);
+  const [filters, setFilters] = useState<SearchFilters>(init_filters);
+  const [checkboxes, setCheckboxes] = useState<CheckboxStates>({
+    name: false,
+    user_id: false,
+    email: false,
+    phone_number: false,
+    status: false,
+    permissions: false,
+    gender: false,
+  });
+  const [openSearch, setOpenSearch] = useState(false);
+  const { data: allData, loading, error } = useQuery(USER_INFO_ADMIN);
   const [suspendedUser, { loading: suspendedLoading, error: suspendedError }] = useMutation(
     SUSPENDED_USER_ADMIN,
     {
       refetchQueries: [{ query: USER_INFO_ADMIN }],
-      // awaitRefetchQueries: true,
+      awaitRefetchQueries: true,
     }
   );
   const [activeUser, { loading: activeLoading, error: activeError }] = useMutation(
     ACTIVE_USER_ADMIN,
     {
       refetchQueries: [{ query: USER_INFO_ADMIN }],
-      // awaitRefetchQueries: true,
+      awaitRefetchQueries: true,
     }
   );
+
+  const [filteredUser, { loading: filteredLoading, error: filteredError }] =
+    useLazyQuery(FILTERED_USER_INFO_ADMIN);
+
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    if (allData?.usersList) {
+      setData(allData.usersList);
+    }
+  }, [allData]);
+
+  useEffect(() => {
+    if (!openSearch) {
+      setData(allData.usersList);
+    }
+  }, [openSearch, allData]);
+
+  const handleSearchUser = async (filters: SearchFilters, checkboxes: CheckboxStates) => {
+    const { data: usersData } = await filteredUser({
+      variables: Object.fromEntries(
+        Object.entries(filters).filter(
+          ([key, value]) => checkboxes[key as keyof CheckboxStates] && value !== ""
+        )
+      ),
+    });
+    if (usersData?.filteredUsers) {
+      setData(usersData.filteredUsers);
+    }
+  };
 
   const handleStatus = (status: UserStatus | undefined, id: string | undefined) => {
     if (!status || !id) return alert("사용자 상태 변경 실패");
@@ -118,18 +171,31 @@ const UserInfoTab = () => {
   const handleSelectionChange = (selectedUsers: UserType[]) => {
     console.log("Selected users:", selectedUsers);
   };
-
-  if (loading || suspendedLoading || activeLoading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
   console.log(data);
+  if (loading || suspendedLoading || activeLoading) return <p>Loading...</p>;
+  if (error || filteredError) return <p>Error: {error?.message || filteredError?.message}</p>;
+  if (filteredLoading) return <p>검색중...</p>;
+
   return (
-    <Table<UserType>
-      title="User List"
-      data={data?.usersList || []}
-      columns={columns}
-      onRowClick={handleRowClick}
-      onSelectionChange={handleSelectionChange}
-    />
+    <div>
+      <UserSearchComponent
+        open={openSearch}
+        onOpenChange={setOpenSearch}
+        filters={filters}
+        checkboxes={checkboxes}
+        onFilteredChange={setFilters}
+        OnCheckboxChange={setCheckboxes}
+        onClickSearch={handleSearchUser}
+        initFilter={init_filters}
+      />
+      <Table<UserType>
+        title="User List"
+        data={data}
+        columns={columns}
+        onRowClick={handleRowClick}
+        onSelectionChange={handleSelectionChange}
+      />
+    </div>
   );
 };
 

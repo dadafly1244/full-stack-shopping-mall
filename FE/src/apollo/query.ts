@@ -34,7 +34,7 @@ export const USER_INFO_ADMIN = gql`
 `;
 
 export const FILTERED_USER_INFO_ADMIN = gql`
-  query filteredUserInfo(
+  query FilteredUsers(
     $name: String
     $user_id: String
     $email: String
@@ -52,18 +52,16 @@ export const FILTERED_USER_INFO_ADMIN = gql`
       permissions: $permissions
       gender: $gender
     ) {
-      user {
-        id
-        user_id
-        name
-        email
-        gender
-        phone_number
-        status
-        permissions
-        created_at
-        updated_at
-      }
+      id
+      name
+      user_id
+      email
+      phone_number
+      status
+      permissions
+      gender
+      created_at
+      updated_at
     }
   }
 `;
