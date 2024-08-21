@@ -119,7 +119,8 @@ const SignupPage = () => {
       placeholder: "email 주소를 입력하세요.",
       wrongMessage: "바른 email 주소를 입력하세요.",
       rightMessage: "% ^ ^ %",
-      isRight: (email: string): boolean => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()),
+      isRight: (email: string): boolean =>
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()),
       isRequired: true,
       button: "중복확인",
       buttonClick: async (email: string) => {
@@ -139,7 +140,8 @@ const SignupPage = () => {
       placeholder: "휴대폰 번호를 입력하세요.",
       wrongMessage: "바른 휴대폰 번호를 입력하세요.",
       rightMessage: "% ^ ^ %",
-      isRight: (phone: string): boolean => /^01([0|1|6|7|8|9])-?\d{3,4}-?\d{4}$/.test(formatPhoneNumber(phone.trim())),
+      isRight: (phone: string): boolean =>
+        /^01([0|1|6|7|8|9])-?\d{3,4}-?\d{4}$/.test(formatPhoneNumber(phone.trim())),
       formatter: formatPhoneNumber,
       isRequired: false,
     },
@@ -297,7 +299,9 @@ const SignupPage = () => {
         </div>
         <button
           type="submit"
-          className={cn(`bg-blue-500 text-white border text-sm rounded-lg block min-w-20 p-2.5 ml-4`)}
+          className={cn(
+            `bg-blue-500 text-white border text-sm rounded-lg block min-w-20 p-2.5 ml-4`
+          )}
         >
           Submit
         </button>

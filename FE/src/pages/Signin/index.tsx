@@ -90,52 +90,59 @@ const SigninPage = () => {
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
       {
-        <form onSubmit={handleSignin}>
-          <div className="grid gap-6 mb-6 md:grid-cols-2">
-            {signinForm.map((item) => {
-              if (item.type === "determineInput") {
-                const determineItem = item as DetermineInputProps;
-                return (
-                  <DetermineInput
-                    key={determineItem.key}
-                    label={determineItem?.label}
-                    placeholder={determineItem?.placeholder as string}
-                    wrongMessage={determineItem?.wrongMessage as string}
-                    rightMessage={determineItem?.rightMessage as string}
-                    isRight={(value: string): boolean => (item.isRight as (value: string) => boolean)(value)}
-                    isRequired={determineItem?.isRequired}
-                    className={determineItem?.className}
-                    onChange={(value) => {
-                      setFormState((prev) => ({
-                        ...prev,
-                        [item.key]: value,
-                      }));
-                    }}
-                  />
-                );
+        <>
+          <form onSubmit={handleSignin}>
+            <div className="grid gap-6 mb-6 md:grid-cols-2">
+              {signinForm.map((item) => {
+                if (item.type === "determineInput") {
+                  const determineItem = item as DetermineInputProps;
+                  return (
+                    <DetermineInput
+                      key={determineItem.key}
+                      label={determineItem?.label}
+                      placeholder={determineItem?.placeholder as string}
+                      wrongMessage={determineItem?.wrongMessage as string}
+                      rightMessage={determineItem?.rightMessage as string}
+                      isRight={(value: string): boolean =>
+                        (item.isRight as (value: string) => boolean)(value)
+                      }
+                      isRequired={determineItem?.isRequired}
+                      className={determineItem?.className}
+                      onChange={(value) => {
+                        setFormState((prev) => ({
+                          ...prev,
+                          [item.key]: value,
+                        }));
+                      }}
+                    />
+                  );
+                }
+              })}
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className={twJoin(
+                "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
+                !loading ? "cursor-pointer" : "cursor-not-allowed"
+              )}
+            >
+              Submit
+            </button>
+          </form>
+          <div className="flex flex-col">
+            <p className="text-sm text-gray-800">아직 계정이 없다면 회원가입을 눌러주세요.</p>
+            <Link
+              to="/signup"
+              className={
+                "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
               }
-            })}
+            >
+              회원가입
+            </Link>
           </div>
-          <button
-            type="submit"
-            disabled={loading || !!error}
-            className={twJoin(
-              "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
-              !loading && !error ? "cursor-pointer" : "cursor-not-allowed"
-            )}
-          >
-            Submit
-          </button>
-        </form>
+        </>
       }
-      <Link
-        to="/signup"
-        className={
-          "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-        }
-      >
-        회원가입
-      </Link>
     </>
   );
 };

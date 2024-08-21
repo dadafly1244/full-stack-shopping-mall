@@ -78,3 +78,36 @@ export const USER_PROFILE = gql`
     }
   }
 `;
+
+export const REFRESH_TOKEN_MUTATION = gql`
+  mutation RefreshToken($refreshToken: String!) {
+    refresh(refresh_token: $refreshToken) {
+      token
+      refresh_token
+      user {
+        id
+        permissions
+      }
+    }
+  }
+`;
+
+export const SUSPENDED_USER_ADMIN = gql`
+  mutation SuspendedUser($id: String!) {
+    updateUserStateSuspended(id: $id) {
+      user {
+        status
+      }
+    }
+  }
+`;
+
+export const ACTIVE_USER_ADMIN = gql`
+  mutation ActiveUser($id: String!) {
+    updateUserStateActive(id: $id) {
+      user {
+        status
+      }
+    }
+  }
+`;
