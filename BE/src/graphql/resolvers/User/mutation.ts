@@ -39,22 +39,35 @@ export const UserMutation = extendType({
       },
       authorize: isAdmin,
       resolve: async (_, args, context) => {
-        const password = await bcrypt.hash(args.password, 10);
+        const { id, ...updateData } = args;
 
-        const refresh_token = jwt.sign(
-          { userId: args.user_id, userRole: args.permissions },
-          REFRESH_TOKEN_SECRET,
-          {
-            expiresIn: "1h",
-          },
+        // 변경할 데이터만 포함하는 객체 생성
+        const filteredUpdateData = Object.fromEntries(
+          Object.entries(updateData).filter(
+            ([_, value]) => value !== undefined,
+          ),
         );
-        return await context.prisma.user.create({
-          data: {
-            password,
-            refresh_token,
-            ...args,
-          },
-        });
+
+        // 변경할 데이터가 있는 경우에만 업데이트 수행
+        if (Object.keys(filteredUpdateData).length > 0) {
+          const updatedUser = await context.prisma.user.update({
+            where: { id },
+            data: filteredUpdateData,
+          });
+
+          return updatedUser;
+        } else {
+          // 변경할 데이터가 없는 경우, 현재 사용자 정보 반환
+          const currentUser = await context.prisma.user.findUnique({
+            where: { id },
+          });
+
+          if (!currentUser) {
+            throw new Error("User not found");
+          }
+
+          return currentUser;
+        }
       },
     });
     t.nonNull.field("updateUserStateSuspended", {
@@ -100,29 +113,42 @@ export const UserMutation = extendType({
       type: "User",
       args: {
         id: nonNull(stringArg()),
-        user_id: nonNull(stringArg()),
-        email: nonNull(stringArg()),
-        name: nonNull(stringArg()),
-        gender: nonNull(arg({ type: "Gender" })),
+        user_id: nullable(stringArg()),
+        email: nullable(stringArg()),
+        name: nullable(stringArg()),
+        gender: nullable(arg({ type: "Gender" })),
         phone_number: nullable(stringArg()),
-        permissions: nonNull(arg({ type: "UserPermissions" })),
+        permissions: nullable(arg({ type: "UserPermissions" })),
       },
       authorize: isAdmin,
       resolve: async (_, args, context) => {
-        const updatedUser = await context.prisma.user.update({
-          where: { id: args.id },
-          data: {
-            user_id: args.user_id,
-            email: args.email,
-            name: args.name,
-            gender: args.name,
-            phone_number: args.phone_number,
-            permissions: args.permissions,
-          },
+        const { id, ...updateData } = args;
+        const currentUser = await context.prisma.user.findUnique({
+          where: { id },
         });
-        return {
-          user: updatedUser,
-        };
+        // 변경할 데이터만 포함하는 객체 생성
+        const filteredUpdateData = Object.fromEntries(
+          Object.entries(updateData).filter(
+            ([key, value]) => value !== undefined && value !== currentUser[key],
+          ),
+        );
+
+        // 변경할 데이터가 있는 경우에만 업데이트 수행
+        if (Object.keys(filteredUpdateData).length > 0) {
+          const updatedUser = await context.prisma.user.update({
+            where: { id },
+            data: filteredUpdateData,
+          });
+
+          return updatedUser;
+        } else {
+          // 변경할 데이터가 없는 경우, 현재 사용자 정보 반환
+          if (!currentUser) {
+            throw new Error("User not found");
+          }
+
+          return currentUser;
+        }
       },
     });
   },

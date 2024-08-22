@@ -438,13 +438,13 @@ export interface NexusGenArgTypes {
       user_id: string; // String!
     }
     updateUser: { // args
-      email: string; // String!
-      gender: NexusGenEnums['Gender']; // Gender!
+      email?: string | null; // String
+      gender?: NexusGenEnums['Gender'] | null; // Gender
       id: string; // String!
-      name: string; // String!
-      permissions: NexusGenEnums['UserPermissions']; // UserPermissions!
+      name?: string | null; // String
+      permissions?: NexusGenEnums['UserPermissions'] | null; // UserPermissions
       phone_number?: string | null; // String
-      user_id: string; // String!
+      user_id?: string | null; // String
     }
     updateUserStateActive: { // args
       id: string; // String!
