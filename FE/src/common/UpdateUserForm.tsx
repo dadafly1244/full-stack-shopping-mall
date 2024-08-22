@@ -1,45 +1,25 @@
-import { useEffect, useState } from "react";
+import { UPDATE_USER_ADMIN, Gender, UserStatus, UserPermissions } from "#/apollo/mutation";
+import {
+  UpdateFormItem,
+  UserType,
+  CustomUserDetermineInputProps,
+  CustomUserSelectProps,
+} from "#/utils/types";
 import { useMutation, useLazyQuery } from "@apollo/client";
-import { SIGN_UP_USER } from "#/apollo/mutation";
 import { CHECK_ID, CHECK_EMAIL } from "#/apollo/query";
-
 import { formatPhoneNumber } from "#/utils/formatter";
+import { cn } from "#/utils/utils";
 import DetermineInput from "#/common/DetermineInput";
 import SelectBox from "#/common/SelectBox";
-import { useNavigate } from "react-router-dom";
-import { cn } from "#/utils/utils";
-import { useSetRecoilState } from "recoil";
-import { userState } from "#/store/atoms";
-import {
-  SignupType,
-  FormItem,
-  CustomDetermineInputProps,
-  CustomSelectProps,
-  Gender,
-  UserStatus,
-  UserPermissions,
-} from "#/utils/types";
 
-const SignupPage = () => {
-  const navigate = useNavigate();
-  const [formState, setFormState] = useState<SignupType>({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    name: "",
-    user_id: "",
-    gender: Gender.PREFER_NOT_TO_SAY,
-    phone_number: "",
-    status: UserStatus.ACTIVE,
-    permissions: UserPermissions.USER,
-  });
-  const setUserState = useSetRecoilState(userState);
+import { useState, useEffect } from "react";
 
-  const [signupFc, { data: signupUserData, loading, error }] = useMutation(SIGN_UP_USER);
+const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void }) => {
+  const [formState, setFormState] = useState<UserType>(user);
+  const [updateFc, { data: updateUserData, loading, error }] = useMutation(UPDATE_USER_ADMIN);
   const [checkIdFc] = useLazyQuery(CHECK_ID);
   const [checkEmailFc] = useLazyQuery(CHECK_EMAIL);
-
-  const signupForm: FormItem[] = [
+  const updateForm: UpdateFormItem[] = [
     {
       type: "determineInput",
       key: "name",
@@ -48,7 +28,6 @@ const SignupPage = () => {
       wrongMessage: "1~20자 사이로 입력하세요.",
       rightMessage: "% ^ ^ %",
       isRight: (name: string): boolean => /^[a-zA-Zㄱ-ㅎ가-힣]{1,20}$/.test(name.trim()),
-      isRequired: true,
     },
     {
       type: "determineInput",
@@ -58,7 +37,6 @@ const SignupPage = () => {
       wrongMessage: "6~20자 사이로 입력하세요.",
       rightMessage: "% ^ ^ %",
       isRight: (id: string): boolean => /^[a-zA-Z0-9]{6,20}$/.test(id.trim()),
-      isRequired: true,
       button: "중복확인",
       buttonClick: async () => {
         try {
@@ -72,29 +50,6 @@ const SignupPage = () => {
     },
     {
       type: "determineInput",
-      key: "password",
-      label: "비밀번호",
-      placeholder: "비밀번호를 입력하세요.",
-      wrongMessage: "영어 소문자, 숫자, 특수문자(!@#$%^&*) 포함해서 8~30 글자 입력하세요.",
-      rightMessage: "% ^ ^ %",
-      isRight: (password: string): boolean =>
-        /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(password.trim()),
-      isRequired: true,
-    },
-    {
-      type: "determineInput",
-      key: "confirmPassword",
-      label: "비밀번호 확인",
-      placeholder: "비밀번호를 다시 입력하세요.",
-      wrongMessage: "비밀번호가 일치하지 않습니다.",
-      rightMessage: "비밀번호가 일치합니다.",
-      isRight: (confirmPassword: string): boolean =>
-        confirmPassword === formState.password &&
-        /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(confirmPassword.trim()),
-      isRequired: true,
-    },
-    {
-      type: "determineInput",
       key: "email",
       label: "email",
       placeholder: "email 주소를 입력하세요.",
@@ -102,7 +57,6 @@ const SignupPage = () => {
       rightMessage: "% ^ ^ %",
       isRight: (email: string): boolean =>
         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()),
-      isRequired: true,
       button: "중복확인",
       buttonClick: async (email: string) => {
         try {
@@ -124,7 +78,6 @@ const SignupPage = () => {
       isRight: (phone: string): boolean =>
         /^01([0|1|6|7|8|9])-?\d{3,4}-?\d{4}$/.test(formatPhoneNumber(phone.trim())),
       formatter: formatPhoneNumber,
-      isRequired: false,
     },
     {
       type: "selectInput",
@@ -140,12 +93,6 @@ const SignupPage = () => {
     },
   ];
 
-  const isPasswordMatch = (confirmPassword: string): boolean => {
-    return (
-      confirmPassword === formState.password &&
-      /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(confirmPassword.trim())
-    );
-  };
   const canUseThisId = async (id: string) => {
     const result = await checkIdFc({ variables: { id: id } });
     return !!result.data?.isDuplicated.duplicated;
@@ -155,54 +102,38 @@ const SignupPage = () => {
     const result = await checkEmailFc({ variables: { email: email } });
     return !!result.data?.isDuplicated.duplicated;
   };
-
   useEffect(() => {
-    if (signupUserData?.signup?.user?.name) {
-      alert(`<p>Sign up successful! Welcome, ${signupUserData.signup.user.name}.</p>`);
-
-      const { token, refresh_token, user } = signupUserData.signup;
-
-      localStorage.setItem("refresh_token", refresh_token);
-      localStorage.setItem("token", token);
-
-      setUserState({
-        name: user.name,
-        userId: user.userId,
-        gender: user.gender,
-      });
-      navigate("/");
+    if (updateUserData) {
+      console.log(updateUserData);
     }
-  }, [signupUserData, setUserState, navigate]);
+  }, [updateUserData]);
 
-  const isDetermineInput = (item: FormItem): item is CustomDetermineInputProps => {
+  const isDetermineInput = (item: UpdateFormItem): item is CustomUserDetermineInputProps => {
     return item.type === "determineInput";
   };
 
   type valueType = string | Gender | UserStatus | UserPermissions;
 
-  const handleInputChange = (key: keyof SignupType, value: valueType) => {
+  const handleInputChange = (key: keyof UserType, value: valueType) => {
     setFormState((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
-  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // 모든 필드 검증
     const validationResults = await Promise.all(
       Object.keys(formState).map(async (key) => {
-        const typedKey = key as keyof SignupType;
+        const typedKey = key as keyof UserType;
         const value = formState[typedKey];
 
         // signupForm에서 필드 찾기
-        const field = signupForm.find((f) => f.key === typedKey);
+        const field = updateForm.find((f) => f.key === typedKey);
         if (field && isDetermineInput(field)) {
-          if (typedKey === "confirmPassword") {
-            return isPasswordMatch(value as string);
-          } else if (typedKey === "user_id") {
+          if (typedKey === "user_id") {
             return !(await canUseThisId(value as string)) && field.isRight(value as string);
           } else if (typedKey === "email") {
             return !(await canUseThisEmail(value as string)) && field.isRight(value as string);
@@ -217,42 +148,41 @@ const SignupPage = () => {
       })
     );
 
-    if (validationResults.every(Boolean)) {
+    if (validationResults.some(Boolean)) {
       try {
-        await signupFc({
+        await updateFc({
           variables: {
-            email: formState.email,
-            password: formState.password,
-            name: formState.name,
-            user_id: formState.user_id,
-            gender: formState.gender,
-            phone_number: formState.phone_number,
-            permissions: formState.permissions,
-            status: formState.status,
+            id: formState.id,
+            email: formState?.email,
+            name: formState?.name,
+            user_id: formState?.user_id,
+            gender: formState?.gender,
+            phone_number: formState?.phone_number,
+            permissions: formState?.permissions,
           },
         });
+        onClose();
       } catch (error) {
-        console.error("Error during signup: ", error);
+        console.error("Error during update: ", error);
       }
     } else {
       alert("형식을 다시 확인해주세요.");
     }
   };
-
   return (
     <div>
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
-      <form onSubmit={handleSignup}>
+      <form onSubmit={handleUpdate}>
         <div className="grid gap-6 mb-6 md:grid-cols-2">
-          {signupForm.map((item) => {
+          {updateForm.map((item) => {
             if (item.type === "determineInput") {
-              const determineItem = item as CustomDetermineInputProps;
+              const determineItem = item as CustomUserDetermineInputProps;
               return (
                 <DetermineInput
                   key={determineItem.key}
                   label={determineItem.label}
-                  placeholder={determineItem.placeholder}
+                  placeholder={formState[determineItem.key]}
                   wrongMessage={determineItem.wrongMessage}
                   rightMessage={determineItem.rightMessage}
                   isRight={determineItem.isRight}
@@ -264,12 +194,12 @@ const SignupPage = () => {
                 />
               );
             } else if (item.type === "selectInput") {
-              const selectItem = item as CustomSelectProps;
+              const selectItem = item as CustomUserSelectProps;
               return (
                 <SelectBox
                   key={selectItem.key}
                   label={selectItem.label}
-                  defaultValue={formState[selectItem.key]}
+                  defaultValue={selectItem.key}
                   options={selectItem.options}
                   onChange={(v) => handleInputChange(selectItem.key, v)}
                 />
@@ -291,4 +221,4 @@ const SignupPage = () => {
   );
 };
 
-export default SignupPage;
+export default UpdateUserForm;

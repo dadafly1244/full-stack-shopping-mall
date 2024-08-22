@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { MouseEvent, useEffect, useState } from "react";
 import Table, { TableColumn } from "#/common/Table";
 import { USER_INFO_ADMIN } from "#/apollo/query";
 import { UserType, UserStatus } from "#/utils/types";
@@ -7,6 +7,8 @@ import { ACTIVE_USER_ADMIN, SUSPENDED_USER_ADMIN } from "#/apollo/mutation";
 import { FILTERED_USER_INFO_ADMIN } from "#/apollo/query";
 import { SearchFilters, CheckboxStates } from "#/utils/types";
 import UserSearchComponent from "#/pages/Admin/UserSearchComponent";
+import Modal from "#/common/Modal";
+import UpdateUserForm from "#/common/UpdateUserForm";
 
 const init_filters = {
   name: "",
@@ -16,6 +18,16 @@ const init_filters = {
   status: null,
   permissions: null,
   gender: null,
+};
+const init_user = {
+  id: "",
+  name: "",
+  user_id: "",
+  email: "",
+  phone_number: "",
+  status: "ACTIVE",
+  permissions: "USER",
+  gender: "PREFER_NOT_TO_SAY",
 };
 const UserInfoTab = () => {
   const [filters, setFilters] = useState<SearchFilters>(init_filters);
@@ -29,6 +41,20 @@ const UserInfoTab = () => {
     gender: false,
   });
   const [openSearch, setOpenSearch] = useState(false);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [clickedUser, setClickedUser] = useState(init_user);
+
+  const openModal = (user: UserType) => {
+    if (user) {
+      setIsModalOpen(true);
+      setClickedUser((prev) => ({ ...prev, ...user }));
+    }
+  };
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setClickedUser(init_user);
+  };
   const { data: allData, loading, error } = useQuery(USER_INFO_ADMIN);
   const [suspendedUser, { loading: suspendedLoading, error: suspendedError }] = useMutation(
     SUSPENDED_USER_ADMIN,
@@ -58,7 +84,7 @@ const UserInfoTab = () => {
 
   useEffect(() => {
     if (!openSearch) {
-      setData(allData.usersList);
+      setData(allData?.usersList);
     }
   }, [openSearch, allData]);
 
@@ -75,7 +101,8 @@ const UserInfoTab = () => {
     }
   };
 
-  const handleStatus = (status: UserStatus | undefined, id: string | undefined) => {
+  const handleStatus = (e: MouseEvent, status: UserStatus | undefined, id: string | undefined) => {
+    e.stopPropagation();
     if (!status || !id) return alert("사용자 상태 변경 실패");
     if (status === "ACTIVE") {
       handleUserSusPended(id);
@@ -142,7 +169,7 @@ const UserInfoTab = () => {
               : "bg-red-500 text-white"
           }`}
             type="button"
-            onClick={() => handleStatus(user.status, user.id)}
+            onClick={(e) => handleStatus(e, user.status, user.id)}
           >
             변경
           </button>
@@ -166,18 +193,20 @@ const UserInfoTab = () => {
 
   const handleRowClick = (user: UserType) => {
     console.log("Clicked user:", user);
+    openModal(user);
   };
 
   const handleSelectionChange = (selectedUsers: UserType[]) => {
     console.log("Selected users:", selectedUsers);
   };
-  console.log(data);
+
   if (loading || suspendedLoading || activeLoading) return <p>Loading...</p>;
   if (error || filteredError) return <p>Error: {error?.message || filteredError?.message}</p>;
   if (filteredLoading) return <p>검색중...</p>;
 
   return (
     <div>
+      <UpdateUserModal isOpen={isModalOpen} onClose={closeModal} user={clickedUser as UserType} />
       <UserSearchComponent
         open={openSearch}
         onOpenChange={setOpenSearch}
@@ -196,6 +225,20 @@ const UserInfoTab = () => {
         onSelectionChange={handleSelectionChange}
       />
     </div>
+  );
+};
+
+interface UpdateUserModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  user: UserType;
+}
+
+export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({ isOpen, onClose, user }) => {
+  return (
+    <Modal isOpen={isOpen} title="사용자 정보 수정" onClose={onClose}>
+      <UpdateUserForm user={user} onClose={onClose} />
+    </Modal>
   );
 };
 

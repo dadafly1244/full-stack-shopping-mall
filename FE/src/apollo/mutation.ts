@@ -111,3 +111,33 @@ export const ACTIVE_USER_ADMIN = gql`
     }
   }
 `;
+
+export const UPDATE_USER_ADMIN = gql`
+  mutation UpdateUser(
+    $id: String!
+    $name: String
+    $user_id: String
+    $email: String
+    $gender: Gender
+    $phone_number: String
+    $permissions: UserPermissions
+  ) {
+    updateUser(
+      id: $id
+      email: $email
+      user_id: $user_id
+      name: $name
+      gender: $gender
+      phone_number: $phone_number
+      permissions: $permissions
+    ) {
+      id
+      user_id
+      email
+      name
+      gender
+      phone_number
+      permissions
+    }
+  }
+`;

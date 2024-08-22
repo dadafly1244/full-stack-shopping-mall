@@ -1,23 +1,7 @@
 import { ReactElement, useState, useEffect, useCallback } from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "#/utils/utils";
-export interface DetermineInputProps {
-  label: string;
-  key?: string;
-  placeholder?: string;
-  wrongMessage?: string;
-  rightMessage?: string;
-  isRight: (value: string) => boolean;
-  inputLimit?: string;
-  isRequired?: boolean;
-  inputWidth?: number;
-  className?: string;
-  formatter?: (value: string) => string;
-  onChange?: (value: string) => void;
-  variant?: "default" | "pass" | "nonePass";
-  button?: string | (() => Promise<string>);
-  buttonClick?: (value: string) => Promise<boolean>;
-}
+import { DetermineInputProps } from "#/utils/types";
 
 const DetermineInput = (props: DetermineInputProps): ReactElement => {
   const {
@@ -113,7 +97,9 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
     }
   }, [debouncedInput, isRight]);
 
-  const [buttonText, setButtonText] = useState<string>(typeof initialButtonText === "string" ? initialButtonText : "");
+  const [buttonText, setButtonText] = useState<string>(
+    typeof initialButtonText === "string" ? initialButtonText : ""
+  );
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   const handleButtonClick = useCallback(async () => {
@@ -155,7 +141,10 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
   return (
     <div>
       <div className="mb-6">
-        <label htmlFor={`determineInput-${label}`} className={cn(labelVariants({ variant: _valiant }), className)}>
+        <label
+          htmlFor={`determineInput-${label}`}
+          className={cn(labelVariants({ variant: _valiant }), className)}
+        >
           {label ? label : "입력"} {isRequired ? "(필수)" : ""}
         </label>
         <div className="flex h-10">

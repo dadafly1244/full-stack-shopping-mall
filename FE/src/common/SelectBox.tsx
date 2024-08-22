@@ -1,22 +1,7 @@
 import { useState, useEffect } from "react";
-import { Gender, UserStatus, UserPermissions } from "#/apollo/mutation";
 import { cn } from "#/utils/utils";
 import { cva } from "class-variance-authority";
-
-type ValueType = string | Gender | UserStatus | UserPermissions;
-
-export interface SelectProps {
-  key?: string;
-  label: string;
-  placeholder?: string;
-  defaultValue: ValueType;
-  options: { value: ValueType; label: string }[];
-  onChange?: (value: ValueType) => void;
-  disabled?: boolean;
-  isRight?: (value: ValueType) => boolean;
-  className?: string; // 추가 스타일을 위한 클래스명
-  variant?: "default" | "pass" | "nonePass";
-}
+import { SelectProps, ValueType } from "#/utils/types";
 
 const labelVariants = cva("block mb-2 text-sm font-medium", {
   variants: {
@@ -30,23 +15,27 @@ const labelVariants = cva("block mb-2 text-sm font-medium", {
     variant: "default",
   },
 });
-const selectVariants = cva("text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ", {
-  variants: {
-    variant: {
-      default: "text-sm border border-gray-500 text-gray-900 ",
-      pass: "text-sm border border-green-500 text-green-900 placeholder-green-700 dark:placeholder-green-500",
-      nonePass: "text-sm border border-red-500 text-red-900 placeholder-red-700 dark:placeholder-red-500",
+const selectVariants = cva(
+  "text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 ",
+  {
+    variants: {
+      variant: {
+        default: "text-sm border border-gray-500 text-gray-900 ",
+        pass: "text-sm border border-green-500 text-green-900 placeholder-green-700 dark:placeholder-green-500",
+        nonePass:
+          "text-sm border border-red-500 text-red-900 placeholder-red-700 dark:placeholder-red-500",
+      },
+      disable: {
+        default: "text-sm ",
+        disabled: "text-sm bg-gray-50 border text-gray-400",
+      },
+      defaultVariants: {
+        variant: "default",
+        disable: "default",
+      },
     },
-    disable: {
-      default: "text-sm ",
-      disabled: "text-sm bg-gray-50 border text-gray-400",
-    },
-    defaultVariants: {
-      variant: "default",
-      disable: "default",
-    },
-  },
-});
+  }
+);
 const Select = (props: SelectProps) => {
   const {
     isRight = () => true,
@@ -92,7 +81,10 @@ const Select = (props: SelectProps) => {
         defaultValue={placeholder}
         value={_value}
         onChange={handleChange}
-        className={cn(selectVariants({ variant: _variant, disable: disabled ? "disabled" : "default" }), className)}
+        className={cn(
+          selectVariants({ variant: _variant, disable: disabled ? "disabled" : "default" }),
+          className
+        )}
       >
         {placeholder && <option value="defaultValue">선택해 주세요.</option>}
         {options.map((o) => {
