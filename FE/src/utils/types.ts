@@ -14,6 +14,7 @@ export enum Gender {
   OTHER = "OTHER",
   PREFER_NOT_TO_SAY = "PREFER_NOT_TO_SAY",
 }
+export type SortType = "asc" | "desc" | "none" | undefined;
 
 export type UpdateUserInput = {
   id: string;

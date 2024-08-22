@@ -1,14 +1,14 @@
 import { MouseEvent, useEffect, useState } from "react";
 import Table, { TableColumn } from "#/common/Table";
 import { USER_INFO_ADMIN } from "#/apollo/query";
-import { UserType, UserStatus } from "#/utils/types";
 import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import { ACTIVE_USER_ADMIN, SUSPENDED_USER_ADMIN } from "#/apollo/mutation";
 import { FILTERED_USER_INFO_ADMIN } from "#/apollo/query";
-import { SearchFilters, CheckboxStates } from "#/utils/types";
+import { UserType, UserStatus, SearchFilters, CheckboxStates } from "#/utils/types";
 import UserSearchComponent from "#/pages/Admin/UserSearchComponent";
 import Modal from "#/common/Modal";
 import UpdateUserForm from "#/common/UpdateUserForm";
+import { sortObjectsByKey } from "#/utils/sort";
 
 const init_filters = {
   name: "",
@@ -74,12 +74,13 @@ const UserInfoTab = () => {
   const [filteredUser, { loading: filteredLoading, error: filteredError }] =
     useLazyQuery(FILTERED_USER_INFO_ADMIN);
 
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<UserType[]>(allData?.usersList);
 
   useEffect(() => {
     if (allData?.usersList) {
       setData(allData.usersList);
     }
+    console.log(allData);
   }, [allData]);
 
   useEffect(() => {
@@ -136,12 +137,41 @@ const UserInfoTab = () => {
     }
   };
 
+  function createCircularIterator(prev: string, arr: string[]): () => string {
+    let currentIndex = arr.indexOf(prev);
+
+    // If prev is not found, start from the beginning
+    if (currentIndex === -1) {
+      currentIndex = 0;
+    } else {
+      // Move to the next item
+      currentIndex = (currentIndex + 1) % arr.length;
+    }
+
+    return function () {
+      const result = arr[currentIndex];
+      currentIndex = (currentIndex + 1) % arr.length;
+      return result;
+    };
+  }
+
+  const [sortState, setSortState] = useState({
+    user_id: "none",
+    name: "none",
+    email: "none",
+    phone_number: "none",
+  });
+  const sortOrders = ["none", "asc", "desc"];
+  const sortOrderIterator = (prev: string) => {
+    createCircularIterator(prev, sortOrders);
+  };
+
   const columns: TableColumn<UserType>[] = [
     { header: "ID", key: "id" },
-    { header: "User ID", key: "user_id" },
-    { header: "Name", key: "name" },
-    { header: "Email", key: "email" },
-    { header: "Phone", key: "phone_number" },
+    { header: "User ID", key: "user_id", sort: sortState.user_id },
+    { header: "Name", key: "name", sort: sortState.name },
+    { header: "Email", key: "email", sort: sortState.email },
+    { header: "Phone", key: "phone_number", sort: sortState.phone_number },
     {
       header: "Status",
       key: "status",
@@ -200,6 +230,18 @@ const UserInfoTab = () => {
     console.log("Selected users:", selectedUsers);
   };
 
+  const handleSortClick = (
+    key: keyof { user_id: string; name: string; email: string; phone_number: string }
+  ) => {
+    const sortedData: UserType[] = sortObjectsByKey(allData?.usersList, key);
+
+    setSortState((prev) => ({
+      ...prev,
+      [key]: sortOrderIterator(prev[key]),
+    }));
+    setData(sortedData);
+  };
+
   if (loading || suspendedLoading || activeLoading) return <p>Loading...</p>;
   if (error || filteredError) return <p>Error: {error?.message || filteredError?.message}</p>;
   if (filteredLoading) return <p>검색중...</p>;
@@ -221,6 +263,7 @@ const UserInfoTab = () => {
         title="User List"
         data={data}
         columns={columns}
+        onSortClick={handleSortClick}
         onRowClick={handleRowClick}
         onSelectionChange={handleSelectionChange}
       />

@@ -2,6 +2,7 @@ import React, { useState, useCallback, ReactNode } from "react";
 
 export interface TableColumn<T> {
   header: string;
+  sort?: string;
   key: keyof T;
   render?: (item: T) => ReactNode;
 }
@@ -10,6 +11,9 @@ export interface TableProps<T> {
   title: string;
   data: T[];
   columns: TableColumn<T>[];
+  onSortClick?: (
+    key: keyof { user_id: string; name: string; email: string; phone_number: string }
+  ) => void;
   onRowClick?: (item: T) => void;
   onSelectionChange?: (selectedItems: T[]) => void;
 }
@@ -18,6 +22,7 @@ function Table<T extends { id?: string }>({
   title,
   data,
   columns,
+  onSortClick,
   onRowClick,
   onSelectionChange,
 }: TableProps<T>) {
@@ -62,6 +67,15 @@ function Table<T extends { id?: string }>({
     return JSON.stringify(value);
   };
 
+  const handleSorting = (
+    e: React.MouseEvent,
+    key: keyof { user_id: string; name: string; email: string; phone_number: string }
+  ) => {
+    e.stopPropagation;
+
+    onSortClick?.(key);
+  };
+
   return (
     <div className="overflow-x-auto">
       <h2 className="text-2xl font-bold mb-4">{title}</h2>
@@ -78,6 +92,25 @@ function Table<T extends { id?: string }>({
             {columns.map((column) => (
               <th key={column.key as string} className="py-3 px-6 text-left">
                 {column.header}
+                {column.sort && (
+                  <button
+                    onClick={(e) =>
+                      handleSorting(
+                        e,
+                        column.key as keyof {
+                          user_id: string;
+                          name: string;
+                          email: string;
+                          phone_number: string;
+                        }
+                      )
+                    }
+                  >
+                    {column.sort === "none" && "#"}
+                    {column.sort === "asc" && "▲"}
+                    {column.sort === "desc" && "▼"}
+                  </button>
+                )}
               </th>
             ))}
           </tr>

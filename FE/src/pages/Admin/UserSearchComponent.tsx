@@ -47,15 +47,15 @@ export const UserSearchComponent: React.FC<UserSearchComponentProps> = ({
   };
 
   return (
-    <div className="p-4 bg-gray-100">
+    <div className="p-4 bg-gray-100\">
       <h1 onClick={handleClickTitle} className="text-2xl font-bold mb-4 text-gray-800">
-        User Search
+        검색
       </h1>
       {open && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {Object.entries(filters).map(([key, value]) => (
-              <div key={key} className="flex items-center">
+              <div key={key} className="flex items-center w-96 justify-between ">
                 <Checkbox
                   checked={checkboxes[key as keyof CheckboxStates]}
                   onChange={() => handleCheckboxChange(key as keyof CheckboxStates)}
@@ -84,7 +84,7 @@ export const UserSearchComponent: React.FC<UserSearchComponentProps> = ({
                     value={value}
                     onChange={handleInputChange}
                     disabled={!checkboxes[key as keyof CheckboxStates]}
-                    className="ml-2 w-full p-2 border border-gray-300 rounded bg-white focus:outline-none focus:border-gray-500"
+                    className="ml-2 w-48 p-2 border border-gray-300 rounded bg-white focus:outline-none focus:border-gray-500"
                   />
                 )}
               </div>
