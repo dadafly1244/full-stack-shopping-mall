@@ -126,3 +126,10 @@ export interface SignupType {
   status: UserStatus;
   permissions: UserPermissions;
 }
+
+export type sortingItem = {
+  user_id: string;
+  name: string;
+  email: string;
+  phone_number: string;
+};

@@ -4,7 +4,7 @@ import { USER_INFO_ADMIN } from "#/apollo/query";
 import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import { ACTIVE_USER_ADMIN, SUSPENDED_USER_ADMIN } from "#/apollo/mutation";
 import { FILTERED_USER_INFO_ADMIN } from "#/apollo/query";
-import { UserType, UserStatus, SearchFilters, CheckboxStates } from "#/utils/types";
+import { UserType, UserStatus, SearchFilters, CheckboxStates, sortingItem } from "#/utils/types";
 import UserSearchComponent from "#/pages/Admin/UserSearchComponent";
 import Modal from "#/common/Modal";
 import UpdateUserForm from "#/common/UpdateUserForm";
@@ -137,34 +137,16 @@ const UserInfoTab = () => {
     }
   };
 
-  function createCircularIterator(prev: string, arr: string[]): () => string {
-    let currentIndex = arr.indexOf(prev);
-
-    // If prev is not found, start from the beginning
-    if (currentIndex === -1) {
-      currentIndex = 0;
-    } else {
-      // Move to the next item
-      currentIndex = (currentIndex + 1) % arr.length;
-    }
-
-    return function () {
-      const result = arr[currentIndex];
-      currentIndex = (currentIndex + 1) % arr.length;
-      return result;
-    };
-  }
-
   const [sortState, setSortState] = useState({
     user_id: "none",
     name: "none",
     email: "none",
     phone_number: "none",
   });
-  const sortOrders = ["none", "asc", "desc"];
-  const sortOrderIterator = (prev: string) => {
-    createCircularIterator(prev, sortOrders);
-  };
+
+  useEffect(() => {
+    console.log(sortState);
+  }, [sortState]);
 
   const columns: TableColumn<UserType>[] = [
     { header: "ID", key: "id" },
@@ -230,16 +212,24 @@ const UserInfoTab = () => {
     console.log("Selected users:", selectedUsers);
   };
 
-  const handleSortClick = (
-    key: keyof { user_id: string; name: string; email: string; phone_number: string }
-  ) => {
-    const sortedData: UserType[] = sortObjectsByKey(allData?.usersList, key);
+  const handleSortClick = (key: keyof sortingItem) => {
+    setSortState((prevState) => {
+      const newSortOrder =
+        prevState[key] === "none" ? "asc" : prevState[key] === "asc" ? "desc" : "none";
+      const newSortState = { ...prevState, [key]: newSortOrder };
 
-    setSortState((prev) => ({
-      ...prev,
-      [key]: sortOrderIterator(prev[key]),
-    }));
-    setData(sortedData);
+      // 정렬 로직
+      let sortedData = [...data];
+      if (newSortOrder !== "none") {
+        sortedData = sortObjectsByKey(sortedData, key, newSortOrder === "asc");
+      } else {
+        // "none" 상태일 때는 원래 데이터 순서로 복원
+        sortedData = allData?.usersList || [];
+      }
+
+      setData(sortedData);
+      return newSortState;
+    });
   };
 
   if (loading || suspendedLoading || activeLoading) return <p>Loading...</p>;
@@ -262,6 +252,7 @@ const UserInfoTab = () => {
       <Table<UserType>
         title="User List"
         data={data}
+        sortState={sortState}
         columns={columns}
         onSortClick={handleSortClick}
         onRowClick={handleRowClick}

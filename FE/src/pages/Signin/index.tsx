@@ -1,4 +1,4 @@
-import DetermineInput, { DetermineInputProps } from "#/common/DetermineInput";
+import DetermineInput from "#/common/DetermineInput";
 import { useState, useEffect } from "react";
 import { useMutation } from "@apollo/client";
 import { SIGN_IN_USER } from "#/apollo/mutation";
@@ -7,6 +7,7 @@ import { useSetRecoilState } from "recoil";
 import { userState } from "#/store/atoms";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { DetermineInputProps } from "#/utils/types";
 
 interface CustomDetermineInputProps extends Omit<DetermineInputProps, "isRight"> {
   isRight: (value: string) => boolean;
@@ -90,9 +91,9 @@ const SigninPage = () => {
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
       {
-        <>
-          <form onSubmit={handleSignin}>
-            <div className="grid gap-6 mb-6 md:grid-cols-2">
+        <div className="max-w-96">
+          <form className="flex flex-col" onSubmit={handleSignin}>
+            <div className="grid gap-6 mb-6 ">
               {signinForm.map((item) => {
                 if (item.type === "determineInput") {
                   const determineItem = item as DetermineInputProps;
@@ -141,7 +142,7 @@ const SigninPage = () => {
               회원가입
             </Link>
           </div>
-        </>
+        </div>
       }
     </>
   );
