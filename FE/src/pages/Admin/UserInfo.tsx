@@ -1,24 +1,24 @@
-import { MouseEvent, useEffect, useState } from "react";
+import { MouseEvent, useEffect, useState, useCallback } from "react";
 import Table, { TableColumn } from "#/common/Table";
 import { USER_INFO_ADMIN } from "#/apollo/query";
 import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import { ACTIVE_USER_ADMIN, SUSPENDED_USER_ADMIN } from "#/apollo/mutation";
 import { FILTERED_USER_INFO_ADMIN } from "#/apollo/query";
-import { UserType, UserStatus, SearchFilters, CheckboxStates, sortingItem } from "#/utils/types";
+import {
+  UserType,
+  UserStatus,
+  UserPermissions,
+  Gender,
+  SearchFilters,
+  CheckboxStates,
+  sortingItem,
+} from "#/utils/types";
 import UserSearchComponent from "#/pages/Admin/UserSearchComponent";
 import Modal from "#/common/Modal";
 import UpdateUserForm from "#/common/UpdateUserForm";
 import { sortObjectsByKey } from "#/utils/sort";
+import { useSearchParams } from "react-router-dom";
 
-const init_filters = {
-  name: "",
-  user_id: "",
-  email: "",
-  phone_number: "",
-  status: null,
-  permissions: null,
-  gender: null,
-};
 const init_user = {
   id: "",
   name: "",
@@ -29,114 +29,51 @@ const init_user = {
   permissions: "USER",
   gender: "PREFER_NOT_TO_SAY",
 };
+
+const initialFilters: SearchFilters = {
+  name: "",
+  user_id: "",
+  email: "",
+  phone_number: "",
+  status: "ACTIVE" as UserStatus,
+  permissions: "USER" as UserPermissions,
+  gender: "PREFER_NOT_TO_SAY" as Gender,
+};
+
+const initialCheckboxes: CheckboxStates = {
+  name: false,
+  user_id: false,
+  email: false,
+  phone_number: false,
+  status: false,
+  permissions: false,
+  gender: false,
+};
+
 const UserInfoTab = () => {
-  const [filters, setFilters] = useState<SearchFilters>(init_filters);
-  const [checkboxes, setCheckboxes] = useState<CheckboxStates>({
-    name: false,
-    user_id: false,
-    email: false,
-    phone_number: false,
-    status: false,
-    permissions: false,
-    gender: false,
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [localFilters, setLocalFilters] = useState<SearchFilters>({
+    name: searchParams.get("filter_name") || "",
+    user_id: searchParams.get("filter_user_id") || "",
+    email: searchParams.get("filter_email") || "",
+    phone_number: searchParams.get("filter_phone_number") || "",
+    status: (searchParams.get("filter_status") as UserStatus) || "ACTIVE",
+    permissions: (searchParams.get("filter_permissions") as UserPermissions) || "USER",
+    gender: (searchParams.get("filter_gender") as Gender) || "PREFER_NOT_TO_SAY",
   });
-  const [openSearch, setOpenSearch] = useState(false);
+  const [localCheckboxes, setLocalCheckboxes] = useState<CheckboxStates>({
+    name: searchParams.get("check_name") === "true",
+    user_id: searchParams.get("check_user_id") === "true",
+    email: searchParams.get("check_email") === "true",
+    phone_number: searchParams.get("check_phone_number") === "true",
+    status: searchParams.get("check_status") === "true",
+    permissions: searchParams.get("check_permissions") === "true",
+    gender: searchParams.get("check_gender") === "true",
+  });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickedUser, setClickedUser] = useState(init_user);
-
-  const openModal = (user: UserType) => {
-    if (user) {
-      setIsModalOpen(true);
-      setClickedUser((prev) => ({ ...prev, ...user }));
-    }
-  };
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setClickedUser(init_user);
-  };
-  const { data: allData, loading, error } = useQuery(USER_INFO_ADMIN);
-  const [suspendedUser, { loading: suspendedLoading, error: suspendedError }] = useMutation(
-    SUSPENDED_USER_ADMIN,
-    {
-      refetchQueries: [{ query: USER_INFO_ADMIN }],
-      awaitRefetchQueries: true,
-    }
-  );
-  const [activeUser, { loading: activeLoading, error: activeError }] = useMutation(
-    ACTIVE_USER_ADMIN,
-    {
-      refetchQueries: [{ query: USER_INFO_ADMIN }],
-      awaitRefetchQueries: true,
-    }
-  );
-
-  const [filteredUser, { loading: filteredLoading, error: filteredError }] =
-    useLazyQuery(FILTERED_USER_INFO_ADMIN);
-
-  const [data, setData] = useState<UserType[]>(allData?.usersList);
-
-  useEffect(() => {
-    if (allData?.usersList) {
-      setData(allData.usersList);
-    }
-    console.log(allData);
-  }, [allData]);
-
-  useEffect(() => {
-    if (!openSearch) {
-      setData(allData?.usersList);
-    }
-  }, [openSearch, allData]);
-
-  const handleSearchUser = async (filters: SearchFilters, checkboxes: CheckboxStates) => {
-    const { data: usersData } = await filteredUser({
-      variables: Object.fromEntries(
-        Object.entries(filters).filter(
-          ([key, value]) => checkboxes[key as keyof CheckboxStates] && value !== ""
-        )
-      ),
-    });
-    if (usersData?.filteredUsers) {
-      setData(usersData.filteredUsers);
-    }
-  };
-
-  const handleStatus = (e: MouseEvent, status: UserStatus | undefined, id: string | undefined) => {
-    e.stopPropagation();
-    if (!status || !id) return alert("사용자 상태 변경 실패");
-    if (status === "ACTIVE") {
-      handleUserSusPended(id);
-    } else {
-      handleUserActive(id);
-    }
-  };
-
-  const handleUserSusPended = (id: string | undefined) => {
-    if (id) {
-      suspendedUser({
-        variables: {
-          id: id,
-        },
-      });
-      if (suspendedError) {
-        alert("사용자 정지 실패");
-      }
-    }
-  };
-  const handleUserActive = (id: string | undefined) => {
-    if (id) {
-      activeUser({
-        variables: {
-          id: id,
-        },
-      });
-      if (activeError) {
-        alert("사용자 활성화 실패");
-      }
-    }
-  };
-
+  const [data, setData] = useState<UserType[]>([]);
   const [sortState, setSortState] = useState({
     user_id: "none",
     name: "none",
@@ -144,9 +81,141 @@ const UserInfoTab = () => {
     phone_number: "none",
   });
 
+  const { data: allData, loading, error } = useQuery(USER_INFO_ADMIN);
+  const [suspendedUser] = useMutation(SUSPENDED_USER_ADMIN, {
+    refetchQueries: [{ query: USER_INFO_ADMIN }],
+    awaitRefetchQueries: true,
+  });
+  const [activeUser] = useMutation(ACTIVE_USER_ADMIN, {
+    refetchQueries: [{ query: USER_INFO_ADMIN }],
+    awaitRefetchQueries: true,
+  });
+
+  const [filteredUser, { loading: filteredLoading, error: filteredError }] =
+    useLazyQuery(FILTERED_USER_INFO_ADMIN);
+
+  const performSearch = useCallback(async () => {
+    const filterVariables = Object.fromEntries(
+      Object.entries(localFilters).filter(
+        ([key, value]) => localCheckboxes[key as keyof CheckboxStates] && value !== ""
+      )
+    );
+    const { data: usersData } = await filteredUser({ variables: filterVariables });
+    if (usersData?.filteredUsers) {
+      setData(usersData.filteredUsers);
+    }
+  }, [filteredUser, localFilters, localCheckboxes]);
+
   useEffect(() => {
-    console.log(sortState);
-  }, [sortState]);
+    if (searchParams.get("searchOpen") === "true") {
+      performSearch();
+    } else if (allData?.usersList) {
+      setData(allData.usersList);
+    }
+  }, [searchParams, allData, performSearch]);
+
+  const openModal = (user: UserType) => {
+    if (user) {
+      setIsModalOpen(true);
+      setClickedUser((prev) => ({ ...prev, ...user }));
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setClickedUser(init_user);
+  };
+
+  const handleStatus = (e: MouseEvent, status: UserStatus | undefined, id: string | undefined) => {
+    e.stopPropagation();
+    if (!status || !id) return alert("사용자 상태 변경 실패");
+    if (status === "ACTIVE") {
+      handleUserSuspended(id);
+    } else {
+      handleUserActive(id);
+    }
+  };
+
+  const handleUserSuspended = (id: string | undefined) => {
+    if (id) {
+      suspendedUser({
+        variables: {
+          id: id,
+        },
+      });
+    }
+  };
+
+  const handleUserActive = (id: string | undefined) => {
+    if (id) {
+      activeUser({
+        variables: {
+          id: id,
+        },
+      });
+    }
+  };
+
+  const handleRowClick = (user: UserType) => {
+    console.log("Clicked user:", user);
+    openModal(user);
+  };
+
+  const handleSelectionChange = (selectedUsers: UserType[]) => {
+    console.log("Selected users:", selectedUsers);
+  };
+
+  const handleSortClick = (key: keyof sortingItem) => {
+    setSortState((prevState) => {
+      const newSortOrder =
+        prevState[key] === "none" ? "asc" : prevState[key] === "asc" ? "desc" : "none";
+      const newSortState = { ...prevState, [key]: newSortOrder };
+
+      let sortedData = [...data];
+      if (newSortOrder !== "none") {
+        sortedData = sortObjectsByKey(sortedData, key, newSortOrder === "asc");
+      } else {
+        sortedData = allData?.usersList || [];
+      }
+
+      setData(sortedData);
+      return newSortState;
+    });
+  };
+
+  const handleSearchUser = () => {
+    const newSearchParams = new URLSearchParams();
+    Object.entries(localFilters).forEach(([key, value]) => {
+      if (value) {
+        newSearchParams.set(`filter_${key}`, value);
+      }
+    });
+    Object.entries(localCheckboxes).forEach(([key, value]) => {
+      if (value) {
+        newSearchParams.set(`check_${key}`, "true");
+      }
+    });
+    newSearchParams.set("searchOpen", "true");
+    setSearchParams(newSearchParams);
+    performSearch();
+  };
+
+  const handleCloseSearch = () => {
+    setSearchParams(new URLSearchParams());
+    setLocalFilters(initialFilters);
+    setLocalCheckboxes(initialCheckboxes);
+    if (allData?.usersList) {
+      setData(allData.usersList);
+    }
+  };
+
+  const handleResetSearch = () => {
+    setSearchParams(new URLSearchParams());
+    searchParams.set("searchOpen", "true");
+    setSearchParams(searchParams);
+    setLocalFilters(initialFilters);
+    setLocalCheckboxes(initialCheckboxes);
+  };
 
   const columns: TableColumn<UserType>[] = [
     { header: "ID", key: "id" },
@@ -161,25 +230,25 @@ const UserInfoTab = () => {
         <div className="flex justify-between w-36">
           <span
             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-          ${
-            user.status === "ACTIVE"
-              ? "bg-green-50 text-green-500"
-              : user.status === "SUSPENDED"
-              ? "bg-yellow-100 text-yellow-500"
-              : "bg-red-50 text-red-500"
-          }`}
+            ${
+              user.status === "ACTIVE"
+                ? "bg-green-50 text-green-500"
+                : user.status === "SUSPENDED"
+                ? "bg-yellow-100 text-yellow-500"
+                : "bg-red-50 text-red-500"
+            }`}
           >
             {user.status}
           </span>
           <button
             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-          ${
-            user.status === "SUSPENDED"
-              ? "bg-green-500 text-white"
-              : user.status === "ACTIVE"
-              ? "bg-yellow-500 text-white"
-              : "bg-red-500 text-white"
-          }`}
+            ${
+              user.status === "SUSPENDED"
+                ? "bg-green-500 text-white"
+                : user.status === "ACTIVE"
+                ? "bg-yellow-500 text-white"
+                : "bg-red-500 text-white"
+            }`}
             type="button"
             onClick={(e) => handleStatus(e, user.status, user.id)}
           >
@@ -203,51 +272,20 @@ const UserInfoTab = () => {
     { header: "Gender", key: "gender" },
   ];
 
-  const handleRowClick = (user: UserType) => {
-    console.log("Clicked user:", user);
-    openModal(user);
-  };
-
-  const handleSelectionChange = (selectedUsers: UserType[]) => {
-    console.log("Selected users:", selectedUsers);
-  };
-
-  const handleSortClick = (key: keyof sortingItem) => {
-    setSortState((prevState) => {
-      const newSortOrder =
-        prevState[key] === "none" ? "asc" : prevState[key] === "asc" ? "desc" : "none";
-      const newSortState = { ...prevState, [key]: newSortOrder };
-
-      // 정렬 로직
-      let sortedData = [...data];
-      if (newSortOrder !== "none") {
-        sortedData = sortObjectsByKey(sortedData, key, newSortOrder === "asc");
-      } else {
-        // "none" 상태일 때는 원래 데이터 순서로 복원
-        sortedData = allData?.usersList || [];
-      }
-
-      setData(sortedData);
-      return newSortState;
-    });
-  };
-
-  if (loading || suspendedLoading || activeLoading) return <p>Loading...</p>;
+  if (loading || filteredLoading) return <p>Loading...</p>;
   if (error || filteredError) return <p>Error: {error?.message || filteredError?.message}</p>;
-  if (filteredLoading) return <p>검색중...</p>;
 
   return (
     <div>
       <UpdateUserModal isOpen={isModalOpen} onClose={closeModal} user={clickedUser as UserType} />
       <UserSearchComponent
-        open={openSearch}
-        onOpenChange={setOpenSearch}
-        filters={filters}
-        checkboxes={checkboxes}
-        onFilteredChange={setFilters}
-        OnCheckboxChange={setCheckboxes}
+        filters={localFilters}
+        checkboxes={localCheckboxes}
         onClickSearch={handleSearchUser}
-        initFilter={init_filters}
+        setLocalFilters={setLocalFilters}
+        onCloseSearch={handleCloseSearch}
+        setLocalCheckboxes={setLocalCheckboxes}
+        onResetSearch={handleResetSearch}
       />
       <Table<UserType>
         title="User List"

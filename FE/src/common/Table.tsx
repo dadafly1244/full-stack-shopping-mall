@@ -77,54 +77,57 @@ function Table<T extends { id?: string }>({
   return (
     <div className="overflow-x-auto">
       <h2 className="text-2xl font-bold mb-4">{title}</h2>
-      <table className="min-w-full bg-white">
-        <thead>
-          <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-            <th className="py-3 px-6 text-left">
-              <input
-                type="checkbox"
-                onChange={handleSelectAll}
-                checked={selectedItems.length === data.length}
-              />
-            </th>
-            {columns.map((column) => (
-              <th key={column.key as string} className="py-3 px-6 text-left">
-                {column.header}
-                {column.sort && (
-                  <button onClick={(e) => handleSorting(e, column.key as keyof sortingItem)}>
-                    {sortState[column.key as keyof sortingItem] === "none" && "#"}
-                    {sortState[column.key as keyof sortingItem] === "asc" && "▲"}
-                    {sortState[column.key as keyof sortingItem] === "desc" && "▼"}
-                  </button>
-                )}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="text-gray-600 text-sm font-light">
-          {data.map((item) => (
-            <tr
-              key={item.id}
-              className="border-b border-gray-200 hover:bg-gray-100"
-              onClick={() => onRowClick?.(item)}
-            >
-              <td className="py-3 px-6 text-left whitespace-nowrap">
+      {!!(!selectedItems?.length && !data?.length) && "값이 없습니다."}
+      {!!(selectedItems?.length || data?.length) && (
+        <table className="min-w-full bg-white">
+          <thead>
+            <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+              <th className="py-3 px-6 text-left">
                 <input
                   type="checkbox"
-                  onChange={handleSelectItem(item)}
-                  checked={isSelected(item)}
-                  onClick={(e) => e.stopPropagation()}
+                  onChange={handleSelectAll}
+                  checked={selectedItems?.length === data?.length}
                 />
-              </td>
+              </th>
               {columns.map((column) => (
-                <td key={column.key as string} className="py-3 px-6 text-left whitespace-nowrap">
-                  {renderCell(item, column)}
-                </td>
+                <th key={column.key as string} className="py-3 px-6 text-left">
+                  {column.header}
+                  {column.sort && (
+                    <button onClick={(e) => handleSorting(e, column.key as keyof sortingItem)}>
+                      {sortState[column.key as keyof sortingItem] === "none" && "#"}
+                      {sortState[column.key as keyof sortingItem] === "asc" && "▲"}
+                      {sortState[column.key as keyof sortingItem] === "desc" && "▼"}
+                    </button>
+                  )}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="text-gray-600 text-sm font-light">
+            {data.map((item) => (
+              <tr
+                key={item.id}
+                className="border-b border-gray-200 hover:bg-gray-100"
+                onClick={() => onRowClick?.(item)}
+              >
+                <td className="py-3 px-6 text-left whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    onChange={handleSelectItem(item)}
+                    checked={isSelected(item)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </td>
+                {columns.map((column) => (
+                  <td key={column.key as string} className="py-3 px-6 text-left whitespace-nowrap">
+                    {renderCell(item, column)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

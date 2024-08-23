@@ -94,13 +94,21 @@ const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void
   ];
 
   const canUseThisId = async (id: string) => {
-    const result = await checkIdFc({ variables: { id: id } });
-    return !!result.data?.isDuplicated.duplicated;
+    try {
+      const result = await checkIdFc({ variables: { id: id } });
+      return !!result.data?.isDuplicated.duplicated;
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const canUseThisEmail = async (email: string) => {
-    const result = await checkEmailFc({ variables: { email: email } });
-    return !!result.data?.isDuplicated.duplicated;
+    try {
+      const result = await checkEmailFc({ variables: { email: email } });
+      return !!result.data?.isDuplicated.duplicated;
+    } catch (e) {
+      console.error(e);
+    }
   };
   useEffect(() => {
     if (updateUserData) {

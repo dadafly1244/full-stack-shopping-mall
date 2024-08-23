@@ -1,61 +1,71 @@
 import { Checkbox } from "#/common/CheckBox";
 import { Select } from "#/common/CommonSelectBox";
 import { SearchFilters, CheckboxStates } from "#/utils/types";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 
 interface UserSearchComponentProps {
-  open: boolean;
-  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   filters: SearchFilters;
-  initFilter: SearchFilters;
   checkboxes: CheckboxStates;
-  onFilteredChange: React.Dispatch<React.SetStateAction<SearchFilters>>;
-  OnCheckboxChange: React.Dispatch<React.SetStateAction<CheckboxStates>>;
-  onClickSearch: (filters: SearchFilters, checkboxes: CheckboxStates) => Promise<void>;
+  onClickSearch: () => void;
+  onCloseSearch: () => void;
+  onResetSearch: () => void;
+  setLocalFilters: React.Dispatch<React.SetStateAction<SearchFilters>>;
+  setLocalCheckboxes: React.Dispatch<React.SetStateAction<CheckboxStates>>;
 }
 
 export const UserSearchComponent: React.FC<UserSearchComponentProps> = ({
-  open,
-  onOpenChange,
   filters,
-  onFilteredChange,
   checkboxes,
-  OnCheckboxChange,
   onClickSearch,
-  initFilter,
+  onCloseSearch,
+  onResetSearch,
+  setLocalFilters,
+  setLocalCheckboxes,
 }) => {
+  const [searchParams] = useSearchParams();
+  const [open, setOpen] = useState(searchParams.get("searchOpen") === "true");
+
+  useEffect(() => {
+    setOpen(searchParams.get("searchOpen") === "true");
+  }, [searchParams]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    onFilteredChange((prev) => ({ ...prev, [name]: value }));
+    setLocalFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCheckboxChange = (name: keyof CheckboxStates) => {
-    OnCheckboxChange((prev) => ({ ...prev, [name]: !prev[name] }));
+    setLocalCheckboxes((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
   const handleClickTitle = () => {
-    onFilteredChange(initFilter);
-    OnCheckboxChange({
-      name: false,
-      user_id: false,
-      email: false,
-      phone_number: false,
-      status: false,
-      permissions: false,
-      gender: false,
-    });
-    onOpenChange((prev) => !prev);
+    if (open) {
+      onCloseSearch();
+    }
+    setOpen((prev) => !prev);
   };
 
   return (
-    <div className="p-4 bg-gray-100\">
-      <h1 onClick={handleClickTitle} className="text-2xl font-bold mb-4 text-gray-800">
-        검색
-      </h1>
+    <div className="p-4 bg-gray-100">
+      <div className="flex justify-between items-center mb-4">
+        <h1 onClick={handleClickTitle} className="text-2xl font-bold text-gray-800 cursor-pointer">
+          검색 {open ? "▲" : "▼"}
+        </h1>
+        {open && (
+          <button
+            onClick={onResetSearch}
+            className="bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
+          >
+            초기화
+          </button>
+        )}
+      </div>
       {open && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {Object.entries(filters).map(([key, value]) => (
-              <div key={key} className="flex items-center w-96 justify-between ">
+              <div key={key} className="flex items-center w-96 justify-between">
                 <Checkbox
                   checked={checkboxes[key as keyof CheckboxStates]}
                   onChange={() => handleCheckboxChange(key as keyof CheckboxStates)}
@@ -91,7 +101,7 @@ export const UserSearchComponent: React.FC<UserSearchComponentProps> = ({
             ))}
           </div>
           <button
-            onClick={() => onClickSearch(filters, checkboxes)}
+            onClick={onClickSearch}
             className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
           >
             Search
