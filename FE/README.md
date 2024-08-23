@@ -33,3 +33,19 @@ export const getEnumValue = (enumObj: any, enumValue: number) => {
 
 - 스타일링
 - 권한별 라우터 제한을 위한 컴포넌트 제작
+
+---
+
+240823
+
+- 저번주에 해결이 필요하다고 생각한 과제 중 해결한 것 :
+
+  - 권한별 라우터 제한을 위한 컴포넌트 제작
+  - 스타일링(일부)
+  - tsError
+
+- 이번주 적용한 기능
+  - 권한별로 방문할 수 있는 페이지 제한하는 기능
+    - user: id: rlawldms, pw: rlawldms11!!의 경우 관리자 페이지 들어갈 수 없음
+    - admin: id: jc1515 pw: jc1515!! 의 경우 관리자 페이지 들어갈 수 있음
+  -
