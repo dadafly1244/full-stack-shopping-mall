@@ -207,7 +207,7 @@ export const AuthMutation = extendType({
           { userId: user.id, userRole: user.permissions },
           ACCESS_TOKEN_SECRET,
           {
-            expiresIn: "10m",
+            expiresIn: "20s",
           },
         );
 
@@ -241,7 +241,7 @@ export const AuthMutation = extendType({
           { userId: user.id, userRole: user.permissions },
           ACCESS_TOKEN_SECRET,
           {
-            expiresIn: "10m",
+            expiresIn: "20s",
           },
         );
 
@@ -318,7 +318,7 @@ export const AuthMutation = extendType({
           const newAccessToken = jwt.sign(
             { userId: user.id, userRole: user.permissions },
             ACCESS_TOKEN_SECRET,
-            { expiresIn: "10m" },
+            { expiresIn: "20s" },
           );
 
           // 새로운 refresh 토큰 생성

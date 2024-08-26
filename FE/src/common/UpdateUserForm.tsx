@@ -6,7 +6,7 @@ import {
   CustomUserSelectProps,
 } from "#/utils/types";
 import { useMutation, useLazyQuery } from "@apollo/client";
-import { CHECK_ID, CHECK_EMAIL } from "#/apollo/query";
+import { CHECK_EMAIL } from "#/apollo/query";
 import { formatPhoneNumber } from "#/utils/formatter";
 import { cn } from "#/utils/utils";
 import DetermineInput from "#/common/DetermineInput";
@@ -17,44 +17,22 @@ import { useState, useEffect } from "react";
 const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void }) => {
   const [formState, setFormState] = useState<UserType>(user);
   const [updateFc, { data: updateUserData, loading, error }] = useMutation(UPDATE_USER_ADMIN);
-  const [checkIdFc] = useLazyQuery(CHECK_ID);
   const [checkEmailFc] = useLazyQuery(CHECK_EMAIL);
   const updateForm: UpdateFormItem[] = [
     {
       type: "determineInput",
       key: "name",
       label: "이름",
-      placeholder: "이름을 입력해주세요.",
-      wrongMessage: "1~20자 사이로 입력하세요.",
-      rightMessage: "% ^ ^ %",
+      placeholder: "이름을 한글 또는 알파벳으로 1~20자 사이로 입력하세요.",
+      wrongMessage: "다시 입력하세요.",
       isRight: (name: string): boolean => /^[a-zA-Zㄱ-ㅎ가-힣]{1,20}$/.test(name.trim()),
-    },
-    {
-      type: "determineInput",
-      key: "user_id",
-      label: "ID",
-      placeholder: "ID를 입력하세요.",
-      wrongMessage: "6~20자 사이로 입력하세요.",
-      rightMessage: "% ^ ^ %",
-      isRight: (id: string): boolean => /^[a-zA-Z0-9]{6,20}$/.test(id.trim()),
-      button: "중복확인",
-      buttonClick: async () => {
-        try {
-          const result = await checkIdFc({ variables: { user_id: formState.user_id } });
-          return result.data.isDuplicated.duplicated;
-        } catch (error) {
-          console.error("Error checking ID:", error);
-          return false;
-        }
-      },
     },
     {
       type: "determineInput",
       key: "email",
       label: "email",
       placeholder: "email 주소를 입력하세요.",
-      wrongMessage: "바른 email 주소를 입력하세요.",
-      rightMessage: "% ^ ^ %",
+      wrongMessage: "바른 형식의 email 주소를 입력하세요.",
       isRight: (email: string): boolean =>
         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()),
       button: "중복확인",
@@ -72,11 +50,9 @@ const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void
       type: "determineInput",
       key: "phone_number",
       label: "휴대폰번호",
-      placeholder: "휴대폰 번호를 입력하세요.",
-      wrongMessage: "바른 휴대폰 번호를 입력하세요.",
-      rightMessage: "% ^ ^ %",
-      isRight: (phone: string): boolean =>
-        /^01([0|1|6|7|8|9])-?\d{3,4}-?\d{4}$/.test(formatPhoneNumber(phone.trim())),
+      placeholder: "010-0000-0000",
+      wrongMessage: "올바른 형식의 전화번호를 입력해주세요",
+      isRight: (phone: string): boolean => /^01([0|1|6|7|8|9])-?\d{3,4}-?\d{4}$/.test(phone.trim()),
       formatter: formatPhoneNumber,
     },
     {
@@ -92,15 +68,6 @@ const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void
       ],
     },
   ];
-
-  const canUseThisId = async (id: string) => {
-    try {
-      const result = await checkIdFc({ variables: { id: id } });
-      return !!result.data?.isDuplicated.duplicated;
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const canUseThisEmail = async (email: string) => {
     try {
@@ -141,9 +108,7 @@ const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void
         // signupForm에서 필드 찾기
         const field = updateForm.find((f) => f.key === typedKey);
         if (field && isDetermineInput(field)) {
-          if (typedKey === "user_id") {
-            return !(await canUseThisId(value as string)) && field.isRight(value as string);
-          } else if (typedKey === "email") {
+          if (typedKey === "email") {
             return !(await canUseThisEmail(value as string)) && field.isRight(value as string);
           } else if (typedKey === "phone_number") {
             // 빈 값인 경우 검증하지 않음
