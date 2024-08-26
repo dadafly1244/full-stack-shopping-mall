@@ -13,14 +13,14 @@ const refreshAccessToken = async (refreshToken: string) => {
 
     const { token, refresh_token } = data.refresh;
     localStorage.setItem("token", token);
-    localStorage.setItem("refreshToken", refresh_token);
+    localStorage.setItem("refresh_token", refresh_token);
 
-    return { token, refreshToken: refresh_token };
+    return { token, refresh_token };
   } catch (error) {
     alert("로그인 유지를 실패했습니다. 다시 로그인해주세요.");
     console.error("Error refreshing token:", error);
     localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("refresh_token");
     window.location.href = "/signin";
     return null;
   }
@@ -41,7 +41,7 @@ const authLink = setContext(async (operation, { headers }) => {
   }
 
   const token = localStorage.getItem("token") || "";
-  const refreshToken = localStorage.getItem("refreshToken") || "";
+  const refreshToken = localStorage.getItem("refresh_token") || "";
 
   if (token) {
     try {
@@ -52,6 +52,7 @@ const authLink = setContext(async (operation, { headers }) => {
         // 토큰이 만료된 경우
         if (refreshToken) {
           const newTokens = await refreshAccessToken(refreshToken);
+          console.log("newTokens:", newTokens);
           if (newTokens) {
             return {
               headers: {

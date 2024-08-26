@@ -141,3 +141,11 @@ export const UPDATE_USER_ADMIN = gql`
     }
   }
 `;
+
+export const SIGNOUT_USER_ADMIN = gql`
+  mutation SignOutUser($id: String!) {
+    signout(id: $id) {
+      id
+    }
+  }
+`;

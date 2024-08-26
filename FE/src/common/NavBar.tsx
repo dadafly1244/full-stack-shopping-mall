@@ -1,9 +1,44 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { Navbar, Typography, MobileNav, Button, Input, IconButton } from "@material-tailwind/react";
+import {
+  Navbar,
+  Typography,
+  Collapse,
+  Button,
+  Input,
+  IconButton,
+  Alert,
+} from "@material-tailwind/react";
+import { SIGNOUT_USER_ADMIN } from "#/apollo/mutation";
+import { useMutation } from "@apollo/client";
+import { jwtDecode } from "jwt-decode";
+import { JwtPayload } from "#/utils/auth";
 const NavBar = () => {
   const [openNav, setOpenNav] = useState(false);
+  const token = localStorage.getItem("token") || "";
+  const refreshToken = localStorage.getItem("refresh_token") || "";
 
+  const [signout, { loading, error: signoutError }] = useMutation(SIGNOUT_USER_ADMIN);
+  const handleSignout = async () => {
+    if (token) {
+      try {
+        const decodedToken = jwtDecode<JwtPayload>(token);
+        await signout({
+          variables: {
+            id: decodedToken?.userId,
+          },
+        });
+        localStorage.setItem("token", "");
+        localStorage.setItem("refresh_token", "");
+      } catch (error) {
+        console.error("sign out error", error);
+      }
+    }
+  };
+
+  if (signoutError) {
+    <Alert color="red">로그아웃을 다시 시도해 주세요.</Alert>;
+  }
   useEffect(() => {
     window.addEventListener("resize", () => window.innerWidth >= 960 && setOpenNav(false));
   }, []);
@@ -125,12 +160,29 @@ const NavBar = () => {
             </div>
           </Typography>
           <div className="flex items-center gap-x-1">
-            <Button fullWidth variant="outlined" size="sm" className="w-auto">
-              <span>Log In</span>
-            </Button>
-            <Button fullWidth variant="gradient" color="blue" size="sm" className="w-auto">
-              <span>Sign in</span>
-            </Button>
+            {token || refreshToken ? (
+              <>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="sm"
+                  className="w-auto"
+                  onClick={handleSignout}
+                >
+                  <span>Sign out</span>
+                </Button>
+              </>
+            ) : (
+              <>
+                {" "}
+                <Button fullWidth variant="outlined" size="sm" className="w-auto">
+                  <NavLink to="/signin">Sign in</NavLink>
+                </Button>
+                <Button fullWidth variant="gradient" color="blue" size="sm" className="w-auto">
+                  <NavLink to="/signup">Sign up</NavLink>
+                </Button>
+              </>
+            )}
           </div>
         </ul>
 
@@ -199,21 +251,37 @@ const NavBar = () => {
             )}
           </IconButton>
         </div>
-        <MobileNav open={openNav}>
+        <Collapse open={openNav}>
           <div className="container mx-auto">
             {navList}
             <div className="flex flex-col gap-x-2">
               <div className="flex justify-start items-center gap-x-1 my-10">
-                <Button fullWidth variant="outlined" size="sm" className="">
-                  <span>Log In</span>
-                </Button>
-                <Button fullWidth variant="gradient" color="blue" size="sm" className="">
-                  <span>Sign in</span>
-                </Button>
+                {token || refreshToken ? (
+                  <>
+                    <Button
+                      loading={loading}
+                      fullWidth
+                      variant="outlined"
+                      size="sm"
+                      onClick={handleSignout}
+                    >
+                      <span>Sign out</span>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button fullWidth variant="outlined" size="sm" className="">
+                      <NavLink to="/signin">Sign in</NavLink>
+                    </Button>
+                    <Button fullWidth variant="gradient" color="blue" size="sm" className="">
+                      <NavLink to="/signup">Sign up</NavLink>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
-        </MobileNav>
+        </Collapse>
       </Navbar>
     </div>
   );
