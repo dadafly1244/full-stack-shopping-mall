@@ -71,6 +71,9 @@ const UserInfoTab = () => {
     gender: searchParams.get("check_gender") === "true",
   });
 
+  const [shouldSearch, setShouldSearch] = useState(searchParams.get("searchOpen") === "true");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickedUser, setClickedUser] = useState(init_user);
   const [data, setData] = useState<UserType[]>([]);
@@ -107,12 +110,18 @@ const UserInfoTab = () => {
   }, [filteredUser, localFilters, localCheckboxes]);
 
   useEffect(() => {
-    if (searchParams.get("searchOpen") === "true") {
+    if (isInitialLoad) {
+      if (searchParams.get("searchOpen") === "true") {
+        performSearch();
+      } else if (allData?.usersList) {
+        setData(allData.usersList);
+      }
+      setIsInitialLoad(false);
+    } else if (shouldSearch) {
       performSearch();
-    } else if (allData?.usersList) {
-      setData(allData.usersList);
+      setShouldSearch(false);
     }
-  }, [searchParams, allData, performSearch]);
+  }, [isInitialLoad, shouldSearch, searchParams, allData, performSearch]);
 
   const openModal = (user: UserType) => {
     if (user) {
@@ -197,7 +206,7 @@ const UserInfoTab = () => {
     });
     newSearchParams.set("searchOpen", "true");
     setSearchParams(newSearchParams);
-    performSearch();
+    setShouldSearch(true);
   };
 
   const handleCloseSearch = () => {
@@ -210,11 +219,14 @@ const UserInfoTab = () => {
   };
 
   const handleResetSearch = () => {
-    setSearchParams(new URLSearchParams());
-    searchParams.set("searchOpen", "true");
-    setSearchParams(searchParams);
+    const newSearchParams = new URLSearchParams();
+    newSearchParams.set("searchOpen", "true");
+    setSearchParams(newSearchParams);
     setLocalFilters(initialFilters);
     setLocalCheckboxes(initialCheckboxes);
+    if (allData?.usersList) {
+      setData(allData.usersList);
+    }
   };
 
   const columns: TableColumn<UserType>[] = [
