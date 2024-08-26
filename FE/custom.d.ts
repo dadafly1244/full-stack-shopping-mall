@@ -4,3 +4,19 @@ declare module "*.svg" {
   const src: string;
   export default src;
 }
+import "@material-tailwind/react";
+
+declare module "@material-tailwind/react" {
+  interface MaterialTailwindComponent {
+    placeholder?: string;
+    onPointerEnterCapture?: () => void;
+    onPointerLeaveCapture?: () => void;
+  }
+
+  interface NavbarProps extends MaterialTailwindComponent {}
+  interface ButtonProps extends MaterialTailwindComponent {}
+  interface TypographyProps extends MaterialTailwindComponent {}
+  interface MobileNavProps extends MaterialTailwindComponent {}
+  interface InputProps extends MaterialTailwindComponent {}
+  interface IconButtonProps extends MaterialTailwindComponent {}
+}

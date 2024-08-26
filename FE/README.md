@@ -49,3 +49,39 @@ export const getEnumValue = (enumObj: any, enumValue: number) => {
     - user: id: rlawldms, pw: rlawldms11!!의 경우 관리자 페이지 들어갈 수 없음
     - admin: id: jc1515 pw: jc1515!! 의 경우 관리자 페이지 들어갈 수 있음
   -
+
+---
+
+240826
+
+- material-tailwind/react 라이브러리 type 에러나는 문제
+
+```
+ Type '{ children: Element[]; className: string; }' is missing the following properties from type 'Pick<NavbarProps, "children" | "className" | "color" | "translate" | "slot" | "style" | "title" | "onChange" | "shadow" | "onClick" | "key" | "defaultChecked" | "defaultValue" | ... 248 more ... | "blurred">': placeholder, onPointerEnterCapture, onPointerLeaveCapture
+```
+
+원인: 타입이 맞지 않아서 생기는 문제로 리액트 type을 특정 버전(예전버전)으로 되돌려야한다고 하는데, 그렇게 해도 문제가 해결되지 않았다.
+
+해결방법
+`custom.d.ts`파일에 다음과 같이 추가
+
+```js
+import "@material-tailwind/react";
+
+declare module "@material-tailwind/react" {
+  interface MaterialTailwindComponent {
+    placeholder?: string;
+    onPointerEnterCapture?: () => void;
+    onPointerLeaveCapture?: () => void;
+  }
+
+  interface NavbarProps extends MaterialTailwindComponent {}
+  interface ButtonProps extends MaterialTailwindComponent {}
+  // ... 계속 에러나는 컴포넌트 추가... ㅠ ㅠ
+}
+```
+
+이 해결방안의 한계점 : 에러가 나는 모든 컴포넌트를 extends를 시켜줘야 한다.
+더 간편한 해결책이 있다면 그 방법으로 변경할 필요가 있어 보인다.
+
+- [참고](https://stackoverflow.com/questions/78296875/typescript-error-using-material-tailwind-react-with-nextjs14)
