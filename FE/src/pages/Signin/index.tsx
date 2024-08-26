@@ -8,6 +8,7 @@ import { userState } from "#/store/atoms";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { DetermineInputProps } from "#/utils/types";
+import { Card, CardHeader, Typography, CardBody } from "@material-tailwind/react";
 
 interface CustomDetermineInputProps extends Omit<DetermineInputProps, "isRight"> {
   isRight: (value: string) => boolean;
@@ -25,9 +26,8 @@ const signinForm: CustomDetermineInputProps[] = [
     type: "determineInput",
     key: "user_id",
     label: "ID",
-    placeholder: "ID를 입력하세요.",
-    wrongMessage: "6~20자 사이로 입력하세요.",
-    rightMessage: "% ^ ^ %",
+    placeholder: "ID를 알파벳 6~20자 사이로 입력하세요.",
+    wrongMessage: "다시 입력하세요.",
     isRight: (id: string): boolean => /^[a-zA-Z0-9]{6,20}$/.test(id.trim()),
     isRequired: true,
   },
@@ -35,9 +35,8 @@ const signinForm: CustomDetermineInputProps[] = [
     type: "determineInput",
     key: "password",
     label: "비밀번호",
-    placeholder: "비밀번호를 입력하세요.",
-    wrongMessage: "영어 소문자, 숫자, 특수문자(!@#$%^&*) 포함해서 8~30 글자 입력하세요.",
-    rightMessage: "% ^ ^ %",
+    placeholder: "영어 소문자, 숫자, 특수문자(!@#$%^&*) 포함해서 8~30 글자 입력하세요.",
+    wrongMessage: "올바른 비밀번호를 입력해주세요.",
     isRight: (password: string): boolean =>
       /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(password.trim()),
     isRequired: true,
@@ -91,46 +90,57 @@ const SigninPage = () => {
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
       {
-        <div className="max-w-96">
-          <form className="flex flex-col" onSubmit={handleSignin}>
-            <div className="grid gap-6 mb-6 ">
-              {signinForm.map((item) => {
-                if (item.type === "determineInput") {
-                  const determineItem = item as DetermineInputProps;
-                  return (
-                    <DetermineInput
-                      key={determineItem.key}
-                      label={determineItem?.label}
-                      placeholder={determineItem?.placeholder as string}
-                      wrongMessage={determineItem?.wrongMessage as string}
-                      rightMessage={determineItem?.rightMessage as string}
-                      isRight={(value: string): boolean =>
-                        (item.isRight as (value: string) => boolean)(value)
-                      }
-                      isRequired={determineItem?.isRequired}
-                      className={determineItem?.className}
-                      onChange={(value) => {
-                        setFormState((prev) => ({
-                          ...prev,
-                          [item.key]: value,
-                        }));
-                      }}
-                    />
-                  );
-                }
-              })}
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className={twJoin(
-                "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
-                !loading ? "cursor-pointer" : "cursor-not-allowed"
-              )}
-            >
-              Submit
-            </button>
-          </form>
+        <Card shadow={false} className=" md:px-24 md:py-14 mt-10 py-8 min-w-80 w-3/5">
+          <CardHeader shadow={false} floated={false} className="text-center">
+            <Typography variant="h1" color="blue-gray" className="mb-4 !text-3xl lg:text-4xl">
+              Sign In
+            </Typography>
+            <Typography className="!text-gray-600 text-[18px] font-normal ">
+              로그인 해주세요.
+            </Typography>
+          </CardHeader>
+          <CardBody>
+            <form className="flex flex-col" onSubmit={handleSignin}>
+              <div className="grid gap-6 mb-6 ">
+                {signinForm.map((item) => {
+                  if (item.type === "determineInput") {
+                    const determineItem = item as DetermineInputProps;
+                    return (
+                      <DetermineInput
+                        key={determineItem.key}
+                        label={determineItem?.label}
+                        placeholder={determineItem?.placeholder as string}
+                        wrongMessage={determineItem?.wrongMessage as string}
+                        rightMessage={determineItem?.rightMessage as string}
+                        isRight={(value: string): boolean =>
+                          (item.isRight as (value: string) => boolean)(value)
+                        }
+                        isRequired={determineItem?.isRequired}
+                        className={determineItem?.className}
+                        onChange={(value) => {
+                          setFormState((prev) => ({
+                            ...prev,
+                            [item.key]: value,
+                          }));
+                        }}
+                      />
+                    );
+                  }
+                })}
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className={twJoin(
+                  "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
+                  !loading ? "cursor-pointer" : "cursor-not-allowed"
+                )}
+              >
+                Submit
+              </button>
+            </form>
+          </CardBody>
+
           <div className="flex flex-col">
             <p className="text-sm text-gray-800">아직 계정이 없다면 회원가입을 눌러주세요.</p>
             <Link
@@ -142,7 +152,7 @@ const SigninPage = () => {
               회원가입
             </Link>
           </div>
-        </div>
+        </Card>
       }
     </>
   );

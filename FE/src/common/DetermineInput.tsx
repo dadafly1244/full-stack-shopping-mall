@@ -1,19 +1,20 @@
-import { ReactElement, useState, useEffect, useCallback } from "react";
+import { ReactElement, useState, useEffect, useCallback, useRef } from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "#/utils/utils";
 import { DetermineInputProps } from "#/utils/types";
+import { Button, Input } from "@material-tailwind/react";
+import { formatPhoneNumber } from "#/utils/formatter";
 
 const DetermineInput = (props: DetermineInputProps): ReactElement => {
   const {
     label = "입력",
     placeholder = "입력해주세요",
     wrongMessage = "다시 입력해주세요.",
-    rightMessage = "",
+    rightMessage,
     isRight,
     isRequired = false,
     className,
     onChange,
-    formatter,
     inputWidth,
     variant = "default",
     button: initialButtonText,
@@ -33,56 +34,34 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
     },
   });
 
-  const InputVariants = cva(`border text-sm rounded-lg block w-full p-2.5`, {
-    variants: {
-      variant: {
-        default: "bg-gary-50 border-gray-500 text-gray-900",
-        pass: "bg-green-50 border-green-500 text-green-900 dark:text-green-400 placeholder-green-700 dark:placeholder-green-500 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-green-500",
-        nonePass:
-          "bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 dark:bg-gray-700 focus:border-red-500 dark:text-red-500 dark:placeholder-red-500 dark:border-red-500",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  });
-
-  const PVariants = cva("mt-2 text-sm", {
-    variants: {
-      variant: {
-        default: "text-gary-600 dark:text-gary-500",
-        pass: "text-green-600 dark:text-green-500",
-        nonePass: "text-red-600 dark:text-red-500",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  });
-
   const [_inputValue, setInputValue] = useState("");
   const [debouncedInput, setDebouncedInput] = useState(_inputValue);
   const [_valiant, setValiant] = useState(variant);
+  const inputRef = useRef(null);
+
+  const [buttonText, setButtonText] = useState<string>(String(initialButtonText));
+  const [buttonStatue, setButtonStatus] = useState<null | "error" | "loading" | "success">(null);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  const [message, setMessage] = useState<null | string>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
+    let inputValue = e.target.value;
+
+    if (label === "휴대폰번호") {
+      inputValue = formatPhoneNumber(inputValue);
+    }
 
     if (onChange) {
       onChange(inputValue);
     }
-    setInputValue(inputValue);
-  };
 
-  const handleBlur = () => {
-    if (formatter) {
-      setInputValue(formatter(_inputValue));
-    }
+    setInputValue(inputValue);
   };
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedInput(_inputValue);
-    }, 1000);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [_inputValue]);
@@ -90,32 +69,45 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
   useEffect(() => {
     if (debouncedInput === "") {
       setValiant("default");
+      setButtonStatus(null);
+      setMessage("");
     } else if (isRight(debouncedInput)) {
       setValiant("pass");
+      setButtonStatus("success");
+      if (rightMessage) setMessage(rightMessage);
     } else {
       setValiant("nonePass");
+      setButtonStatus("error");
+      setMessage(wrongMessage);
     }
-  }, [debouncedInput, isRight]);
-
-  const [buttonText, setButtonText] = useState<string>(
-    typeof initialButtonText === "string" ? initialButtonText : ""
-  );
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  }, [debouncedInput, isRight, rightMessage, wrongMessage]);
 
   const handleButtonClick = useCallback(async () => {
     setIsButtonDisabled(true);
-    setButtonText("loading...");
+    setButtonStatus("loading");
 
     try {
       const result = !(await buttonClick?.(debouncedInput));
-      setButtonText(result ? "사용가능" : "사용불가");
+      if (result && isRight(debouncedInput)) {
+        setButtonText("사용가능");
+        setButtonStatus("success");
+        if (rightMessage) {
+          setMessage(rightMessage);
+        }
+      } else {
+        setButtonText("사용불가");
+
+        setButtonStatus("error");
+        setMessage(wrongMessage);
+      }
     } catch (error) {
       setButtonText("Error");
       console.error("Button click error:", error);
+      setButtonText(String(initialButtonText));
     } finally {
       setIsButtonDisabled(false);
     }
-  }, [buttonClick, debouncedInput]);
+  }, [buttonClick, debouncedInput, isRight, initialButtonText, wrongMessage, rightMessage]);
 
   useEffect(() => {
     if (typeof initialButtonText === "function") {
@@ -123,9 +115,10 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
         try {
           const text = await initialButtonText();
           setButtonText(text);
+          setButtonStatus(null);
         } catch (error) {
           console.error("Error updating button text:", error);
-          setButtonText("Error");
+          setButtonStatus("error");
         }
       };
       updateButtonText();
@@ -135,6 +128,7 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
   useEffect(() => {
     if (typeof initialButtonText === "string") {
       setButtonText(initialButtonText);
+      setButtonStatus(null);
     }
   }, [debouncedInput, initialButtonText]);
 
@@ -148,32 +142,42 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
           {label ? label : "입력"} {isRequired ? "(필수)" : ""}
         </label>
         <div className="flex h-10">
-          <input
+          <Input
+            ref={inputRef}
             type={label.includes("비밀번호") ? "password" : "text"}
             id={`determineInput-${label}`}
             value={_inputValue}
             required={isRequired}
             width={inputWidth}
-            className={cn(InputVariants({ variant: _valiant }), className)}
+            className={cn(className)}
             placeholder={placeholder}
             onChange={handleChange}
-            onBlur={handleBlur}
+            crossOrigin={undefined}
+            error={buttonStatue === "error"}
+            success={buttonStatue === "success"}
           />
-          {buttonText && (
-            <button
+          {initialButtonText && (
+            <Button
               type="button"
               onClick={handleButtonClick}
               disabled={isButtonDisabled}
-              className={`bg-gray-500 border text-sm rounded-lg block min-w-20 p-2.5 ml-4 ${
-                isButtonDisabled ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              loading={buttonStatue === "loading"}
+              size="sm"
+              color={
+                buttonStatue === "success"
+                  ? "green"
+                  : buttonStatue === "error"
+                  ? "red"
+                  : "blue-gray"
+              }
+              className="rounded w-32 ml-10 min-w-20"
             >
               {buttonText}
-            </button>
+            </Button>
           )}
         </div>
-        <p className={cn(PVariants({ variant: _valiant }), className)}>
-          {isRight(debouncedInput) ? rightMessage : wrongMessage}
+        <p className={cn("text-sm ml-10 text-gray-500", className, message ? "block" : "hidden")}>
+          {message}
         </p>
       </div>
     </div>

@@ -19,4 +19,7 @@ declare module "@material-tailwind/react" {
   interface MobileNavProps extends MaterialTailwindComponent {}
   interface InputProps extends MaterialTailwindComponent {}
   interface IconButtonProps extends MaterialTailwindComponent {}
+  interface CardProps extends MaterialTailwindComponent {}
+  interface CardHeaderProps extends MaterialTailwindComponent {}
+  interface CardBodyProps extends MaterialTailwindComponent {}
 }

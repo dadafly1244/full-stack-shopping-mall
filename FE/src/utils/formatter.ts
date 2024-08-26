@@ -4,7 +4,7 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
 
   // 번호 형식이 올바른지 체크
   if (cleaned.length === 10) {
-    // 10자리 번호일 경우 (예: 0101234567 -> 010-1234-5678)
+    // 10자리 번호일 경우 (예: 0101234567 -> 010-123-4567)
     return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3");
   } else if (cleaned.length === 11) {
     // 11자리 번호일 경우 (예: 01012345678 -> 010-1234-5678)
