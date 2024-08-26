@@ -48,7 +48,7 @@ type Mutation {
   createUser(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): User!
   refresh(refresh_token: String!): AuthPayload!
   signin(password: String!, user_id: String!): AuthPayload!
-  signout(id: String!): AuthPayload!
+  signout(id: String!): User!
   signup(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): AuthPayload!
   updateUser(email: String, gender: Gender, id: String!, name: String, permissions: UserPermissions, phone_number: String, user_id: String): User!
   updateUserStateActive(id: String!): AuthPayload!

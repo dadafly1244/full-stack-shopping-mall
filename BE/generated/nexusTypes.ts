@@ -178,7 +178,7 @@ export interface NexusGenFieldTypes {
     createUser: NexusGenRootTypes['User']; // User!
     refresh: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signin: NexusGenRootTypes['AuthPayload']; // AuthPayload!
-    signout: NexusGenRootTypes['AuthPayload']; // AuthPayload!
+    signout: NexusGenRootTypes['User']; // User!
     signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     updateUser: NexusGenRootTypes['User']; // User!
     updateUserStateActive: NexusGenRootTypes['AuthPayload']; // AuthPayload!
@@ -300,7 +300,7 @@ export interface NexusGenFieldTypeNames {
     createUser: 'User'
     refresh: 'AuthPayload'
     signin: 'AuthPayload'
-    signout: 'AuthPayload'
+    signout: 'User'
     signup: 'AuthPayload'
     updateUser: 'User'
     updateUserStateActive: 'AuthPayload'

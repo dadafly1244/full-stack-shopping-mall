@@ -268,7 +268,7 @@ export const AuthMutation = extendType({
     });
     //로그아웃
     t.nonNull.field("signout", {
-      type: "AuthPayload",
+      type: "User",
       args: {
         id: nonNull(stringArg()),
       },
@@ -279,11 +279,13 @@ export const AuthMutation = extendType({
         if (!user) {
           throw new Error("No such user found");
         }
-        const refresh_token = null;
-
-        return await context.prisma.user.update({
-          refresh_token: refresh_token,
+        const updatedUser = context.prisma.user.update({
+          where: { id: id },
+          data: {
+            refresh_token: null,
+          },
         });
+        return updatedUser;
       },
     });
     // access token 만료시 refresh token
