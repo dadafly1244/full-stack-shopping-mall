@@ -1,4 +1,11 @@
-import { objectType, extendType, nonNull, stringArg, enumType } from "nexus";
+import {
+  objectType,
+  extendType,
+  nonNull,
+  stringArg,
+  enumType,
+  inputObjectType,
+} from "nexus";
 
 export const StoreType = objectType({
   name: "Store",

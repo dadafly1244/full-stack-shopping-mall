@@ -32,6 +32,6 @@ export const ProductMutation = extendType({
         });
       },
     });
-    // 필요에 따라 updateProduct, deleteProduct 등의 뮤테이션을 추가할 수 있습니다.
+    // category랑 store 추가 삭제하는 api,
   },
 });
