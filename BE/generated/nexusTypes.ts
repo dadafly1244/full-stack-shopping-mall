@@ -32,12 +32,17 @@ declare global {
 }
 
 export interface NexusGenInputs {
+  CategoryOrderByInput: { // input type
+    id?: NexusGenEnums['SortOrder'] | null; // SortOrder
+    name?: NexusGenEnums['SortOrder'] | null; // SortOrder
+  }
 }
 
 export interface NexusGenEnums {
   Gender: "FEMALE" | "MALE" | "OTHER" | "PREFER_NOT_TO_SAY"
   OrderStatus: "CANCELLED" | "DELIVERED" | "ORDER" | "READY_TO_ORDER" | "REFUND" | "UNKNOWN"
   ProductStatus: "AVAILABLE" | "DISCONTINUED" | "OUT_OF_STOCK" | "PROHIBITION_ON_SALE" | "TEMPORARILY_OUT_OF_STOCK"
+  SortOrder: "asc" | "desc"
   UserPermissions: "ADMIN" | "USER"
   UserStatus: "ACTIVE" | "INACTIVE" | "SUSPENDED"
 }
@@ -84,7 +89,6 @@ export interface NexusGenObjects {
     user_id: string; // String!
   }
   Product: { // root type
-    category_id: number; // Int!
     count: number; // Int!
     created_at: NexusGenScalars['DateTime']; // DateTime!
     desc?: string | null; // String
@@ -118,7 +122,6 @@ export interface NexusGenObjects {
     desc?: string | null; // String
     id: string; // ID!
     name: string; // String!
-    product_id: string; // String!
   }
   User: { // root type
     created_at: NexusGenScalars['DateTime']; // DateTime!
@@ -170,12 +173,14 @@ export interface NexusGenFieldTypes {
     id: number; // Int!
     name: string; // String!
     parent: NexusGenRootTypes['Category'] | null; // Category
+    products: NexusGenRootTypes['Product'][]; // [Product!]!
     subcategories: NexusGenRootTypes['Category'][]; // [Category!]!
   }
   Mutation: { // field return type
     createCategory: NexusGenRootTypes['Category']; // Category!
     createProduct: NexusGenRootTypes['Product']; // Product!
     createUser: NexusGenRootTypes['User']; // User!
+    deleteCategory: boolean | null; // Boolean
     mergeCategories: NexusGenRootTypes['Category']; // Category!
     refresh: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     renameCategory: NexusGenRootTypes['Category']; // Category!
@@ -201,8 +206,8 @@ export interface NexusGenFieldTypes {
   }
   Product: { // field return type
     carts: NexusGenRootTypes['Cart'][]; // [Cart!]!
+    categories: NexusGenRootTypes['Category'][]; // [Category!]!
     category: NexusGenRootTypes['Category'] | null; // Category
-    category_id: number; // Int!
     count: number; // Int!
     created_at: NexusGenScalars['DateTime']; // DateTime!
     desc: string | null; // String
@@ -221,10 +226,12 @@ export interface NexusGenFieldTypes {
   }
   Query: { // field return type
     categories: NexusGenRootTypes['Category'][]; // [Category!]!
+    category: NexusGenRootTypes['Category'] | null; // Category
     filteredUsers: Array<NexusGenRootTypes['User'] | null>; // [User]!
     isDuplicated: NexusGenRootTypes['UserBoolean'] | null; // UserBoolean
     product: NexusGenRootTypes['Product'] | null; // Product
     products: NexusGenRootTypes['Product'][]; // [Product!]!
+    searchCategories: NexusGenRootTypes['Category'][]; // [Category!]!
     usersList: Array<NexusGenRootTypes['User'] | null>; // [User]!
   }
   Review: { // field return type
@@ -249,7 +256,6 @@ export interface NexusGenFieldTypes {
     desc: string | null; // String
     id: string; // ID!
     name: string; // String!
-    product_id: string; // String!
     products: NexusGenRootTypes['Product'][] | null; // [Product!]
   }
   User: { // field return type
@@ -295,12 +301,14 @@ export interface NexusGenFieldTypeNames {
     id: 'Int'
     name: 'String'
     parent: 'Category'
+    products: 'Product'
     subcategories: 'Category'
   }
   Mutation: { // field return type name
     createCategory: 'Category'
     createProduct: 'Product'
     createUser: 'User'
+    deleteCategory: 'Boolean'
     mergeCategories: 'Category'
     refresh: 'AuthPayload'
     renameCategory: 'Category'
@@ -326,8 +334,8 @@ export interface NexusGenFieldTypeNames {
   }
   Product: { // field return type name
     carts: 'Cart'
+    categories: 'Category'
     category: 'Category'
-    category_id: 'Int'
     count: 'Int'
     created_at: 'DateTime'
     desc: 'String'
@@ -346,10 +354,12 @@ export interface NexusGenFieldTypeNames {
   }
   Query: { // field return type name
     categories: 'Category'
+    category: 'Category'
     filteredUsers: 'User'
     isDuplicated: 'UserBoolean'
     product: 'Product'
     products: 'Product'
+    searchCategories: 'Category'
     usersList: 'User'
   }
   Review: { // field return type name
@@ -374,7 +384,6 @@ export interface NexusGenFieldTypeNames {
     desc: 'String'
     id: 'ID'
     name: 'String'
-    product_id: 'String'
     products: 'Product'
   }
   User: { // field return type name
@@ -426,6 +435,9 @@ export interface NexusGenArgTypes {
       phone_number?: string | null; // String
       status: NexusGenEnums['UserStatus']; // UserStatus!
       user_id: string; // String!
+    }
+    deleteCategory: { // args
+      categoryId: number; // Int!
     }
     mergeCategories: { // args
       categoryId1: number; // Int!
@@ -479,6 +491,11 @@ export interface NexusGenArgTypes {
   Query: {
     categories: { // args
       includeHierarchy?: boolean | null; // Boolean
+      orderBy?: NexusGenInputs['CategoryOrderByInput'] | null; // CategoryOrderByInput
+    }
+    category: { // args
+      id: number; // Int!
+      includeHierarchy?: boolean | null; // Boolean
     }
     filteredUsers: { // args
       email?: string | null; // String
@@ -496,6 +513,10 @@ export interface NexusGenArgTypes {
     product: { // args
       id: string; // String!
     }
+    searchCategories: { // args
+      includeHierarchy?: boolean | null; // Boolean
+      nameContains: string; // String!
+    }
   }
 }
 
@@ -507,7 +528,7 @@ export interface NexusGenTypeInterfaces {
 
 export type NexusGenObjectNames = keyof NexusGenObjects;
 
-export type NexusGenInputNames = never;
+export type NexusGenInputNames = keyof NexusGenInputs;
 
 export type NexusGenEnumNames = keyof NexusGenEnums;
 

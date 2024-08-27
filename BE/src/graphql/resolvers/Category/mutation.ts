@@ -3,6 +3,11 @@ import { ApolloServerErrorCode } from "@apollo/server/errors";
 import { GraphQLError } from "graphql";
 import { PrismaClient } from "@prisma/client";
 
+// 카테고리 생성(깊이는 3까지 허용)
+// 같은 깊이의 카테고리 합치기
+// 카테고리 이름 변경
+// 카테고리 삭제
+
 export const CategoryMutation = extendType({
   type: "Mutation",
   definition(t) {
@@ -213,6 +218,66 @@ export const CategoryMutation = extendType({
         });
 
         return updatedCategory;
+      },
+    });
+    // 카테고리 삭제
+    t.field("deleteCategory", {
+      type: "Boolean",
+      args: {
+        categoryId: nonNull(intArg()),
+      },
+      resolve: async (_, { categoryId }, context) => {
+        // 카테고리가 존재하는지 확인
+        const category = await context.prisma.category.findUnique({
+          where: { id: categoryId },
+        });
+
+        if (!category) {
+          throw new GraphQLError("Category not found", {
+            extensions: {
+              code: ApolloServerErrorCode.BAD_USER_INPUT,
+              invalidArgs: ["categoryId"],
+            },
+          });
+        }
+
+        // 해당 카테고리를 참조하는 제품이 있는지 확인
+        const productsCount = await context.prisma.product.count({
+          where: { category_id: categoryId },
+        });
+
+        if (productsCount > 0) {
+          throw new GraphQLError(
+            "Cannot delete category with associated products",
+            {
+              extensions: {
+                code: ApolloServerErrorCode.BAD_USER_INPUT,
+                invalidArgs: ["categoryId"],
+              },
+            },
+          );
+        }
+
+        // 하위 카테고리가 있는지 확인
+        const subcategoriesCount = await context.prisma.category.count({
+          where: { category_parent_id: categoryId },
+        });
+
+        if (subcategoriesCount > 0) {
+          throw new GraphQLError("Cannot delete category with subcategories", {
+            extensions: {
+              code: ApolloServerErrorCode.BAD_USER_INPUT,
+              invalidArgs: ["categoryId"],
+            },
+          });
+        }
+
+        // 카테고리 삭제
+        await context.prisma.category.delete({
+          where: { id: categoryId },
+        });
+
+        return true;
       },
     });
   },

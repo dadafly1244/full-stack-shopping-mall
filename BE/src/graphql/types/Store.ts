@@ -7,7 +7,6 @@ export const StoreType = objectType({
     t.nonNull.string("business_registration_number");
     t.nonNull.string("name");
     t.nullable.string("desc");
-    t.nonNull.string("product_id");
 
     t.list.nonNull.field("products", {
       type: "Product",

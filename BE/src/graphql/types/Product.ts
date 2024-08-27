@@ -23,7 +23,14 @@ export const ProductType = objectType({
     t.nullable.field("desc_images_path", { type: "JSON" });
     t.nonNull.field("created_at", { type: "DateTime" });
     t.nonNull.field("updated_at", { type: "DateTime" });
-    t.nonNull.int("category_id");
+    t.nonNull.list.nonNull.field("categories", {
+      type: "Category",
+      resolve: (parent, _, context) => {
+        return context.prisma.product
+          .findUnique({ where: { id: parent.id } })
+          .categories();
+      },
+    });
     t.nonNull.string("store_id");
 
     t.field("store", {

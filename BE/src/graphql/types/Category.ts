@@ -27,5 +27,15 @@ export const CategoryType = objectType({
         });
       },
     });
+
+    // 제품 관계
+    t.nonNull.list.nonNull.field("products", {
+      type: "Product",
+      resolve: (parent, _, context) => {
+        return context.prisma.category
+          .findUnique({ where: { id: parent.id } })
+          .products();
+      },
+    });
   },
 });

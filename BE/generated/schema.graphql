@@ -25,7 +25,13 @@ type Category {
   id: Int!
   name: String!
   parent: Category
+  products: [Product!]!
   subcategories: [Category!]!
+}
+
+input CategoryOrderByInput {
+  id: SortOrder
+  name: SortOrder
 }
 
 """
@@ -46,6 +52,7 @@ type Mutation {
   createCategory(name: String!, parentId: Int): Category!
   createProduct(category_id: Int!, count: Int, desc: String, desc_images_path: JSON, is_deleted: Boolean, main_image_path: String!, name: String!, price: Int!, sale: Int, status: ProductStatus!, store_id: String!): Product!
   createUser(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): User!
+  deleteCategory(categoryId: Int!): Boolean
   mergeCategories(categoryId1: Int!, categoryId2: Int!, newName: String!): Category!
   refresh(refresh_token: String!): AuthPayload!
   renameCategory(categoryId: Int!, newName: String!): Category!
@@ -82,8 +89,8 @@ enum OrderStatus {
 
 type Product {
   carts: [Cart!]!
+  categories: [Category!]!
   category: Category
-  category_id: Int!
   count: Int!
   created_at: DateTime!
   desc: String
@@ -110,11 +117,13 @@ enum ProductStatus {
 }
 
 type Query {
-  categories(includeHierarchy: Boolean): [Category!]!
+  categories(includeHierarchy: Boolean, orderBy: CategoryOrderByInput): [Category!]!
+  category(id: Int!, includeHierarchy: Boolean): Category
   filteredUsers(email: String, gender: Gender, name: String, permissions: UserPermissions, phone_number: String, status: UserStatus, user_id: String): [User]!
   isDuplicated(email: String, user_id: String): UserBoolean
   product(id: String!): Product
   products: [Product!]!
+  searchCategories(includeHierarchy: Boolean, nameContains: String!): [Category!]!
   usersList: [User]!
 }
 
@@ -136,12 +145,16 @@ type Review {
   user_id: String!
 }
 
+enum SortOrder {
+  asc
+  desc
+}
+
 type Store {
   business_registration_number: String!
   desc: String
   id: ID!
   name: String!
-  product_id: String!
   products: [Product!]
 }
 

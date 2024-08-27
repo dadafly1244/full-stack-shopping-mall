@@ -77,7 +77,6 @@ model Store {
   business_registration_number String @unique
   name String
   desc String?
-  product_id String
 
   product Product[] 
 
