@@ -75,8 +75,9 @@ const SignupPage = () => {
       label: "비밀번호",
       placeholder:
         "비밀번호를 영어 소문자, 숫자, 특수문자(!@#$%^&*) 포함해서 8~30 글자 입력하세요.",
-      wrongMessage: "",
-      rightMessage: "% ^ ^ %",
+      wrongMessage:
+        "비밀번호를 영어 소문자, 숫자, 특수문자(!@#$%^&*) 포함해서 8~30 글자 입력하세요.",
+      rightMessage: "사용가능합니다.",
       isRight: (password: string): boolean =>
         /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(password.trim()),
       isRequired: true,
