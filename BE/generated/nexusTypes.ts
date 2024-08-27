@@ -170,13 +170,15 @@ export interface NexusGenFieldTypes {
     id: number; // Int!
     name: string; // String!
     parent: NexusGenRootTypes['Category'] | null; // Category
-    products: NexusGenRootTypes['Product'][]; // [Product!]!
     subcategories: NexusGenRootTypes['Category'][]; // [Category!]!
   }
   Mutation: { // field return type
+    createCategory: NexusGenRootTypes['Category']; // Category!
     createProduct: NexusGenRootTypes['Product']; // Product!
     createUser: NexusGenRootTypes['User']; // User!
+    mergeCategories: NexusGenRootTypes['Category']; // Category!
     refresh: NexusGenRootTypes['AuthPayload']; // AuthPayload!
+    renameCategory: NexusGenRootTypes['Category']; // Category!
     signin: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signout: NexusGenRootTypes['User']; // User!
     signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
@@ -218,6 +220,7 @@ export interface NexusGenFieldTypes {
     updated_at: NexusGenScalars['DateTime']; // DateTime!
   }
   Query: { // field return type
+    categories: NexusGenRootTypes['Category'][]; // [Category!]!
     filteredUsers: Array<NexusGenRootTypes['User'] | null>; // [User]!
     isDuplicated: NexusGenRootTypes['UserBoolean'] | null; // UserBoolean
     product: NexusGenRootTypes['Product'] | null; // Product
@@ -292,13 +295,15 @@ export interface NexusGenFieldTypeNames {
     id: 'Int'
     name: 'String'
     parent: 'Category'
-    products: 'Product'
     subcategories: 'Category'
   }
   Mutation: { // field return type name
+    createCategory: 'Category'
     createProduct: 'Product'
     createUser: 'User'
+    mergeCategories: 'Category'
     refresh: 'AuthPayload'
+    renameCategory: 'Category'
     signin: 'AuthPayload'
     signout: 'User'
     signup: 'AuthPayload'
@@ -340,6 +345,7 @@ export interface NexusGenFieldTypeNames {
     updated_at: 'DateTime'
   }
   Query: { // field return type name
+    categories: 'Category'
     filteredUsers: 'User'
     isDuplicated: 'UserBoolean'
     product: 'Product'
@@ -394,6 +400,10 @@ export interface NexusGenFieldTypeNames {
 
 export interface NexusGenArgTypes {
   Mutation: {
+    createCategory: { // args
+      name: string; // String!
+      parentId?: number | null; // Int
+    }
     createProduct: { // args
       category_id: number; // Int!
       count?: number | null; // Int
@@ -417,8 +427,17 @@ export interface NexusGenArgTypes {
       status: NexusGenEnums['UserStatus']; // UserStatus!
       user_id: string; // String!
     }
+    mergeCategories: { // args
+      categoryId1: number; // Int!
+      categoryId2: number; // Int!
+      newName: string; // String!
+    }
     refresh: { // args
       refresh_token: string; // String!
+    }
+    renameCategory: { // args
+      categoryId: number; // Int!
+      newName: string; // String!
     }
     signin: { // args
       password: string; // String!
@@ -458,6 +477,9 @@ export interface NexusGenArgTypes {
     }
   }
   Query: {
+    categories: { // args
+      includeHierarchy?: boolean | null; // Boolean
+    }
     filteredUsers: { // args
       email?: string | null; // String
       gender?: NexusGenEnums['Gender'] | null; // Gender

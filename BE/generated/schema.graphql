@@ -25,7 +25,6 @@ type Category {
   id: Int!
   name: String!
   parent: Category
-  products: [Product!]!
   subcategories: [Category!]!
 }
 
@@ -44,9 +43,12 @@ enum Gender {
 scalar JSON
 
 type Mutation {
+  createCategory(name: String!, parentId: Int): Category!
   createProduct(category_id: Int!, count: Int, desc: String, desc_images_path: JSON, is_deleted: Boolean, main_image_path: String!, name: String!, price: Int!, sale: Int, status: ProductStatus!, store_id: String!): Product!
   createUser(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): User!
+  mergeCategories(categoryId1: Int!, categoryId2: Int!, newName: String!): Category!
   refresh(refresh_token: String!): AuthPayload!
+  renameCategory(categoryId: Int!, newName: String!): Category!
   signin(password: String!, user_id: String!): AuthPayload!
   signout(id: String!): User!
   signup(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): AuthPayload!
@@ -108,6 +110,7 @@ enum ProductStatus {
 }
 
 type Query {
+  categories(includeHierarchy: Boolean): [Category!]!
   filteredUsers(email: String, gender: Gender, name: String, permissions: UserPermissions, phone_number: String, status: UserStatus, user_id: String): [User]!
   isDuplicated(email: String, user_id: String): UserBoolean
   product(id: String!): Product
