@@ -5,54 +5,83 @@ import { ApolloServerErrorCode } from "@apollo/server/errors";
 export const ProductQuery = extendType({
   type: "Query",
   definition(t) {
-    // searchProducts query
-    t.nonNull.list.nonNull.field("searchProducts", {
-      type: "Product",
+    // searchProducts query with pagination
+    t.field("searchProducts", {
+      type: nonNull("PaginatedProductsResult"),
       args: {
         id: idArg(),
         name: stringArg(),
         desc: stringArg(),
         category_id: intArg(),
         store_id: stringArg(),
+        page: nonNull(intArg({ default: 1 })),
+        pageSize: nonNull(intArg({ default: 10 })),
       },
       resolve: async (_, args, context) => {
         try {
+          const where = {
+            OR: [
+              { id: args.id },
+              { name: { contains: args.name } },
+              { desc: { contains: args.desc } },
+              { category_id: args.category_id },
+              { store_id: args.store_id },
+            ],
+          };
+
+          const totalCount = await context.prisma.product.count({ where });
           const products = await context.prisma.product.findMany({
-            where: {
-              OR: [
-                { id: args.id },
-                { name: { contains: args.name } },
-                { desc: { contains: args.desc } },
-                { category_id: args.category_id },
-                { store_id: args.store_id },
-              ],
-            },
+            where,
+            skip: (args.page - 1) * args.pageSize,
+            take: args.pageSize,
           });
-          return products;
+
+          return {
+            products,
+            pageInfo: {
+              currentPage: args.page,
+              pageSize: args.pageSize,
+              totalCount,
+              totalPages: Math.ceil(totalCount / args.pageSize),
+            },
+          };
         } catch (error) {
           throw new GraphQLError("Failed to search Products", {
             extensions: {
               code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
-              invalidArgs: [
-                args.id && "id",
-                args.desc && "desc",
-                args.desc && "desc",
-                args.category_id && "category_id",
-                args.store_id && "store_id",
-              ],
+              invalidArgs: Object.keys(args).filter(
+                (key) => args[key] !== undefined,
+              ),
             },
           });
         }
       },
     });
 
-    // 전체 product를 가져오는 query
-    t.nonNull.list.nonNull.field("getAllProducts", {
-      type: "Product",
-      resolve: async (_, __, context) => {
+    // getAllProducts query with pagination
+    t.field("getAllProducts", {
+      type: nonNull("PaginatedProductsResult"),
+      args: {
+        page: nonNull(intArg({ default: 1 })),
+        pageSize: nonNull(intArg({ default: 10 })),
+      },
+      resolve: async (_, args, context) => {
         try {
-          const products = await context.prisma.product.findMany();
-          return products;
+          const totalCount = await context.prisma.product.count();
+          const products = await context.prisma.product.findMany({
+            skip: (args.page - 1) * args.pageSize,
+            take: args.pageSize,
+          });
+
+          return {
+            products,
+            pageInfo: {
+              currentPage: args.page,
+              pageSize: args.pageSize,
+              totalCount,
+              totalPages: Math.ceil(totalCount / args.pageSize),
+            },
+          };
         } catch (error) {
           throw new GraphQLError("Failed to fetch all Products", {
             extensions: {
@@ -63,7 +92,7 @@ export const ProductQuery = extendType({
       },
     });
 
-    // 하나의 product를 가져오는 query
+    // getProduct query (unchanged)
     t.field("getProduct", {
       type: "Product",
       args: {

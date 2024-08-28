@@ -8,6 +8,25 @@ import {
   extendType,
 } from "nexus";
 
+export const PageInfo = objectType({
+  name: "PageInfo",
+  definition(t) {
+    t.nonNull.int("currentPage");
+    t.nonNull.int("pageSize");
+    t.nonNull.int("totalCount");
+    t.nonNull.int("totalPages");
+  },
+});
+
+// PaginatedProductsResult 타입 정의
+export const PaginatedProductsResult = objectType({
+  name: "PaginatedProductsResult",
+  definition(t) {
+    t.nonNull.list.nonNull.field("products", { type: "Product" });
+    t.nonNull.field("pageInfo", { type: "PageInfo" });
+  },
+});
+
 export const ProductType = objectType({
   name: "Product",
   definition(t) {

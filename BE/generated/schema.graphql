@@ -93,6 +93,18 @@ enum OrderStatus {
   UNKNOWN
 }
 
+type PageInfo {
+  currentPage: Int!
+  pageSize: Int!
+  totalCount: Int!
+  totalPages: Int!
+}
+
+type PaginatedProductsResult {
+  pageInfo: PageInfo!
+  products: [Product!]!
+}
+
 type Product {
   carts: [Cart!]!
   categories: [Category!]!
@@ -126,11 +138,11 @@ type Query {
   categories(includeHierarchy: Boolean, orderBy: CategoryOrderByInput): [Category!]!
   category(id: Int!, includeHierarchy: Boolean): Category
   filteredUsers(email: String, gender: Gender, name: String, permissions: UserPermissions, phone_number: String, status: UserStatus, user_id: String): [User]!
-  getAllProducts: [Product!]!
+  getAllProducts(page: Int! = 1, pageSize: Int! = 10): PaginatedProductsResult!
   getProduct(id: ID!): Product
   isDuplicated(business_registration_number: String): Boolean
   searchCategories(includeHierarchy: Boolean, nameContains: String!): [Category!]!
-  searchProducts(category_id: Int, desc: String, id: ID, name: String, store_id: String): [Product!]!
+  searchProducts(category_id: Int, desc: String, id: ID, name: String, page: Int! = 1, pageSize: Int! = 10, store_id: String): PaginatedProductsResult!
   searchStores(searchTerm: String!): [Store]
   store(id: String!): Store
   stores: [Store]

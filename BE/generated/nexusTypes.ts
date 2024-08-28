@@ -88,6 +88,16 @@ export interface NexusGenObjects {
     updated_at: NexusGenScalars['DateTime']; // DateTime!
     user_id: string; // String!
   }
+  PageInfo: { // root type
+    currentPage: number; // Int!
+    pageSize: number; // Int!
+    totalCount: number; // Int!
+    totalPages: number; // Int!
+  }
+  PaginatedProductsResult: { // root type
+    pageInfo: NexusGenRootTypes['PageInfo']; // PageInfo!
+    products: NexusGenRootTypes['Product'][]; // [Product!]!
+  }
   Product: { // root type
     count: number; // Int!
     created_at: NexusGenScalars['DateTime']; // DateTime!
@@ -210,6 +220,16 @@ export interface NexusGenFieldTypes {
     user: NexusGenRootTypes['User']; // User!
     user_id: string; // String!
   }
+  PageInfo: { // field return type
+    currentPage: number; // Int!
+    pageSize: number; // Int!
+    totalCount: number; // Int!
+    totalPages: number; // Int!
+  }
+  PaginatedProductsResult: { // field return type
+    pageInfo: NexusGenRootTypes['PageInfo']; // PageInfo!
+    products: NexusGenRootTypes['Product'][]; // [Product!]!
+  }
   Product: { // field return type
     carts: NexusGenRootTypes['Cart'][]; // [Cart!]!
     categories: NexusGenRootTypes['Category'][]; // [Category!]!
@@ -234,11 +254,11 @@ export interface NexusGenFieldTypes {
     categories: NexusGenRootTypes['Category'][]; // [Category!]!
     category: NexusGenRootTypes['Category'] | null; // Category
     filteredUsers: Array<NexusGenRootTypes['User'] | null>; // [User]!
-    getAllProducts: NexusGenRootTypes['Product'][]; // [Product!]!
+    getAllProducts: NexusGenRootTypes['PaginatedProductsResult']; // PaginatedProductsResult!
     getProduct: NexusGenRootTypes['Product'] | null; // Product
     isDuplicated: boolean | null; // Boolean
     searchCategories: NexusGenRootTypes['Category'][]; // [Category!]!
-    searchProducts: NexusGenRootTypes['Product'][]; // [Product!]!
+    searchProducts: NexusGenRootTypes['PaginatedProductsResult']; // PaginatedProductsResult!
     searchStores: Array<NexusGenRootTypes['Store'] | null> | null; // [Store]
     store: NexusGenRootTypes['Store'] | null; // Store
     stores: Array<NexusGenRootTypes['Store'] | null> | null; // [Store]
@@ -348,6 +368,16 @@ export interface NexusGenFieldTypeNames {
     user: 'User'
     user_id: 'String'
   }
+  PageInfo: { // field return type name
+    currentPage: 'Int'
+    pageSize: 'Int'
+    totalCount: 'Int'
+    totalPages: 'Int'
+  }
+  PaginatedProductsResult: { // field return type name
+    pageInfo: 'PageInfo'
+    products: 'Product'
+  }
   Product: { // field return type name
     carts: 'Cart'
     categories: 'Category'
@@ -372,11 +402,11 @@ export interface NexusGenFieldTypeNames {
     categories: 'Category'
     category: 'Category'
     filteredUsers: 'User'
-    getAllProducts: 'Product'
+    getAllProducts: 'PaginatedProductsResult'
     getProduct: 'Product'
     isDuplicated: 'Boolean'
     searchCategories: 'Category'
-    searchProducts: 'Product'
+    searchProducts: 'PaginatedProductsResult'
     searchStores: 'Store'
     store: 'Store'
     stores: 'Store'
@@ -558,6 +588,10 @@ export interface NexusGenArgTypes {
       status?: NexusGenEnums['UserStatus'] | null; // UserStatus
       user_id?: string | null; // String
     }
+    getAllProducts: { // args
+      page: number; // Int!
+      pageSize: number; // Int!
+    }
     getProduct: { // args
       id: string; // ID!
     }
@@ -573,6 +607,8 @@ export interface NexusGenArgTypes {
       desc?: string | null; // String
       id?: string | null; // ID
       name?: string | null; // String
+      page: number; // Int!
+      pageSize: number; // Int!
       store_id?: string | null; // String
     }
     searchStores: { // args
