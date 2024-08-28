@@ -23,7 +23,7 @@ model User {
   status UserStatus @default(ACTIVE)
   permissions UserPermissions @default(USER)
   store_id String?  // admin만 값을 가질 수 있는 칼럼
-  main_image_path String?
+  main_image_path String? @db.Text
   refresh_token String? @db.Text
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -44,7 +44,7 @@ model Product {
   count Int @default(0)
   is_deleted Boolean @default(false)
   status ProductStatus @default(OUT_OF_STOCK)
-  main_image_path String
+  main_image_path String @db.Text
   desc_images_path Json?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt

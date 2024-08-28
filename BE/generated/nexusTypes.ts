@@ -182,6 +182,7 @@ export interface NexusGenFieldTypes {
     createStore: NexusGenRootTypes['Store'] | null; // Store
     createUser: NexusGenRootTypes['User']; // User!
     deleteCategory: boolean | null; // Boolean
+    deleteProductIfUnused: NexusGenRootTypes['Product']; // Product!
     deleteStore: NexusGenRootTypes['Store'] | null; // Store
     mergeCategories: NexusGenRootTypes['Category']; // Category!
     refresh: NexusGenRootTypes['AuthPayload']; // AuthPayload!
@@ -189,6 +190,8 @@ export interface NexusGenFieldTypes {
     signin: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signout: NexusGenRootTypes['User']; // User!
     signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
+    updateProduct: NexusGenRootTypes['Product']; // Product!
+    updateProductStatus: NexusGenRootTypes['Product']; // Product!
     updateStore: NexusGenRootTypes['Store'] | null; // Store
     updateUser: NexusGenRootTypes['User']; // User!
     updateUserStateActive: NexusGenRootTypes['AuthPayload']; // AuthPayload!
@@ -231,10 +234,11 @@ export interface NexusGenFieldTypes {
     categories: NexusGenRootTypes['Category'][]; // [Category!]!
     category: NexusGenRootTypes['Category'] | null; // Category
     filteredUsers: Array<NexusGenRootTypes['User'] | null>; // [User]!
+    getAllProducts: NexusGenRootTypes['Product'][]; // [Product!]!
+    getProduct: NexusGenRootTypes['Product'] | null; // Product
     isDuplicated: boolean | null; // Boolean
-    product: NexusGenRootTypes['Product'] | null; // Product
-    products: NexusGenRootTypes['Product'][]; // [Product!]!
     searchCategories: NexusGenRootTypes['Category'][]; // [Category!]!
+    searchProducts: NexusGenRootTypes['Product'][]; // [Product!]!
     searchStores: Array<NexusGenRootTypes['Store'] | null> | null; // [Store]
     store: NexusGenRootTypes['Store'] | null; // Store
     stores: Array<NexusGenRootTypes['Store'] | null> | null; // [Store]
@@ -316,6 +320,7 @@ export interface NexusGenFieldTypeNames {
     createStore: 'Store'
     createUser: 'User'
     deleteCategory: 'Boolean'
+    deleteProductIfUnused: 'Product'
     deleteStore: 'Store'
     mergeCategories: 'Category'
     refresh: 'AuthPayload'
@@ -323,6 +328,8 @@ export interface NexusGenFieldTypeNames {
     signin: 'AuthPayload'
     signout: 'User'
     signup: 'AuthPayload'
+    updateProduct: 'Product'
+    updateProductStatus: 'Product'
     updateStore: 'Store'
     updateUser: 'User'
     updateUserStateActive: 'AuthPayload'
@@ -365,10 +372,11 @@ export interface NexusGenFieldTypeNames {
     categories: 'Category'
     category: 'Category'
     filteredUsers: 'User'
+    getAllProducts: 'Product'
+    getProduct: 'Product'
     isDuplicated: 'Boolean'
-    product: 'Product'
-    products: 'Product'
     searchCategories: 'Category'
+    searchProducts: 'Product'
     searchStores: 'Store'
     store: 'Store'
     stores: 'Store'
@@ -456,6 +464,9 @@ export interface NexusGenArgTypes {
     deleteCategory: { // args
       categoryId: number; // Int!
     }
+    deleteProductIfUnused: { // args
+      id: string; // ID!
+    }
     deleteStore: { // args
       id: string; // String!
     }
@@ -487,6 +498,21 @@ export interface NexusGenArgTypes {
       phone_number?: string | null; // String
       status: NexusGenEnums['UserStatus']; // UserStatus!
       user_id: string; // String!
+    }
+    updateProduct: { // args
+      category_id?: number | null; // Int
+      count?: number | null; // Int
+      desc?: string | null; // String
+      desc_images_path?: NexusGenScalars['JSON'] | null; // JSON
+      id: string; // ID!
+      main_image_path?: string | null; // String
+      name?: string | null; // String
+      price?: number | null; // Int
+      sale?: number | null; // Int
+    }
+    updateProductStatus: { // args
+      id: string; // ID!
+      status: NexusGenEnums['ProductStatus']; // ProductStatus!
     }
     updateStore: { // args
       business_registration_number?: string | null; // String
@@ -532,15 +558,22 @@ export interface NexusGenArgTypes {
       status?: NexusGenEnums['UserStatus'] | null; // UserStatus
       user_id?: string | null; // String
     }
+    getProduct: { // args
+      id: string; // ID!
+    }
     isDuplicated: { // args
       business_registration_number?: string | null; // String
-    }
-    product: { // args
-      id: string; // String!
     }
     searchCategories: { // args
       includeHierarchy?: boolean | null; // Boolean
       nameContains: string; // String!
+    }
+    searchProducts: { // args
+      category_id?: number | null; // Int
+      desc?: string | null; // String
+      id?: string | null; // ID
+      name?: string | null; // String
+      store_id?: string | null; // String
     }
     searchStores: { // args
       searchTerm: string; // String!

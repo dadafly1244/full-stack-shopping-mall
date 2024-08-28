@@ -22,8 +22,8 @@ export const ProductStatusEnum = enumType({
     "AVAILABLE",
     "TEMPORARILY_OUT_OF_STOCK",
     "OUT_OF_STOCK",
-    "DISCONTINUED",
-    "PROHIBITION_ON_SALE",
+    "DISCONTINUED", //단종
+    "PROHIBITION_ON_SALE", // 판매금지
   ],
 });
 

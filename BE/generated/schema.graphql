@@ -54,6 +54,7 @@ type Mutation {
   createStore(business_registration_number: String!, desc: String, name: String!): Store
   createUser(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): User!
   deleteCategory(categoryId: Int!): Boolean
+  deleteProductIfUnused(id: ID!): Product!
   deleteStore(id: String!): Store
   mergeCategories(categoryId1: Int!, categoryId2: Int!, newName: String!): Category!
   refresh(refresh_token: String!): AuthPayload!
@@ -61,6 +62,8 @@ type Mutation {
   signin(password: String!, user_id: String!): AuthPayload!
   signout(id: String!): User!
   signup(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): AuthPayload!
+  updateProduct(category_id: Int, count: Int, desc: String, desc_images_path: JSON, id: ID!, main_image_path: String, name: String, price: Int, sale: Int): Product!
+  updateProductStatus(id: ID!, status: ProductStatus!): Product!
   updateStore(business_registration_number: String, desc: String, id: String!, name: String): Store
   updateUser(email: String, gender: Gender, id: String!, name: String, permissions: UserPermissions, phone_number: String, user_id: String): User!
   updateUserStateActive(id: String!): AuthPayload!
@@ -123,10 +126,11 @@ type Query {
   categories(includeHierarchy: Boolean, orderBy: CategoryOrderByInput): [Category!]!
   category(id: Int!, includeHierarchy: Boolean): Category
   filteredUsers(email: String, gender: Gender, name: String, permissions: UserPermissions, phone_number: String, status: UserStatus, user_id: String): [User]!
+  getAllProducts: [Product!]!
+  getProduct(id: ID!): Product
   isDuplicated(business_registration_number: String): Boolean
-  product(id: String!): Product
-  products: [Product!]!
   searchCategories(includeHierarchy: Boolean, nameContains: String!): [Category!]!
+  searchProducts(category_id: Int, desc: String, id: ID, name: String, store_id: String): [Product!]!
   searchStores(searchTerm: String!): [Store]
   store(id: String!): Store
   stores: [Store]
