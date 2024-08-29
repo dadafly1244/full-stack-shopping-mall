@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export enum UserStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE",
@@ -14,7 +16,14 @@ export enum Gender {
   OTHER = "OTHER",
   PREFER_NOT_TO_SAY = "PREFER_NOT_TO_SAY",
 }
-export type SortType = "asc" | "desc" | "none" | undefined;
+
+export enum ProductStatus {
+  AVAILABLE = "AVAILABLE",
+  TEMPORARILY_OUT_OF_STOCK = "TEMPORARILY_OUT_OF_STOCK",
+  OUT_OF_STOCK = "OUT_OF_STOCK",
+  DISCONTINUED = "DISCONTINUED", //단종
+  PROHIBITION_ON_SALE = "PROHIBITION_ON_SALE", // 판매금지
+}
 
 export type UpdateUserInput = {
   id: string;
@@ -75,8 +84,8 @@ export interface DetermineInputProps {
   label: string;
   key?: string;
   placeholder?: string;
-  wrongMessage?: string;
-  rightMessage?: string;
+  wrongMessage?: string | ((value: string) => string);
+  rightMessage?: string | ((value: string) => string);
   isRight: (value: string) => boolean;
   inputLimit?: string;
   isRequired?: boolean;
@@ -102,6 +111,13 @@ export interface CustomUserDetermineInputProps extends Omit<DetermineInputProps,
   formatter?: (a: string) => string;
 }
 
+export interface CustomProductDetermineInputProps extends Omit<DetermineInputProps, "isRight"> {
+  isRight: (value: string) => boolean;
+  key: keyof ProductType;
+  type: "determineInput";
+  formatter?: (a: string) => string;
+}
+
 export interface CustomSelectProps extends SelectProps {
   key: keyof SignupType;
   type: "selectInput";
@@ -112,7 +128,45 @@ export interface CustomUserSelectProps extends SelectProps {
   type: "selectInput";
 }
 
-export type UpdateFormItem = CustomUserDetermineInputProps | CustomUserSelectProps;
+export interface CustomProductSelectProps extends SelectProps {
+  key: keyof ProductType;
+  type: "selectInput";
+}
+
+export interface DetermineTextareaProps {
+  label: string;
+  key?: string;
+  placeholder?: string;
+  wrongMessage?: string | ((value: string) => string);
+  rightMessage?: string | ((value: string) => string);
+  isRight: (value: string) => boolean;
+  isRequired?: boolean;
+  className?: string;
+  onChange?: (value: string) => void;
+  variant?: "default" | "pass" | "nonePass";
+  button?: string | (() => Promise<string>);
+  buttonClick?: (value: string) => Promise<boolean>;
+
+  // Textarea 특화 속성
+  rows?: number;
+  maxLength?: number;
+  minLength?: number;
+  resize?: "none" | "both" | "horizontal" | "vertical";
+  autoResize?: boolean;
+}
+
+export interface CustomProductDetermineTextareaProps
+  extends Omit<DetermineTextareaProps, "isRight"> {
+  isRight: (value: string) => boolean;
+  key: keyof ProductType;
+  type: "determineTextarea";
+}
+export type UpdateProductFormItem =
+  | CustomProductDetermineTextareaProps
+  | CustomProductDetermineInputProps
+  | CustomProductSelectProps;
+
+export type UpdateUserFormItem = CustomUserDetermineInputProps | CustomUserSelectProps;
 
 export type FormItem = CustomDetermineInputProps | CustomSelectProps;
 export interface SignupType {
@@ -126,6 +180,25 @@ export interface SignupType {
   status: UserStatus;
   permissions: UserPermissions;
 }
+export type SortState<S> = {
+  [K in keyof S]?: "asc" | "desc" | "none";
+};
+
+export interface TableColumn<T, S = T> {
+  header: string;
+  sort?: keyof S;
+  key: keyof T;
+  render?: (item: T) => ReactNode;
+}
+export interface TableProps<T, S = T> {
+  title: string;
+  data: T[];
+  columns: TableColumn<T, S>[];
+  onSortClick?: (key: keyof S) => void;
+  onRowClick?: (item: T) => void;
+  onSelectionChange?: (selectedItems: T[]) => void;
+  sortState: SortState<S>;
+}
 
 export type sortingItem = {
   user_id: string;
@@ -133,3 +206,61 @@ export type sortingItem = {
   email: string;
   phone_number: string;
 };
+
+export type ProductSortingItem = {
+  name: string;
+  price: number;
+  sale: number;
+  count: number;
+  status: ProductStatus;
+};
+
+export interface PageInfo {
+  currentPage: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
+export interface ProductType {
+  id: string;
+  name: string;
+  desc?: string;
+  price: number;
+  sale?: number;
+  count: number;
+  is_deleted: boolean;
+  status: ProductStatus;
+  main_image_path: string;
+  desc_images_path?: string;
+  category_id: number;
+  store_id: string;
+}
+
+export interface ProductsInfoType {
+  products: ProductType[];
+  pageInfo: PageInfo;
+}
+
+export interface ProductSearchFilters {
+  name: string;
+  desc: string;
+  price: number;
+  sale: number;
+  count: number;
+  is_deleted: boolean | null;
+  status: ProductStatus | null;
+  category_name: string;
+  store_name: string;
+}
+
+export interface ProductCheckboxStates {
+  name: boolean;
+  desc: boolean;
+  price: boolean;
+  sale: boolean;
+  count: boolean;
+  is_deleted: boolean;
+  status: boolean;
+  category_name: boolean;
+  store_name: boolean;
+}

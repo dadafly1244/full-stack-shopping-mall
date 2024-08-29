@@ -29,7 +29,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, children }) => {
               </span>
             </button>
           </div>
-          <div className="relative p-6 flex-auto">{children}</div>
+          <div className="relative p-10 flex-auto overflow-y-auto">{children}</div>
         </div>
       </div>
     </div>

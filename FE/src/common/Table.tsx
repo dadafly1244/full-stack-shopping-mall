@@ -1,24 +1,7 @@
 import React, { useState, useCallback, ReactNode } from "react";
-import { sortingItem } from "#/utils/types";
+import { TableColumn, TableProps } from "#/utils/types";
 
-export interface TableColumn<T> {
-  header: string;
-  sort?: string;
-  key: keyof T;
-  render?: (item: T) => ReactNode;
-}
-
-export interface TableProps<T> {
-  title: string;
-  data: T[];
-  columns: TableColumn<T>[];
-  onSortClick?: (key: keyof sortingItem) => void;
-  onRowClick?: (item: T) => void;
-  onSelectionChange?: (selectedItems: T[]) => void;
-  sortState: sortingItem;
-}
-
-function Table<T extends { id?: string }>({
+function Table<T extends { id?: string }, S = T>({
   title,
   data,
   columns,
@@ -26,7 +9,7 @@ function Table<T extends { id?: string }>({
   onSortClick,
   onRowClick,
   onSelectionChange,
-}: TableProps<T>) {
+}: TableProps<T, S>) {
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
 
   const handleSelectAll = useCallback(
@@ -54,7 +37,7 @@ function Table<T extends { id?: string }>({
     [selectedItems]
   );
 
-  const renderCell = (item: T, column: TableColumn<T>): ReactNode => {
+  const renderCell = (item: T, column: TableColumn<T, S>): ReactNode => {
     if (column.render) {
       return column.render(item);
     }
@@ -68,9 +51,8 @@ function Table<T extends { id?: string }>({
     return JSON.stringify(value);
   };
 
-  const handleSorting = (e: React.MouseEvent, key: keyof sortingItem) => {
-    e.stopPropagation;
-
+  const handleSorting = (e: React.MouseEvent, key: keyof S) => {
+    e.stopPropagation();
     onSortClick?.(key);
   };
 
@@ -93,10 +75,10 @@ function Table<T extends { id?: string }>({
                 <th key={column.key as string} className="py-3 px-6 text-left">
                   {column.header}
                   {column.sort && (
-                    <button onClick={(e) => handleSorting(e, column.key as keyof sortingItem)}>
-                      {sortState[column.key as keyof sortingItem] === "none" && "#"}
-                      {sortState[column.key as keyof sortingItem] === "asc" && "▲"}
-                      {sortState[column.key as keyof sortingItem] === "desc" && "▼"}
+                    <button onClick={(e) => handleSorting(e, column.sort as keyof S)}>
+                      {sortState[column.sort] === "none" && "#"}
+                      {sortState[column.sort] === "asc" && "▲"}
+                      {sortState[column.sort] === "desc" && "▼"}
                     </button>
                   )}
                 </th>

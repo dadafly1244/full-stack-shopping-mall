@@ -1,6 +1,6 @@
 import { UPDATE_USER_ADMIN, Gender, UserStatus, UserPermissions } from "#/apollo/mutation";
 import {
-  UpdateFormItem,
+  UpdateUserFormItem,
   UserType,
   CustomUserDetermineInputProps,
   CustomUserSelectProps,
@@ -18,7 +18,7 @@ const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void
   const [formState, setFormState] = useState<UserType>(user);
   const [updateFc, { data: updateUserData, loading, error }] = useMutation(UPDATE_USER_ADMIN);
   const [checkEmailFc] = useLazyQuery(CHECK_EMAIL);
-  const updateForm: UpdateFormItem[] = [
+  const updateForm: UpdateUserFormItem[] = [
     {
       type: "determineInput",
       key: "name",
@@ -83,7 +83,7 @@ const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void
     }
   }, [updateUserData]);
 
-  const isDetermineInput = (item: UpdateFormItem): item is CustomUserDetermineInputProps => {
+  const isDetermineInput = (item: UpdateUserFormItem): item is CustomUserDetermineInputProps => {
     return item.type === "determineInput";
   };
 

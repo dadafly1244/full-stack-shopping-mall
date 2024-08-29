@@ -495,7 +495,7 @@ export interface NexusGenArgTypes {
       categoryId: number; // Int!
     }
     deleteProductIfUnused: { // args
-      id: string; // ID!
+      id: string; // String!
     }
     deleteStore: { // args
       id: string; // String!
@@ -534,14 +534,14 @@ export interface NexusGenArgTypes {
       count?: number | null; // Int
       desc?: string | null; // String
       desc_images_path?: NexusGenScalars['JSON'] | null; // JSON
-      id: string; // ID!
+      id: string; // String!
       main_image_path?: string | null; // String
       name?: string | null; // String
       price?: number | null; // Int
       sale?: number | null; // Int
     }
     updateProductStatus: { // args
-      id: string; // ID!
+      id: string; // String!
       status: NexusGenEnums['ProductStatus']; // ProductStatus!
     }
     updateStore: { // args
@@ -593,7 +593,7 @@ export interface NexusGenArgTypes {
       pageSize: number; // Int!
     }
     getProduct: { // args
-      id: string; // ID!
+      id: string; // String!
     }
     isDuplicated: { // args
       business_registration_number?: string | null; // String
@@ -605,7 +605,7 @@ export interface NexusGenArgTypes {
     searchProducts: { // args
       category_id?: number | null; // Int
       desc?: string | null; // String
-      id?: string | null; // ID
+      id?: string | null; // String
       name?: string | null; // String
       page: number; // Int!
       pageSize: number; // Int!

@@ -9,7 +9,7 @@ export const ProductQuery = extendType({
     t.field("searchProducts", {
       type: nonNull("PaginatedProductsResult"),
       args: {
-        id: idArg(),
+        id: stringArg(),
         name: stringArg(),
         desc: stringArg(),
         category_id: intArg(),
@@ -30,11 +30,27 @@ export const ProductQuery = extendType({
           };
 
           const totalCount = await context.prisma.product.count({ where });
+
+          if (totalCount < 0 || totalCount === undefined) {
+            throw new GraphQLError("총 제품 수를 계산하지 못했습니다.", {
+              extensions: {
+                code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+              },
+            });
+          }
           const products = await context.prisma.product.findMany({
             where,
             skip: (args.page - 1) * args.pageSize,
             take: args.pageSize,
           });
+
+          if (!products) {
+            throw new GraphQLError("제품을 찾지 못했습니다.", {
+              extensions: {
+                code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+              },
+            });
+          }
 
           return {
             products,
@@ -46,6 +62,9 @@ export const ProductQuery = extendType({
             },
           };
         } catch (error) {
+          if (error instanceof GraphQLError) {
+            throw error;
+          }
           throw new GraphQLError("Failed to search Products", {
             extensions: {
               code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
@@ -68,11 +87,25 @@ export const ProductQuery = extendType({
       resolve: async (_, args, context) => {
         try {
           const totalCount = await context.prisma.product.count();
+          if (totalCount < 0 || totalCount === undefined) {
+            throw new GraphQLError("총 제품 수를 계산하지 못했습니다.", {
+              extensions: {
+                code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+              },
+            });
+          }
           const products = await context.prisma.product.findMany({
             skip: (args.page - 1) * args.pageSize,
             take: args.pageSize,
           });
 
+          if (!products) {
+            throw new GraphQLError("제품을 찾지 못했습니다.", {
+              extensions: {
+                code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+              },
+            });
+          }
           return {
             products,
             pageInfo: {
@@ -83,6 +116,9 @@ export const ProductQuery = extendType({
             },
           };
         } catch (error) {
+          if (error instanceof GraphQLError) {
+            throw error;
+          }
           throw new GraphQLError("Failed to fetch all Products", {
             extensions: {
               code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
@@ -96,7 +132,7 @@ export const ProductQuery = extendType({
     t.field("getProduct", {
       type: "Product",
       args: {
-        id: nonNull(idArg()),
+        id: nonNull(stringArg()),
       },
       resolve: async (_, args, context) => {
         try {
@@ -104,9 +140,10 @@ export const ProductQuery = extendType({
             where: { id: args.id },
           });
           if (!product) {
-            throw new GraphQLError("Product not found", {
+            throw new GraphQLError("제품을 찾지 못했습니다.", {
               extensions: {
                 code: ApolloServerErrorCode.BAD_USER_INPUT,
+                invalidArgs: ["id"],
               },
             });
           }

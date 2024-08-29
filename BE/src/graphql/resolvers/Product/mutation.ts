@@ -8,6 +8,15 @@ import {
 } from "nexus";
 import { ApolloServerErrorCode } from "@apollo/server/errors";
 import { GraphQLError } from "graphql";
+
+const MAX_NAME_LENGTH = 255; // 적절한 길이로 조정
+const MAX_DESC_LENGTH = 5000; // 적절한 길이로 조정
+
+function sanitizeInput(input: string) {
+  // 기본적인 HTML 태그 제거 (더 강력한 라이브러리 사용 권장)
+  return input.replace(/<[^>]*>?/gm, "");
+}
+
 export const ProductMutation = extendType({
   type: "Mutation",
   definition(t) {
@@ -29,6 +38,32 @@ export const ProductMutation = extendType({
       },
       resolve: async (_, args, context) => {
         try {
+          const sanitizedName = sanitizeInput(args.name);
+          const sanitizedDesc = args.desc ? sanitizeInput(args.desc) : null;
+
+          if (sanitizedName.length > MAX_NAME_LENGTH) {
+            throw new GraphQLError(
+              `제품명은 ${MAX_NAME_LENGTH}자를 초과할 수 없습니다.`,
+              {
+                extensions: {
+                  code: ApolloServerErrorCode.BAD_USER_INPUT,
+                  invalidArgs: ["name"],
+                },
+              },
+            );
+          }
+
+          if (sanitizedDesc && sanitizedDesc.length > MAX_DESC_LENGTH) {
+            throw new GraphQLError(
+              `제품 설명은 ${MAX_DESC_LENGTH}자를 초과할 수 없습니다.`,
+              {
+                extensions: {
+                  code: ApolloServerErrorCode.BAD_USER_INPUT,
+                  invalidArgs: ["desc"],
+                },
+              },
+            );
+          }
           const store = await context.prisma.store.findUnique({
             where: { id: args.store_id },
           });
@@ -84,11 +119,22 @@ export const ProductMutation = extendType({
             });
           }
 
-          return await context.prisma.product.create({
+          const result = await context.prisma.product.create({
             data: {
               ...args,
+              name: sanitizedName,
+              desc: sanitizedDesc,
             },
           });
+          if (!result) {
+            throw new GraphQLError("제품 등록을 실패했습니다.", {
+              extensions: {
+                code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+              },
+            });
+          }
+
+          return result;
         } catch (error) {
           if (error instanceof GraphQLError) {
             throw error;
@@ -105,25 +151,40 @@ export const ProductMutation = extendType({
     t.nonNull.field("updateProductStatus", {
       type: "Product",
       args: {
-        id: nonNull(idArg()),
+        id: nonNull(stringArg()),
         status: nonNull("ProductStatus"),
       },
       resolve: async (_, args, context) => {
         try {
-          const product = await context.prisma.product.update({
+          const existProduct = await context.prisma.product.findUnique({
             where: { id: args.id },
-            data: { status: args.status },
           });
-          if (!product) {
-            throw new GraphQLError("Product not found", {
+          if (!existProduct) {
+            throw new GraphQLError("해당 제품이 존재하지 않습니다.", {
               extensions: {
                 code: ApolloServerErrorCode.BAD_USER_INPUT,
                 invalidArgs: ["id"],
               },
             });
           }
+
+          const product = await context.prisma.product.update({
+            where: { id: args.id },
+            data: { status: args.status },
+          });
+          if (!product) {
+            throw new GraphQLError("제품 상태 수정 실패", {
+              extensions: {
+                code: ApolloServerErrorCode.BAD_USER_INPUT,
+                invalidArgs: ["id", "status"],
+              },
+            });
+          }
           return product;
         } catch (error) {
+          if (error instanceof GraphQLError) {
+            throw error;
+          }
           throw new GraphQLError("Failed to update Product status", {
             extensions: {
               code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
@@ -136,7 +197,7 @@ export const ProductMutation = extendType({
     t.nonNull.field("updateProduct", {
       type: "Product",
       args: {
-        id: nonNull(idArg()),
+        id: nonNull(stringArg()),
         name: stringArg(),
         desc: stringArg(),
         price: intArg(),
@@ -150,6 +211,48 @@ export const ProductMutation = extendType({
         try {
           const { id, ...updateData } = args;
 
+          if (updateData.name) {
+            updateData.name = sanitizeInput(updateData.name);
+            if (updateData.name.length > MAX_NAME_LENGTH) {
+              throw new GraphQLError(
+                `제품명은 ${MAX_NAME_LENGTH}자를 초과할 수 없습니다.`,
+                {
+                  extensions: {
+                    code: ApolloServerErrorCode.BAD_USER_INPUT,
+                    invalidArgs: ["name"],
+                  },
+                },
+              );
+            }
+          }
+
+          if (updateData.desc) {
+            updateData.desc = sanitizeInput(updateData.desc);
+            if (updateData.desc.length > MAX_DESC_LENGTH) {
+              throw new GraphQLError(
+                `제품 설명은 ${MAX_DESC_LENGTH}자를 초과할 수 없습니다.`,
+                {
+                  extensions: {
+                    code: ApolloServerErrorCode.BAD_USER_INPUT,
+                    invalidArgs: ["desc"],
+                  },
+                },
+              );
+            }
+          }
+
+          const existProduct = await context.prisma.product.findUnique({
+            where: { id: args.id },
+          });
+          if (!existProduct) {
+            throw new GraphQLError("해당 제품이 존재하지 않습니다.", {
+              extensions: {
+                code: ApolloServerErrorCode.BAD_USER_INPUT,
+                invalidArgs: ["id"],
+              },
+            });
+          }
+
           // 기존 제품을 조회, store_id를 얻기
           const existingProduct = await context.prisma.product.findUnique({
             where: { id },
@@ -157,7 +260,7 @@ export const ProductMutation = extendType({
           });
 
           if (!existingProduct) {
-            throw new GraphQLError("Product not found", {
+            throw new GraphQLError("제품이 존재하지 않습니다.", {
               extensions: {
                 code: ApolloServerErrorCode.BAD_USER_INPUT,
               },
@@ -190,9 +293,19 @@ export const ProductMutation = extendType({
           // 제품 업데이트
           const updatedProduct = await context.prisma.product.update({
             where: { id },
-            data: updateData,
+            data: {
+              ...updateData,
+              category_id: Number(updateData.category_id),
+            },
           });
 
+          if (!updatedProduct) {
+            throw new GraphQLError("제품 정보 수정을 실패했습니다. ", {
+              extensions: {
+                code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+              },
+            });
+          }
           return updatedProduct;
         } catch (error) {
           if (error instanceof GraphQLError) {
@@ -211,34 +324,69 @@ export const ProductMutation = extendType({
     t.nonNull.field("deleteProductIfUnused", {
       type: "Product",
       args: {
-        id: nonNull(idArg()),
+        id: nonNull(stringArg()),
       },
       resolve: async (_, args, context) => {
         try {
-          // 주문 이력 확인
-          const orderHistory = await context.prisma.order.findFirst({
-            where: {
-              products: {
-                some: {
-                  id: args.id,
-                },
-              },
-            },
+          const existProduct = await context.prisma.product.findUnique({
+            where: { id: args.id },
           });
+          if (!existProduct) {
+            throw new GraphQLError("삭제할 제품이 없습니다.", {
+              extensions: {
+                code: ApolloServerErrorCode.BAD_USER_INPUT,
+                invalidArgs: ["id"],
+              },
+            });
+          }
+
+          // 주문 이력 확인
+          // TODO: order table 만들고 난다음에 주석 해제하기(test 필요)
+          // const orderHistory = await context.prisma.order.findFirst({
+          //   where: {
+          //     products: {
+          //       some: {
+          //         id: args.id,
+          //       },
+          //     },
+          //   },
+          // });
+
+          const orderHistory = undefined;
 
           if (orderHistory) {
             // 주문 이력이 있으면 is_deleted만 true로 변경
-            return await context.prisma.product.update({
+            const result = await context.prisma.product.update({
               where: { id: args.id },
               data: { is_deleted: true },
             });
+            if (!result) {
+              throw new GraphQLError("is_deleted: true로 변경 실패", {
+                extensions: {
+                  code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+                },
+              });
+            }
+            return result;
           } else {
             // 주문 이력이 없으면 삭제
-            return await context.prisma.product.delete({
+
+            const result = await context.prisma.product.delete({
               where: { id: args.id },
             });
+            if (!result) {
+              throw new GraphQLError("진짜로 삭제 실패", {
+                extensions: {
+                  code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+                },
+              });
+            }
+            return result;
           }
         } catch (error) {
+          if (error instanceof GraphQLError) {
+            throw error;
+          }
           throw new GraphQLError("Failed to delete Product", {
             extensions: {
               code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,

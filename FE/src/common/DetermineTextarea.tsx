@@ -1,11 +1,11 @@
 import { ReactElement, useState, useEffect, useCallback, useRef } from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "#/utils/utils";
-import { DetermineInputProps } from "#/utils/types";
-import { Button, Input } from "@material-tailwind/react";
-import { formatPhoneNumber } from "#/utils/formatter";
+import { DetermineTextareaProps } from "#/utils/types";
+import { Button, Textarea } from "@material-tailwind/react";
+import DOMPurify from "dompurify";
 
-const DetermineInput = (props: DetermineInputProps): ReactElement => {
+const DetermineTextarea = (props: DetermineTextareaProps): ReactElement => {
   const {
     label = "입력",
     placeholder = "입력해주세요",
@@ -15,10 +15,11 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
     isRequired = false,
     className,
     onChange,
-    inputWidth,
+    rows = 4,
     variant = "default",
     button: initialButtonText,
     buttonClick,
+    maxLength = 1000,
   } = props;
 
   const labelVariants = cva(`block mb-2 text-sm font-medium`, {
@@ -37,18 +38,22 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
   const [_inputValue, setInputValue] = useState("");
   const [debouncedInput, setDebouncedInput] = useState(_inputValue);
   const [_valiant, setValiant] = useState(variant);
-  const inputRef = useRef(null);
+  const textareaRef = useRef(null);
 
   const [buttonText, setButtonText] = useState<string>(String(initialButtonText));
   const [buttonStatue, setButtonStatus] = useState<null | "error" | "loading" | "success">(null);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [message, setMessage] = useState<null | string>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     let inputValue = e.target.value;
 
-    if (label === "휴대폰번호") {
-      inputValue = formatPhoneNumber(inputValue);
+    // Sanitize input
+    inputValue = DOMPurify.sanitize(inputValue);
+
+    // Truncate if exceeds maxLength
+    if (inputValue.length > maxLength) {
+      inputValue = inputValue.slice(0, maxLength);
     }
 
     if (onChange) {
@@ -78,7 +83,7 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
         setMessage(rightMessage);
       } else if (typeof rightMessage !== "string") {
         const words = rightMessage(debouncedInput) as string;
-        rightMessage(words);
+        setMessage(words);
       }
     } else {
       setValiant("nonePass");
@@ -105,11 +110,10 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
           setMessage(rightMessage);
         } else if (typeof rightMessage !== "string") {
           const words = rightMessage(debouncedInput) as string;
-          rightMessage(words);
+          setMessage(words);
         }
       } else {
         setButtonText("사용불가");
-
         setButtonStatus("error");
         if (typeof wrongMessage === "string") {
           setMessage(wrongMessage);
@@ -154,25 +158,24 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
     <div>
       <div className="mb-6">
         <label
-          htmlFor={`determineInput-${label}`}
+          htmlFor={`determineTextarea-${label}`}
           className={cn(labelVariants({ variant: _valiant }), className)}
         >
           {label ? label : "입력"} {isRequired ? "(필수)" : ""}
         </label>
-        <div className="flex h-10">
-          <Input
-            ref={inputRef}
-            type={label.includes("비밀번호") ? "password" : "text"}
-            id={`determineInput-${label}`}
+        <div className="flex flex-col">
+          <Textarea
+            ref={textareaRef}
+            id={`determineTextarea-${label}`}
             value={_inputValue}
             required={isRequired}
-            width={inputWidth}
+            rows={rows}
             className={cn("placeholder:opacity-100", className)}
             placeholder={placeholder}
             onChange={handleChange}
-            crossOrigin={undefined}
             error={buttonStatue === "error"}
             success={buttonStatue === "success"}
+            maxLength={maxLength}
           />
           {initialButtonText && (
             <Button
@@ -188,13 +191,13 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
                   ? "red"
                   : "blue-gray"
               }
-              className="rounded w-32 ml-10 min-w-20"
+              className="rounded w-32 mt-2 self-end"
             >
               {buttonText}
             </Button>
           )}
         </div>
-        <p className={cn("text-sm ml-10 text-gray-500", className, message ? "block" : "hidden")}>
+        <p className={cn("text-sm mt-2 text-gray-500", className, message ? "block" : "hidden")}>
           {message}
         </p>
       </div>
@@ -202,4 +205,4 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
   );
 };
 
-export default DetermineInput;
+export default DetermineTextarea;

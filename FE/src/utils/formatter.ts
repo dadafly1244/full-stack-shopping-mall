@@ -14,3 +14,21 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
     return phoneNumber;
   }
 };
+
+export const formatNumber = (input: string | number): string => {
+  // 입력값이 숫자인지 확인
+  const numericValue = typeof input === "number" ? input : Number(input.replace(/,/g, ""));
+
+  if (isNaN(numericValue)) {
+    throw new Error("Invalid input: Not a number");
+  }
+
+  // 숫자를 문자열로 변환하고 소수점 부분 분리
+  const [integerPart, decimalPart] = numericValue.toString().split(".");
+
+  // 정수 부분에 3자리마다 쉼표 추가
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  // 소수점 부분이 있으면 다시 붙이기
+  return decimalPart ? `${formattedInteger}.${decimalPart}` : formattedInteger;
+};

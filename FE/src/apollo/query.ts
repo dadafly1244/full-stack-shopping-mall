@@ -1,5 +1,10 @@
 import { gql } from "@apollo/client";
 
+// enum CategoryOrderByInput {
+//   "asc",
+//   "desc",
+// }
+
 export const CHECK_ID = gql`
   query isDuplicated($user_id: String!) {
     isDuplicated(user_id: $user_id) {
@@ -62,6 +67,189 @@ export const FILTERED_USER_INFO_ADMIN = gql`
       gender
       created_at
       updated_at
+    }
+  }
+`;
+
+export const PRODUCT_SEARCH_ADMIN = gql`
+  query SearchProducts(
+    $id: String
+    $name: String
+    $desc: String
+    $category_id: Int
+    $store_id: String
+    $page: Int!
+    $pageSize: Int!
+  ) {
+    searchProducts(
+      id: $id
+      name: $name
+      desc: $desc
+      category_id: $category_id
+      store_id: $store_id
+      page: $page
+      pageSize: $pageSize
+    ) {
+      products {
+        id
+        name
+        desc
+        price
+        sale
+        count
+        is_deleted
+        status
+        created_at
+        updated_at
+        category {
+          id
+          name
+        }
+        store {
+          id
+          name
+        }
+      }
+      pageInfo {
+        currentPage
+        pageSize
+        totalCount
+        totalPages
+      }
+    }
+  }
+`;
+export const PRODUCTS_INFO_ADMIN = gql`
+  query Products($page: Int!, $pageSize: Int!) {
+    getAllProducts(page: $page, pageSize: $pageSize) {
+      products {
+        id
+        name
+        desc
+        price
+        sale
+        count
+        is_deleted
+        status
+        main_image_path
+        desc_images_path
+        created_at
+        updated_at
+        store {
+          id
+          name
+        }
+        category {
+          id
+          name
+        }
+      }
+      pageInfo {
+        currentPage
+        pageSize
+        totalCount
+        totalPages
+      }
+    }
+  }
+`;
+export const PRODUCT_DETAILS_ADMIN = gql`
+  query DetailsProduct($id: String!) {
+    getProduct(id: $id) {
+      id
+      name
+      desc
+      price
+      sale
+      count
+      is_deleted
+      status
+      main_image_path
+      desc_images_path
+      created_at
+      updated_at
+      store {
+        id
+        name
+      }
+      category {
+        id
+        name
+      }
+    }
+  }
+`;
+
+// 전체 카테고리 조회
+export const GET_ALL_CATEGORIES = gql`
+  query GetCategories($includeHierarchy: Boolean!, $orderBy: CategoryOrderByInput) {
+    categories(includeHierarchy: $includeHierarchy, orderBy: $orderBy) {
+      id
+      name
+      subcategories @include(if: $includeHierarchy) {
+        id
+        name
+        subcategories {
+          id
+          name
+          subcategories {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+`;
+
+// 단일 카테고리 조회
+export const GET_CATEGORY = gql`
+  query GetCategory($id: Int!, $includeHierarchy: Boolean) {
+    category(id: $id, includeHierarchy: $includeHierarchy) {
+      id
+      name
+      parent @include(if: $includeHierarchy) {
+        id
+        name
+      }
+      subcategories @include(if: $includeHierarchy) {
+        id
+        name
+        subcategories {
+          id
+          name
+          subcategories {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+`;
+
+// 카테고리 이름 검색
+export const SEARCH_CATEGORIES = gql`
+  query SearchCategories($nameContains: String!, $includeHierarchy: Boolean) {
+    searchCategories(nameContains: $nameContains, includeHierarchy: $includeHierarchy) {
+      id
+      name
+      parent @include(if: $includeHierarchy) {
+        id
+        name
+      }
+      subcategories @include(if: $includeHierarchy) {
+        id
+        name
+        subcategories {
+          id
+          name
+          subcategories {
+            id
+            name
+          }
+        }
+      }
     }
   }
 `;

@@ -1,5 +1,5 @@
 import { MouseEvent, useEffect, useState, useCallback } from "react";
-import Table, { TableColumn } from "#/common/Table";
+import Table from "#/common/Table";
 import { USER_INFO_ADMIN } from "#/apollo/query";
 import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import { ACTIVE_USER_ADMIN, SUSPENDED_USER_ADMIN } from "#/apollo/mutation";
@@ -12,6 +12,8 @@ import {
   SearchFilters,
   CheckboxStates,
   sortingItem,
+  SortState,
+  TableColumn,
 } from "#/utils/types";
 import UserSearchComponent from "#/pages/Admin/UserSearchComponent";
 import Modal from "#/common/Modal";
@@ -77,7 +79,7 @@ const UserInfoTab = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickedUser, setClickedUser] = useState(init_user);
   const [data, setData] = useState<UserType[]>([]);
-  const [sortState, setSortState] = useState({
+  const [sortState, setSortState] = useState<SortState<sortingItem>>({
     user_id: "none",
     name: "none",
     email: "none",
@@ -110,12 +112,14 @@ const UserInfoTab = () => {
   }, [filteredUser, localFilters, localCheckboxes]);
 
   useEffect(() => {
+    setData(allData?.usersList);
     if (isInitialLoad) {
-      if (searchParams.get("searchOpen") === "true") {
-        performSearch();
-      } else if (allData?.usersList) {
+      if (allData?.usersList) {
         setData(allData.usersList);
+      } else if (searchParams.get("searchOpen") === "true") {
+        performSearch();
       }
+
       setIsInitialLoad(false);
     } else if (shouldSearch) {
       performSearch();
@@ -229,16 +233,16 @@ const UserInfoTab = () => {
     }
   };
 
-  const columns: TableColumn<UserType>[] = [
+  const columns: TableColumn<UserType, sortingItem>[] = [
     { header: "ID", key: "id" },
-    { header: "User ID", key: "user_id", sort: sortState.user_id },
-    { header: "Name", key: "name", sort: sortState.name },
-    { header: "Email", key: "email", sort: sortState.email },
-    { header: "Phone", key: "phone_number", sort: sortState.phone_number },
+    { header: "User ID", key: "user_id", sort: sortState.user_id as keyof sortingItem },
+    { header: "Name", key: "name", sort: sortState.name as keyof sortingItem },
+    { header: "Email", key: "email", sort: sortState.email as keyof sortingItem },
+    { header: "Phone", key: "phone_number", sort: sortState.phone_number as keyof sortingItem },
     {
       header: "Status",
       key: "status",
-      render: (user) => (
+      render: (user: UserType) => (
         <div className="flex justify-between w-36">
           <span
             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
@@ -272,7 +276,7 @@ const UserInfoTab = () => {
     {
       header: "Permissions",
       key: "permissions",
-      render: (user) => (
+      render: (user: UserType) => (
         <span
           className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
           ${user.permissions === "USER" ? "bg-green-50 text-gray-500" : "bg-red-50 text-red-500"}`}
@@ -299,7 +303,7 @@ const UserInfoTab = () => {
         setLocalCheckboxes={setLocalCheckboxes}
         onResetSearch={handleResetSearch}
       />
-      <Table<UserType>
+      <Table<UserType, sortingItem>
         title="User List"
         data={data}
         sortState={sortState}
