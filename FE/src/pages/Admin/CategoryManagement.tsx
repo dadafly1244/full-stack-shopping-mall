@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { Spinner, IconButton } from "@material-tailwind/react";
 import { GET_ALL_CATEGORIES } from "#/apollo/query";
-import { useCopyToClipboard } from "usehooks-ts";
+// import { useCopyToClipboard } from "usehooks-ts";
+import { cn } from "#/utils/utils";
+
 // Types
 interface Category {
   id: string;
@@ -17,16 +19,38 @@ interface TreeNodeProps {
 
 const TreeNode: React.FC<TreeNodeProps> = ({ category, level }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [, copy] = useCopyToClipboard();
-  const [copied, setCopied] = React.useState(false);
+  // const [, copy] = useCopyToClipboard();
+  // const [copied, setCopied] = React.useState(false);
   const hasChildren = category.subcategories && category.subcategories.length > 0;
   const toggleOpen = () => {
     setIsOpen(!isOpen);
   };
 
   return (
-    <div className={`ml-${level * 4}`}>
-      <div className="flex items-center py-2">
+    <div
+      className={cn(
+        `ml-${level * 3}`,
+        level === 0 ? "border-t border-blue-gray-400" : "border-none"
+      )}
+    >
+      <div className="flex items-center py-2 ">
+        {!hasChildren && (
+          <IconButton disabled variant="text" size="sm" onClick={toggleOpen} className="mr-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#000000"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </IconButton>
+        )}
         {hasChildren && (
           <IconButton variant="text" size="sm" onClick={toggleOpen} className="mr-2">
             {isOpen ? (
@@ -61,7 +85,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({ category, level }) => {
           </IconButton>
         )}
         <span className="text-gray-800">{category.name}</span>
-        <IconButton
+        {/* <IconButton
+          className="bg-white shadow-none"
           onMouseLeave={() => setCopied(false)}
           onClick={() => {
             copy(category.id)
@@ -80,7 +105,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ category, level }) => {
               height="20"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#FFFFFF"
+              stroke="#000"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -94,7 +119,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ category, level }) => {
               height="20"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#FFFFFF"
+              stroke="#000"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -103,7 +128,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ category, level }) => {
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
           )}
-        </IconButton>
+        </IconButton> */}
       </div>
       {isOpen && hasChildren && (
         <div className="ml-4">

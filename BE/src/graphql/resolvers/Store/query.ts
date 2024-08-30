@@ -100,7 +100,7 @@ export const StoreQuery = extendType({
         }
       },
     });
-    t.field("isDuplicated", {
+    t.field("isDuplicatedBusinessNumber", {
       type: "Boolean",
       args: {
         business_registration_number: stringArg(),

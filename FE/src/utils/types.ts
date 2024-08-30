@@ -67,6 +67,12 @@ export interface CheckboxStates {
 
 export type ValueType = Gender | UserStatus | UserPermissions | string;
 
+export interface CategoryType {
+  id: number;
+  name: string;
+  subcategories?: CategoryType[];
+}
+
 export interface SelectProps {
   key?: string;
   label: string;
@@ -232,7 +238,10 @@ export interface ProductType {
   status: ProductStatus;
   main_image_path: string;
   desc_images_path?: string;
-  category_id: number;
+  category: {
+    id: number;
+    name: string;
+  };
   store_id: string;
 }
 
@@ -244,23 +253,23 @@ export interface ProductsInfoType {
 export interface ProductSearchFilters {
   name: string;
   desc: string;
-  price: number;
-  sale: number;
-  count: number;
+  price?: number;
+  sale?: number;
+  count?: number;
   is_deleted: boolean | null;
   status: ProductStatus | null;
-  category_name: string;
-  store_name: string;
+  category_id: number;
+  store_id: string;
 }
 
 export interface ProductCheckboxStates {
   name: boolean;
   desc: boolean;
-  price: boolean;
-  sale: boolean;
-  count: boolean;
+  price?: boolean;
+  sale?: boolean;
+  count?: boolean;
   is_deleted: boolean;
   status: boolean;
-  category_name: boolean;
-  store_name: boolean;
+  category_id: boolean;
+  store_id: boolean;
 }

@@ -109,7 +109,7 @@ const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void
         const field = updateForm.find((f) => f.key === typedKey);
         if (field && isDetermineInput(field)) {
           if (typedKey === "email") {
-            return !(await canUseThisEmail(value as string)) && field.isRight(value as string);
+            return !canUseThisEmail(value as string) && field.isRight(value as string);
           } else if (typedKey === "phone_number") {
             // 빈 값인 경우 검증하지 않음
             if (value === "") return true;

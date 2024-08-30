@@ -5,6 +5,7 @@ import {
   CustomProductDetermineInputProps,
   CustomProductSelectProps,
   CustomProductDetermineTextareaProps,
+  CategoryType,
 } from "#/utils/types";
 
 import { useMutation } from "@apollo/client";
@@ -20,6 +21,7 @@ import {
   validateAndFormatPrice,
 } from "#/utils/validateProduct";
 import ImageUpload from "#/common/ImageUploadFile";
+import { SelectCategoryTree } from "#/pages/Admin/SelectCategory";
 
 const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose: () => void }) => {
   const [formState, setFormState] = useState<ProductType>(product);
@@ -119,6 +121,13 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
     handleInputChange("desc_images_path", `[${imagePaths.toString()}]`);
   };
 
+  const handleSelect = (category: CategoryType) => {
+    setFormState((prevState) => ({
+      ...prevState,
+      category: { id: category.id, name: category.name },
+    }));
+  };
+
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormState((prev) => ({ ...prev, store_id: "0eeafcc8-4adb-4a8b-b274-50fe66309d80" }));
@@ -140,15 +149,17 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
       try {
         await updateFc({
           variables: {
-            id: product.id,
+            id: formState.id,
             name: formState?.name,
             desc: formState?.desc,
-            price: formState?.price,
-            sale: formState?.sale,
-            count: formState?.count,
+            status: formState?.status,
+            is_deleted: formState.is_deleted,
+            price: Number(formState?.price),
+            sale: Number(formState?.sale),
+            count: Number(formState?.count),
             main_image_path: formState?.main_image_path,
             desc_images_path: formState?.desc_images_path,
-            category_id: formState?.category_id,
+            category_id: Number(formState?.category.id),
           },
         });
         onClose();
@@ -159,10 +170,9 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
       alert("형식을 다시 확인해주세요.");
     }
   };
+
   return (
     <div className="h-[80vh]">
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
       <form onSubmit={handleUpdate}>
         <div className="grid gap-6 mb-6 md:grid-cols-1 min-w-96 max-w-full">
           {updateForm.map((item) => {
@@ -216,25 +226,21 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
             title="제품 추가 사진"
             multiple={true}
           />
-          <DetermineInput
-            key="category_id"
-            label="카테고리 아이디"
-            placeholder="모달 밖에서 복사해 오세요."
-            wrongMessage="숫자가 아닙니다."
-            isRight={(v: number | string): boolean => !isNaN(Number(v))}
-            onChange={(v) => handleInputChange("category_id", v)}
-          />
+          <SelectCategoryTree parentState={formState} onSelect={handleSelect} />
         </div>
 
         <button
           type="submit"
           className={cn(
-            `bg-blue-500 text-white border text-sm rounded-lg block min-w-20 w-full p-2.5 mb-10`
+            `bg-blue-500 text-white border text-sm rounded-lg block min-w-20 w-full p-2.5 mb-5`
           )}
         >
           수정
         </button>
       </form>
+      {loading && <p>Loading...</p>}
+      {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
+      <div className="h-10" />
     </div>
   );
 };

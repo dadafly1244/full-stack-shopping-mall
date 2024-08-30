@@ -13,11 +13,11 @@ import { SIGNOUT_USER_ADMIN } from "#/apollo/mutation";
 import { useMutation } from "@apollo/client";
 import { jwtDecode } from "jwt-decode";
 import { JwtPayload } from "#/utils/auth";
+
 const NavBar = () => {
   const [openNav, setOpenNav] = useState(false);
   const token = localStorage.getItem("token") || "";
   const refreshToken = localStorage.getItem("refresh_token") || "";
-
   const [signout, { loading, error: signoutError }] = useMutation(SIGNOUT_USER_ADMIN);
   const handleSignout = async () => {
     if (token) {

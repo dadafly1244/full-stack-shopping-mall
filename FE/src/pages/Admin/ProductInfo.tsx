@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback, SetStateAction } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Table from "#/common/Table";
-import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
-import { PRODUCT_SEARCH_ADMIN, PRODUCTS_INFO_ADMIN, PRODUCT_DETAILS_ADMIN } from "#/apollo/query";
+import { useQuery, useLazyQuery, useMutation } from "@apollo/client";
+import { PRODUCT_SEARCH_ADMIN, PRODUCTS_INFO_ADMIN } from "#/apollo/query";
+import { UPDATE_PRODUCT_STATUS_ADMIN } from "#/apollo/mutation";
 import {
   ProductType,
   ProductStatus,
@@ -27,40 +28,39 @@ const PAGE_SIZE = 20;
 const init_product = {
   name: "",
   desc: "",
-  price: 0,
-  sale: 0,
-  count: 0,
+  // price: 0,
+  // sale: 0,
+  // count: 0,
   is_deleted: false,
   status: "OUT_OF_STOCK",
   main_image_path: "",
   desc_images_path: "",
   category_name: "",
   store_name: "",
-  // store_id: "0eeafcc8-4adb-4a8b-b274-50fe66309d80",
 };
 
 const initialFilters: ProductSearchFilters = {
   name: "",
   desc: "",
-  price: 0,
-  sale: 0,
-  count: 0,
+  // price: 0,
+  // sale: 0,
+  // count: 0,
   is_deleted: null,
   status: "OUT_OF_STOCK" as ProductStatus,
-  category_name: "",
-  store_name: "",
+  category_id: 0,
+  store_id: "",
 };
 
 const initialCheckboxes: ProductCheckboxStates = {
   name: false,
   desc: false,
-  price: false,
-  sale: false,
-  count: false,
+  // price: false,
+  // sale: false,
+  // count: false,
   is_deleted: false,
   status: false,
-  category_name: false,
-  store_name: false,
+  category_id: false,
+  store_id: false,
 };
 
 const ProductInfoTab = () => {
@@ -68,24 +68,24 @@ const ProductInfoTab = () => {
   const [localFilters, setLocalFilters] = useState<ProductSearchFilters>({
     name: searchParams.get("filter_name") || "",
     desc: searchParams.get("filter_desc") || "",
-    price: Number(searchParams.get("filter_price")) || 0,
-    sale: Number(searchParams.get("filter_sale")) || 0,
-    count: Number(searchParams.get("filter_count")) || 0,
+    // price: Number(searchParams.get("filter_price")) || 0,
+    // sale: Number(searchParams.get("filter_sale")) || 0,
+    // count: Number(searchParams.get("filter_count")) || 0,
     is_deleted: Boolean(searchParams.get("filter_is_deleted")) || null,
     status: (searchParams.get("filter_status") as ProductStatus) || "AVAILABLE",
-    category_name: searchParams.get("filter_category_name") || "",
-    store_name: searchParams.get("filter_store_name") || "",
+    category_id: Number(searchParams.get("filter_category_name")) || 0,
+    store_id: searchParams.get("filter_store_name") || "",
   });
   const [localCheckboxes, setLocalCheckboxes] = useState<ProductCheckboxStates>({
     name: searchParams.get("check_name") === "true",
     desc: searchParams.get("check_desc") === "true",
-    price: searchParams.get("check_price") === "true",
-    sale: searchParams.get("check_sale") === "true",
-    count: searchParams.get("check_count") === "true",
+    // price: searchParams.get("check_price") === "true",
+    // sale: searchParams.get("check_sale") === "true",
+    // count: searchParams.get("check_count") === "true",
     is_deleted: searchParams.get("check_is_deleted") === "true",
     status: searchParams.get("check_status") === "true",
-    category_name: searchParams.get("check_category_name") === "true",
-    store_name: searchParams.get("check_store_name") === "true",
+    category_id: searchParams.get("check_category_name") === "true",
+    store_id: searchParams.get("check_store_name") === "true",
   });
 
   const [shouldSearch, setShouldSearch] = useState(searchParams.get("searchOpen") === "true");
@@ -110,9 +110,6 @@ const ProductInfoTab = () => {
     count: "none",
     status: "none",
   });
-  const [productStatusState, setProductStatusState] = useState<ProductStatus>(
-    ProductStatus.OUT_OF_STOCK
-  );
 
   const {
     data: allData,
@@ -136,6 +133,18 @@ const ProductInfoTab = () => {
     }
   );
 
+  const [updateState, { loading: updateStateLoading, error: updateStateError }] = useMutation(
+    UPDATE_PRODUCT_STATUS_ADMIN,
+    {
+      variables: {
+        page: pageStatus,
+        pageSize: PAGE_SIZE,
+      },
+    }
+  );
+
+  // const [getCategory] = useMutation(GET_CATEGORY);
+
   const performSearch = useCallback(async () => {
     const filterVariables = Object.fromEntries(
       Object.entries(localFilters).filter(
@@ -146,6 +155,7 @@ const ProductInfoTab = () => {
       variables: filterVariables,
     });
     if (productsData?.searchProducts) {
+      console.log(productsData);
       setData(productsData.searchProducts);
     }
   }, [filteredProducts, localFilters, localCheckboxes]);
@@ -211,7 +221,7 @@ const ProductInfoTab = () => {
     });
   };
 
-  const handleSearchUser = () => {
+  const handleSearchProducts = () => {
     const newSearchParams = new URLSearchParams();
     Object.entries(localFilters).forEach(([key, value]) => {
       if (value) {
@@ -259,6 +269,26 @@ const ProductInfoTab = () => {
     }
   };
 
+  // const getCategoryName = async (product: ProductType) =>
+  //   await getCategory({
+  //     variables: {
+  //       id: product.category.id,
+  //     },
+  //   });
+
+  const handleUpdateState = async (v: ProductStatus, id: string) => {
+    try {
+      await updateState({
+        variables: {
+          id: id,
+          status: v as ProductStatus,
+        },
+        onCompleted: () => refetch(),
+      });
+    } catch (error) {
+      throw new Error(`제품의 상태를 업데이트하는데 실패했습니다.${error}`);
+    }
+  };
   const columns: TableColumn<ProductType, ProductSortingItem>[] = [
     { header: "ID", key: "id" },
     { header: "Name", key: "name", sort: sortState.name as keyof ProductSortingItem },
@@ -269,15 +299,13 @@ const ProductInfoTab = () => {
     {
       header: "상태",
       key: "status",
-      render: () => (
+      render: (product) => (
         <div onClick={(e) => e.stopPropagation()}>
           <Select
             variant="outlined"
             label="상태"
-            onChange={(v) => {
-              setProductStatusState(v as ProductStatus);
-            }}
-            value={productStatusState}
+            onChange={(v) => handleUpdateState(v as ProductStatus, product.id)}
+            value={product.status}
           >
             <Option value={ProductStatus.AVAILABLE}>판매가능</Option>
             <Option value={ProductStatus.TEMPORARILY_OUT_OF_STOCK}>일시품절</Option>
@@ -290,12 +318,23 @@ const ProductInfoTab = () => {
       sort: sortState.status as keyof ProductSortingItem,
     },
     { header: "삭제된제품", key: "is_deleted" },
-    { header: "카테고리", key: "category_id" },
-    { header: "상점", key: "store_id" },
+    {
+      header: "카테고리",
+      key: "category",
+      // onChange={}
+      render: (product) => <span>{product.category.id}</span>,
+      // render: async (product) => {
+      //   const categoryName = await getCategoryName(product);
+      //   if (!categoryName) return <span>{product.category.id}</span>;
+      //   return <span>{categoryName}</span>;
+      // },
+    },
+    { header: "판매처", key: "store_id" },
   ];
 
-  if (loading || filteredLoading) return <p>Loading...</p>;
-  if (error || filteredError) return <p>Error: {error?.message || filteredError?.message}</p>;
+  if (loading || filteredLoading || updateStateLoading) return <p>Loading...</p>;
+  if (error || filteredError || updateStateError)
+    return <p>Error: {error?.message || filteredError?.message}</p>;
 
   return (
     <div>
@@ -308,7 +347,7 @@ const ProductInfoTab = () => {
       <ProductSearchComponent
         filters={localFilters}
         checkboxes={localCheckboxes}
-        onClickSearch={handleSearchUser}
+        onClickSearch={handleSearchProducts}
         setLocalFilters={setLocalFilters}
         onCloseSearch={handleCloseSearch}
         setLocalCheckboxes={setLocalCheckboxes}
@@ -323,11 +362,13 @@ const ProductInfoTab = () => {
         onRowClick={handleRowClick}
         onSelectionChange={handleSelectionChange}
       />
-      <CircularPagination
-        currentPage={pageStatus}
-        totalPages={data?.pageInfo?.totalPages || 1}
-        onPageChange={(p) => setPageStatus(p)}
-      />
+      <div className="w-full flex justify-center content-center">
+        <CircularPagination
+          currentPage={pageStatus}
+          totalPages={data?.pageInfo?.totalPages || 1}
+          onPageChange={(p) => setPageStatus(p)}
+        />
+      </div>
     </div>
   );
 };

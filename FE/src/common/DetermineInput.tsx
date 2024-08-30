@@ -188,7 +188,7 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
                   ? "red"
                   : "blue-gray"
               }
-              className="rounded w-32 ml-10 min-w-20"
+              className="rounded w-32 ml-2 min-w-20"
             >
               {buttonText}
             </Button>

@@ -140,9 +140,10 @@ type Query {
   filteredUsers(email: String, gender: Gender, name: String, permissions: UserPermissions, phone_number: String, status: UserStatus, user_id: String): [User]!
   getAllProducts(page: Int! = 1, pageSize: Int! = 10): PaginatedProductsResult!
   getProduct(id: String!): Product
-  isDuplicated(business_registration_number: String): Boolean
+  isDuplicated(email: String, user_id: String): UserBoolean
+  isDuplicatedBusinessNumber(business_registration_number: String): Boolean
   searchCategories(includeHierarchy: Boolean, nameContains: String!): [Category!]!
-  searchProducts(category_id: Int, desc: String, id: String, name: String, page: Int! = 1, pageSize: Int! = 10, store_id: String): PaginatedProductsResult!
+  searchProducts(category_id: Int, desc: String, id: String, is_deleted: Boolean, name: String, page: Int! = 1, pageSize: Int! = 10, status: ProductStatus, store_id: String): PaginatedProductsResult!
   searchStores(searchTerm: String!): [Store]
   store(id: String!): Store
   stores: [Store]

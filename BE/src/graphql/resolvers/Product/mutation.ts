@@ -156,6 +156,7 @@ export const ProductMutation = extendType({
       },
       resolve: async (_, args, context) => {
         try {
+          console.log({ id: args.id });
           const existProduct = await context.prisma.product.findUnique({
             where: { id: args.id },
           });
@@ -267,8 +268,20 @@ export const ProductMutation = extendType({
             });
           }
 
-          // 이름이 변경되었고, 같은 상점 내에 동일한 이름의 제품이 있는지 확인
+          const existCategoryId = await context.prisma.category.findUnique({
+            where: { id: updateData.category_id },
+          });
+
+          if (updateData.category_id && !existCategoryId) {
+            throw new GraphQLError("카테고리를 찾을 수 없습니다.", {
+              extensions: {
+                code: ApolloServerErrorCode.BAD_USER_INPUT,
+                invalidArgs: ["name"],
+              },
+            });
+          }
           if (updateData.name && updateData.name !== existingProduct.name) {
+            // 이름이 변경되었고, 같은 상점 내에 동일한 이름의 제품이 있는지 확인
             const existingNameProduct = await context.prisma.product.findFirst({
               where: {
                 name: updateData.name,
@@ -295,7 +308,9 @@ export const ProductMutation = extendType({
             where: { id },
             data: {
               ...updateData,
-              category_id: Number(updateData.category_id),
+              category_id: updateData.category_id
+                ? Number(updateData.category_id)
+                : Number(existProduct.category_id),
             },
           });
 

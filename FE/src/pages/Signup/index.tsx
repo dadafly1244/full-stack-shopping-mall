@@ -144,14 +144,31 @@ const SignupPage = () => {
       /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(confirmPassword.trim())
     );
   };
-  const canUseThisId = async (id: string) => {
-    const result = await checkIdFc({ variables: { id: id } });
-    return !!result.data?.isDuplicated.duplicated;
-  };
 
+  const canUseThisId = async (id: string) => {
+    try {
+      const result = await checkIdFc({ variables: { user_id: id } });
+      return !result.data?.isDuplicated.duplicated;
+    } catch (error) {
+      throw new Error(`에러발생 ${error}`);
+    }
+  };
   const canUseThisEmail = async (email: string) => {
-    const result = await checkEmailFc({ variables: { email: email } });
-    return !!result.data?.isDuplicated.duplicated;
+    try {
+      const result = await checkEmailFc({ variables: { email } });
+      if (result.error) {
+        console.error("GraphQL error:", result.error);
+        throw new Error(`GraphQL error: ${result.error.message}`);
+      }
+      if (!result.data) {
+        console.error("No data returned:", result);
+        throw new Error("No data returned from server");
+      }
+      return !result.data.isDuplicated.duplicated;
+    } catch (error) {
+      console.error("Error checking email:", error);
+      throw error;
+    }
   };
 
   useEffect(() => {
@@ -201,9 +218,9 @@ const SignupPage = () => {
           if (typedKey === "confirmPassword") {
             return isPasswordMatch(value as string);
           } else if (typedKey === "user_id") {
-            return !(await canUseThisId(value as string)) && field.isRight(value as string);
+            return (await canUseThisId(value as string)) && field.isRight(value as string);
           } else if (typedKey === "email") {
-            return !(await canUseThisEmail(value as string)) && field.isRight(value as string);
+            return (await canUseThisEmail(value as string)) && field.isRight(value as string);
           } else if (typedKey === "phone_number") {
             // 빈 값인 경우 검증하지 않음
             if (value === "") return true;
@@ -292,7 +309,7 @@ const SignupPage = () => {
                 `bg-blue-500 text-white border text-sm rounded-lg block min-w-48 p-2.5 w-full `
               )}
             >
-              Submit
+              회원가입
             </Button>
           </form>
         </CardBody>

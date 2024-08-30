@@ -1,6 +1,6 @@
 import { Checkbox } from "#/common/CheckBox";
 import { Select } from "#/common/CommonSelectBox";
-import { ProductSearchFilters, ProductCheckboxStates } from "#/utils/types";
+import { ProductSearchFilters, ProductCheckboxStates, ProductStatus } from "#/utils/types";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
@@ -82,14 +82,17 @@ export const ProductSearchComponent: React.FC<UserSearchComponentProps> = ({
                       options={[
                         ...(key === "status"
                           ? [
-                              "AVAILABLE",
-                              "TEMPORARILY_OUT_OF_STOCK",
-                              "OUT_OF_STOCK",
-                              "DISCONTINUED",
-                              "PROHIBITION_ON_SALE",
+                              ProductStatus.AVAILABLE,
+                              ProductStatus.TEMPORARILY_OUT_OF_STOCK,
+                              ProductStatus.OUT_OF_STOCK,
+                              ProductStatus.DISCONTINUED,
+                              ProductStatus.PROHIBITION_ON_SALE,
                             ]
                           : ["false", "true"]
-                        ).map((option) => ({ value: option, label: option })),
+                        ).map((option) => ({
+                          value: option,
+                          label: option,
+                        })),
                       ]}
                     />
                   ) : (
@@ -110,7 +113,7 @@ export const ProductSearchComponent: React.FC<UserSearchComponentProps> = ({
             onClick={onClickSearch}
             className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
           >
-            Search
+            검색
           </button>
         </>
       )}

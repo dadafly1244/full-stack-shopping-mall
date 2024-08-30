@@ -1,4 +1,13 @@
-import { extendType, idArg, stringArg, intArg, nonNull } from "nexus";
+import {
+  extendType,
+  idArg,
+  stringArg,
+  intArg,
+  nonNull,
+  nullable,
+  arg,
+  booleanArg,
+} from "nexus";
 import { GraphQLError } from "graphql";
 import { ApolloServerErrorCode } from "@apollo/server/errors";
 
@@ -12,6 +21,8 @@ export const ProductQuery = extendType({
         id: stringArg(),
         name: stringArg(),
         desc: stringArg(),
+        status: nullable(arg({ type: "ProductStatus" })),
+        is_deleted: nullable(booleanArg()),
         category_id: intArg(),
         store_id: stringArg(),
         page: nonNull(intArg({ default: 1 })),
@@ -24,6 +35,8 @@ export const ProductQuery = extendType({
               { id: args.id },
               { name: { contains: args.name } },
               { desc: { contains: args.desc } },
+              { status: args.status },
+              { is_deleted: args.is_deleted },
               { category_id: args.category_id },
               { store_id: args.store_id },
             ],

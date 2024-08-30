@@ -4,9 +4,8 @@ import { gql } from "@apollo/client";
 //   "asc",
 //   "desc",
 // }
-
 export const CHECK_ID = gql`
-  query isDuplicated($user_id: String!) {
+  query CheckIdDuplication($user_id: String) {
     isDuplicated(user_id: $user_id) {
       duplicated
     }
@@ -14,7 +13,7 @@ export const CHECK_ID = gql`
 `;
 
 export const CHECK_EMAIL = gql`
-  query isDuplicated($email: String!) {
+  query CheckEmailDuplication($email: String) {
     isDuplicated(email: $email) {
       duplicated
     }
@@ -76,6 +75,8 @@ export const PRODUCT_SEARCH_ADMIN = gql`
     $id: String
     $name: String
     $desc: String
+    $status: ProductStatus
+    $is_deleted: Boolean
     $category_id: Int
     $store_id: String
     $page: Int!
@@ -87,6 +88,8 @@ export const PRODUCT_SEARCH_ADMIN = gql`
       desc: $desc
       category_id: $category_id
       store_id: $store_id
+      status: $status
+      is_deleted: $is_deleted
       page: $page
       pageSize: $pageSize
     ) {
@@ -133,6 +136,7 @@ export const PRODUCTS_INFO_ADMIN = gql`
         status
         main_image_path
         desc_images_path
+        store_id
         created_at
         updated_at
         store {
@@ -168,6 +172,7 @@ export const PRODUCT_DETAILS_ADMIN = gql`
       desc_images_path
       created_at
       updated_at
+      store_id
       store {
         id
         name

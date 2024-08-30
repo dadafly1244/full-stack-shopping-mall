@@ -72,7 +72,7 @@ export const UserBooleanQuery = extendType({
         const conditions = [];
         if (args.user_id) conditions.push({ user_id: args.user_id });
         if (args.email) conditions.push({ email: args.email });
-
+        console.log(conditions);
         const user = await context.prisma.user.findFirst({
           where: {
             OR: conditions,
@@ -80,7 +80,7 @@ export const UserBooleanQuery = extendType({
         });
         if (!user) return { duplicated: false };
 
-        return { duplicated: !!user };
+        return { duplicated: true };
       },
     });
   },
