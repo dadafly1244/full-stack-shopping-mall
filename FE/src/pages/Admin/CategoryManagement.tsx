@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { useQuery } from "@apollo/client";
-import { Spinner, IconButton } from "@material-tailwind/react";
+import { useMutation, useQuery } from "@apollo/client";
+import { Spinner, IconButton, Input, Button } from "@material-tailwind/react";
 import { GET_ALL_CATEGORIES } from "#/apollo/query";
-// import { useCopyToClipboard } from "usehooks-ts";
 import { cn } from "#/utils/utils";
+import { CREATE_CATEGORY, DELETE_CATEGORY } from "#/apollo/mutation";
 
 // Types
 interface Category {
@@ -19,12 +19,59 @@ interface TreeNodeProps {
 
 const TreeNode: React.FC<TreeNodeProps> = ({ category, level }) => {
   const [isOpen, setIsOpen] = useState(false);
-  // const [, copy] = useCopyToClipboard();
-  // const [copied, setCopied] = React.useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newName, setNewName] = useState("");
   const hasChildren = category.subcategories && category.subcategories.length > 0;
   const toggleOpen = () => {
     setIsOpen(!isOpen);
   };
+  const [deleteFc, { error: deleteError, loading }] = useMutation(DELETE_CATEGORY, {
+    refetchQueries: [{ query: GET_ALL_CATEGORIES, variables: { includeHierarchy: true } }],
+    awaitRefetchQueries: true,
+  });
+
+  const [createFc, { error: createError, loading: createLoading }] = useMutation(CREATE_CATEGORY, {
+    refetchQueries: [{ query: GET_ALL_CATEGORIES, variables: { includeHierarchy: true } }],
+    awaitRefetchQueries: true,
+  });
+
+  const handleDelete = (id: number) => {
+    try {
+      deleteFc({
+        variables: {
+          categoryId: id,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleCreateCategory = async (parentId: number) => {
+    try {
+      await createFc({
+        variables: {
+          name: newName,
+          parentId,
+        },
+      });
+      setIsCreateOpen(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewName(e.target.value);
+  };
+
+  if (loading || createLoading) return <Spinner className="h-12 w-12" />;
+  if (deleteError || createError)
+    return (
+      <p className="text-red-500">
+        Error: {deleteError?.message ? deleteError.message : createError?.message}
+      </p>
+    );
 
   return (
     <div
@@ -85,50 +132,96 @@ const TreeNode: React.FC<TreeNodeProps> = ({ category, level }) => {
           </IconButton>
         )}
         <span className="text-gray-800">{category.name}</span>
-        {/* <IconButton
-          className="bg-white shadow-none"
-          onMouseLeave={() => setCopied(false)}
-          onClick={() => {
-            copy(category.id)
-              .then(() => {
-                console.log("Copied!", { text: category.id });
-              })
-              .catch((error) => {
-                console.error("Failed to copy!", error);
-              });
-          }}
-        >
-          {copied ? (
+        {!hasChildren && (
+          <IconButton
+            color="white"
+            className="shadow-none hover:shadow-none"
+            onClick={() => handleDelete(Number(category.id))}
+          >
             <svg
+              className="w-6 h-6 text-gray-800 dark:text-white hover:shadow-sm"
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
+              width="16"
+              height="16"
               fill="none"
-              stroke="#000"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              viewBox="0 0 24 24"
             >
-              <polyline points="20 6 9 17 4 12"></polyline>
+              <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18 17.94 6M18 18 6.06 6"
+              />
             </svg>
-          ) : (
+          </IconButton>
+        )}
+        {isCreateOpen && (
+          <div className="flex justify-start content-center">
+            <Input
+              onChange={handleChange}
+              placeholder="새로운 카테고리 이름을 입력해 주세요"
+              crossOrigin={undefined}
+            />
+            <Button
+              size="sm"
+              className="break-keep"
+              onClick={() => handleCreateCategory(Number(category.id))}
+            >
+              생성
+            </Button>
+          </div>
+        )}
+        {!isCreateOpen ? (
+          <IconButton
+            color="white"
+            className="shadow-none hover:shadow-none"
+            onClick={() => setIsCreateOpen(true)}
+          >
             <svg
+              className="w-6 h-6 text-gray-800 dark:text-white"
+              aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
+              width="16"
+              height="16"
               fill="none"
-              stroke="#000"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              viewBox="0 0 24 24"
             >
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 12h14m-7 7V5"
+              />
             </svg>
-          )}
-        </IconButton> */}
+          </IconButton>
+        ) : (
+          <IconButton
+            color="white"
+            className="shadow-none hover:shadow-none"
+            onClick={() => setIsCreateOpen(false)}
+          >
+            <svg
+              className="w-6 h-6 text-gray-800 dark:text-white"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 12h14"
+              />
+            </svg>
+          </IconButton>
+        )}
       </div>
       {isOpen && hasChildren && (
         <div className="ml-4">
@@ -149,6 +242,20 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({ categories }) => {
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Category Tree</h2>
+      {/* <div className="flex justify-start content-center">
+        <Input
+          onChange={handleChange}
+          placeholder="새로운 카테고리 이름을 입력해 주세요"
+          crossOrigin={undefined}
+        />
+        <Button
+          size="sm"
+          className="break-keep"
+          onClick={() => handleCreateCategory(Number(category.id))}
+        >
+          생성
+        </Button>
+      </div> */}
       {categories.map((category) => (
         <TreeNode key={category.id} category={category} level={0} />
       ))}
