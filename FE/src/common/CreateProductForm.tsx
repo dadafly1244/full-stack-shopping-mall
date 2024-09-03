@@ -15,8 +15,7 @@ import { cn } from "#/utils/utils";
 import DetermineInput from "#/common/DetermineInput";
 import DetermineTextarea from "#/common/DetermineTextarea";
 import SelectBox from "#/common/SelectBox";
-// import { formatNumber } from "#/utils/formatter";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   validateProductName,
   validateProductDesc,
@@ -24,7 +23,7 @@ import {
 } from "#/utils/validateProduct";
 import ImageUpload from "#/common/ImageUploadFile";
 import { SelectCategoryTree } from "#/pages/Admin/SelectCategory";
-import { PRODUCTS_INFO_ADMIN } from "#/apollo/query";
+
 const init_product = {
   name: "",
   desc: "",
@@ -43,13 +42,7 @@ const init_product = {
 };
 const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
   const [formState, setFormState] = useState<CreateProductStateType>(init_product);
-  const [createFc, { data: createProductData, loading, error }] = useMutation(
-    CREATE_PRODUCT_ADMIN,
-    {
-      refetchQueries: [{ query: PRODUCTS_INFO_ADMIN }],
-      awaitRefetchQueries: true,
-    }
-  );
+  const [createFc, { loading, error }] = useMutation(CREATE_PRODUCT_ADMIN);
 
   const updateForm: UpdateProductFormItem[] = [
     {
@@ -127,12 +120,6 @@ const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
     },
   ];
 
-  useEffect(() => {
-    if (createProductData) {
-      console.log(createProductData);
-    }
-  }, [createProductData]);
-
   const isDetermineInput = (
     item: UpdateProductFormItem
   ): item is CustomProductDetermineInputProps => {
@@ -147,10 +134,6 @@ const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
       [key]: value,
     }));
   };
-
-  useEffect(() => {
-    console.log(formState.status);
-  }, [formState]);
 
   const handleMainImageSelect = (imagePaths: string[]) => {
     console.log("Selected image paths:", imagePaths);

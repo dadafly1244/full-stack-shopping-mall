@@ -1,4 +1,4 @@
-import React, { useState, useCallback, ReactNode } from "react";
+import React, { useState, useCallback, ReactNode, useEffect } from "react";
 import { TableColumn, TableProps } from "#/utils/types";
 
 function Table<T extends { id?: string }, S = T>({
@@ -11,6 +11,10 @@ function Table<T extends { id?: string }, S = T>({
   onSelectionChange,
 }: TableProps<T, S>) {
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
+
+  useEffect(() => {
+    setSelectedItems([]);
+  }, [data]);
 
   const handleSelectAll = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import Table from "#/common/Table";
 import { useQuery, useLazyQuery, useMutation } from "@apollo/client";
 import { PRODUCT_SEARCH_ADMIN, PRODUCTS_INFO_ADMIN } from "#/apollo/query";
-import { UPDATE_PRODUCT_STATUS_ADMIN } from "#/apollo/mutation";
+import { DELETE_PRODUCT_ADMIN, UPDATE_PRODUCT_STATUS_ADMIN } from "#/apollo/mutation";
 import {
   ProductType,
   ProductStatus,
@@ -23,8 +23,9 @@ import { Select, Option, Button } from "@material-tailwind/react";
 import CircularPagination from "#/common/Pagenation";
 import { CategoryTree } from "./CategoryManagement";
 import CreateProductForm from "#/common/CreateProductForm";
+import ConfirmationDialog from "#/common/ConfirmationDialog";
 
-const PAGE_SIZE = 20;
+export const PAGE_SIZE = 10;
 
 const init_product = {
   name: "",
@@ -74,13 +75,12 @@ const ProductInfoTab = () => {
     store_id: searchParams.get("check_store_name") === "true",
   });
 
-  const [shouldSearch, setShouldSearch] = useState(searchParams.get("searchOpen") === "true");
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [pageStatus, setPageStatus] = useState(1);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [clickedProduct, setClickedProduct] = useState(init_product);
+  const [willDelete, setWillDelete] = useState<ProductType[]>([]);
   const [data, setData] = useState<ProductsInfoType>({
     products: [],
     pageInfo: {
@@ -130,6 +130,8 @@ const ProductInfoTab = () => {
     }
   );
 
+  const [deleteFc] = useMutation(DELETE_PRODUCT_ADMIN);
+
   const performSearch = useCallback(async () => {
     const filterVariables = Object.fromEntries(
       Object.entries(localFilters).filter(
@@ -145,30 +147,23 @@ const ProductInfoTab = () => {
   }, [filteredProducts, localFilters, localCheckboxes]);
 
   useEffect(() => {
-    console.log("동작1");
-    console.log("동작1-1");
-    if (isInitialLoad) {
-      console.log("동작2");
-      if (searchParams.get("searchOpen") === "true") {
-        performSearch();
-      } else if (allData?.getAllProducts) {
-        setData(allData.getAllProducts);
-      }
-      setIsInitialLoad(false);
-    } else if (shouldSearch) {
-      console.log("동작3");
-      performSearch();
-      console.log("동작4");
-      setShouldSearch(false);
-    }
-  }, [isInitialLoad, shouldSearch, searchParams, allData, performSearch]);
+    const hasCheckParams = Array.from(searchParams.keys()).some((key) => key.startsWith("check_"));
 
+    if (hasCheckParams) {
+      performSearch();
+    } else {
+      if (allData?.productsData) {
+        setData(allData.productsData);
+      }
+    }
+  }, [searchParams, allData, performSearch]);
   const openCreateModal = () => {
     setIsCreateModalOpen(true);
   };
 
   const closeCreateModal = () => {
     setIsCreateModalOpen(false);
+    refetch();
   };
 
   const openModal = (product: ProductType) => {
@@ -188,8 +183,10 @@ const ProductInfoTab = () => {
     openModal(product);
   };
 
-  const handleSelectionChange = (selectedUsers: ProductType[]) => {
-    console.log("Selected users:", selectedUsers);
+  const handleSelectionChange = (selectedProducts: ProductType[]) => {
+    console.log("Selected Products:", selectedProducts);
+
+    setWillDelete(selectedProducts);
   };
 
   const handleSortClick = (key: keyof ProductSortingItem) => {
@@ -227,8 +224,6 @@ const ProductInfoTab = () => {
     });
     newSearchParams.set("searchOpen", "true");
     setSearchParams(newSearchParams);
-    setShouldSearch(true);
-    console.log(data);
   };
 
   useEffect(() => {
@@ -238,16 +233,8 @@ const ProductInfoTab = () => {
   }, [allData?.getAllProducts]);
 
   const handleCloseSearch = async () => {
-    setSearchParams(new URLSearchParams());
-    setLocalFilters(initialFilters);
-    setLocalCheckboxes(initialCheckboxes);
-    if (allData?.getAllProducts) {
-      setData(allData.getAllProducts);
-    }
-    if (!allData.getAllProducts) {
-      await refetch();
-      setData(allData?.getAllProducts);
-    }
+    searchParams.set("searchOpen", "false");
+    setSearchParams(searchParams);
   };
 
   const handleResetSearch = () => {
@@ -256,9 +243,7 @@ const ProductInfoTab = () => {
     setSearchParams(newSearchParams);
     setLocalFilters(initialFilters);
     setLocalCheckboxes(initialCheckboxes);
-    if (allData?.getAllProducts) {
-      setData(allData.getAllProducts);
-    }
+    setData(allData.getAllProducts);
   };
 
   const handleUpdateState = async (v: ProductStatus, id: string) => {
@@ -268,12 +253,42 @@ const ProductInfoTab = () => {
           id: id,
           status: v as ProductStatus,
         },
-        onCompleted: () => refetch(),
+        onCompleted: async () => {
+          await refetch();
+        },
       });
     } catch (error) {
       throw new Error(`제품의 상태를 업데이트하는데 실패했습니다.${error}`);
     }
   };
+
+  const handleDeleteProducts = async (productArr: ProductType[]) => {
+    try {
+      setIsDeleteModalOpen((prev) => !prev);
+      productArr.forEach(async (p) => {
+        await deleteFc({
+          variables: {
+            id: p.id,
+          },
+          onCompleted: async () => {
+            await refetch();
+          },
+        });
+      });
+      setWillDelete([]);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const openDeleteModal = () => {
+    if (willDelete.length === 0) {
+      setIsDeleteModalOpen(false);
+    } else {
+      setIsDeleteModalOpen(true);
+    }
+  };
+
   const columns: TableColumn<ProductType, ProductSortingItem>[] = [
     { header: "ID", key: "id" },
     { header: "Name", key: "name", sort: sortState.name as keyof ProductSortingItem },
@@ -306,7 +321,7 @@ const ProductInfoTab = () => {
     {
       header: "category",
       key: "category",
-      render: (product) => <span>{product.category.name}</span>,
+      render: (product) => <span>{product.category?.name}</span>,
     },
     { header: "판매처", key: "store_id" },
   ];
@@ -323,9 +338,12 @@ const ProductInfoTab = () => {
         onClose={closeModal}
         product={clickedProduct as unknown as ProductType}
       />
-      <Button variant="outlined" onClick={openCreateModal}>
-        제품생성
-      </Button>
+      <ConfirmationDialog
+        isOpen={isDeleteModalOpen}
+        message="선택한 모든 제품을 삭제하시겠습니까??"
+        onConfirm={() => handleDeleteProducts(willDelete)}
+        onCancel={() => setIsDeleteModalOpen(false)}
+      />
       <CategoryTree />
       <ProductSearchComponent
         filters={localFilters}
@@ -336,9 +354,17 @@ const ProductInfoTab = () => {
         setLocalCheckboxes={setLocalCheckboxes}
         onResetSearch={handleResetSearch}
       />
+      <div className="w-full flex justify-end pt-10 -mb-8">
+        <Button variant="outlined" onClick={openCreateModal} className="mr-2">
+          제품생성
+        </Button>
+        <Button variant="outlined" onClick={openDeleteModal} disabled={willDelete.length === 0}>
+          제품삭제
+        </Button>
+      </div>
       <Table<ProductType, ProductSortingItem>
         title="Product List"
-        data={data?.products}
+        data={data.products}
         sortState={sortState}
         columns={columns}
         onSortClick={handleSortClick}

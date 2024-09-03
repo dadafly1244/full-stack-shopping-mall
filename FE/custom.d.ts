@@ -26,4 +26,8 @@ declare module "@material-tailwind/react" {
   interface OptionProps extends MaterialTailwindComponent {}
   interface TextareaProps extends MaterialTailwindComponent {}
   interface SpinnerProps extends MaterialTailwindComponent {}
+  interface DialogProps extends MaterialTailwindComponent {}
+  interface DialogHeaderProps extends MaterialTailwindComponent {}
+  interface DialogBodyProps extends MaterialTailwindComponent {}
+  interface DialogFooterProps extends MaterialTailwindComponent {}
 }
