@@ -123,6 +123,12 @@ export interface CustomProductDetermineInputProps extends Omit<DetermineInputPro
   type: "determineInput";
   formatter?: (a: string) => string;
 }
+export interface CustomProductDetermineInput2Props extends Omit<DetermineInputProps, "isRight"> {
+  isRight: (value: string) => boolean;
+  key: keyof CreateProductStateType;
+  type: "determineInput";
+  formatter?: (a: string) => string;
+}
 
 export interface CustomSelectProps extends SelectProps {
   key: keyof SignupType;
@@ -272,4 +278,21 @@ export interface ProductCheckboxStates {
   status: boolean;
   category_id: boolean;
   store_id: boolean;
+}
+
+export interface CreateProductStateType {
+  name: string;
+  desc?: string;
+  price: number;
+  sale?: number;
+  count?: number;
+  is_deleted: boolean;
+  status: ProductStatus;
+  main_image_path: string;
+  desc_images_path?: string;
+  category: {
+    id: number;
+    name: string;
+  };
+  store_id: string;
 }

@@ -3,7 +3,7 @@ import { useQuery } from "@apollo/client";
 import { Spinner, IconButton } from "@material-tailwind/react";
 import { GET_ALL_CATEGORIES } from "#/apollo/query";
 import { cn } from "#/utils/utils";
-import { ProductType, CategoryType } from "#/utils/types";
+import { ProductType, CategoryType, CreateProductStateType } from "#/utils/types";
 
 // Types
 
@@ -140,7 +140,7 @@ const SelectCategoryTree: React.FC<CategoryTreeProps> = ({
 };
 
 interface CategoryTreeContainerProps {
-  parentState: ProductType;
+  parentState: ProductType | CreateProductStateType;
   onSelect: (category: CategoryType) => void;
 }
 

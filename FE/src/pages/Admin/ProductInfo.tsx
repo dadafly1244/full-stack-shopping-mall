@@ -18,19 +18,17 @@ import Modal from "#/common/Modal";
 import UpdateProductForm from "#/common/UpdateProductForm";
 import { sortObjectsByKey } from "#/utils/sort";
 import { useSearchParams } from "react-router-dom";
-import { Select, Option } from "@material-tailwind/react";
+import { Select, Option, Button } from "@material-tailwind/react";
 
 import CircularPagination from "#/common/Pagenation";
 import { CategoryTree } from "./CategoryManagement";
+import CreateProductForm from "#/common/CreateProductForm";
 
 const PAGE_SIZE = 20;
 
 const init_product = {
   name: "",
   desc: "",
-  // price: 0,
-  // sale: 0,
-  // count: 0,
   is_deleted: false,
   status: "OUT_OF_STOCK",
   main_image_path: "",
@@ -42,9 +40,6 @@ const init_product = {
 const initialFilters: ProductSearchFilters = {
   name: "",
   desc: "",
-  // price: 0,
-  // sale: 0,
-  // count: 0,
   is_deleted: null,
   status: "OUT_OF_STOCK" as ProductStatus,
   category_id: 0,
@@ -54,9 +49,6 @@ const initialFilters: ProductSearchFilters = {
 const initialCheckboxes: ProductCheckboxStates = {
   name: false,
   desc: false,
-  // price: false,
-  // sale: false,
-  // count: false,
   is_deleted: false,
   status: false,
   category_id: false,
@@ -68,9 +60,6 @@ const ProductInfoTab = () => {
   const [localFilters, setLocalFilters] = useState<ProductSearchFilters>({
     name: searchParams.get("filter_name") || "",
     desc: searchParams.get("filter_desc") || "",
-    // price: Number(searchParams.get("filter_price")) || 0,
-    // sale: Number(searchParams.get("filter_sale")) || 0,
-    // count: Number(searchParams.get("filter_count")) || 0,
     is_deleted: Boolean(searchParams.get("filter_is_deleted")) || null,
     status: (searchParams.get("filter_status") as ProductStatus) || "AVAILABLE",
     category_id: Number(searchParams.get("filter_category_name")) || 0,
@@ -79,9 +68,6 @@ const ProductInfoTab = () => {
   const [localCheckboxes, setLocalCheckboxes] = useState<ProductCheckboxStates>({
     name: searchParams.get("check_name") === "true",
     desc: searchParams.get("check_desc") === "true",
-    // price: searchParams.get("check_price") === "true",
-    // sale: searchParams.get("check_sale") === "true",
-    // count: searchParams.get("check_count") === "true",
     is_deleted: searchParams.get("check_is_deleted") === "true",
     status: searchParams.get("check_status") === "true",
     category_id: searchParams.get("check_category_name") === "true",
@@ -93,6 +79,7 @@ const ProductInfoTab = () => {
   const [pageStatus, setPageStatus] = useState(1);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [clickedProduct, setClickedProduct] = useState(init_product);
   const [data, setData] = useState<ProductsInfoType>({
     products: [],
@@ -143,8 +130,6 @@ const ProductInfoTab = () => {
     }
   );
 
-  // const [getCategory] = useMutation(GET_CATEGORY);
-
   const performSearch = useCallback(async () => {
     const filterVariables = Object.fromEntries(
       Object.entries(localFilters).filter(
@@ -155,7 +140,6 @@ const ProductInfoTab = () => {
       variables: filterVariables,
     });
     if (productsData?.searchProducts) {
-      console.log(productsData);
       setData(productsData.searchProducts);
     }
   }, [filteredProducts, localFilters, localCheckboxes]);
@@ -178,6 +162,14 @@ const ProductInfoTab = () => {
       setShouldSearch(false);
     }
   }, [isInitialLoad, shouldSearch, searchParams, allData, performSearch]);
+
+  const openCreateModal = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
 
   const openModal = (product: ProductType) => {
     if (product) {
@@ -269,13 +261,6 @@ const ProductInfoTab = () => {
     }
   };
 
-  // const getCategoryName = async (product: ProductType) =>
-  //   await getCategory({
-  //     variables: {
-  //       id: product.category.id,
-  //     },
-  //   });
-
   const handleUpdateState = async (v: ProductStatus, id: string) => {
     try {
       await updateState({
@@ -317,17 +302,11 @@ const ProductInfoTab = () => {
       ),
       sort: sortState.status as keyof ProductSortingItem,
     },
-    { header: "삭제된제품", key: "is_deleted" },
+    { header: "삭제", key: "is_deleted" },
     {
-      header: "카테고리",
+      header: "category",
       key: "category",
-      // onChange={}
-      render: (product) => <span>{product.category.id}</span>,
-      // render: async (product) => {
-      //   const categoryName = await getCategoryName(product);
-      //   if (!categoryName) return <span>{product.category.id}</span>;
-      //   return <span>{categoryName}</span>;
-      // },
+      render: (product) => <span>{product.category.name}</span>,
     },
     { header: "판매처", key: "store_id" },
   ];
@@ -338,11 +317,15 @@ const ProductInfoTab = () => {
 
   return (
     <div>
+      <CreateProductModal isOpen={isCreateModalOpen} onClose={closeCreateModal} />
       <UpdateProductModal
         isOpen={isModalOpen}
         onClose={closeModal}
         product={clickedProduct as unknown as ProductType}
       />
+      <Button variant="outlined" onClick={openCreateModal}>
+        제품생성
+      </Button>
       <CategoryTree />
       <ProductSearchComponent
         filters={localFilters}
@@ -379,6 +362,11 @@ interface UpdateProductModalProps {
   product: ProductType;
 }
 
+interface CreateProductModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 export const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   isOpen,
   onClose,
@@ -387,6 +375,13 @@ export const UpdateProductModal: React.FC<UpdateProductModalProps> = ({
   return (
     <Modal isOpen={isOpen} title="제품 정보 수정" onClose={onClose}>
       <UpdateProductForm product={product} onClose={onClose} />
+    </Modal>
+  );
+};
+export const CreateProductModal: React.FC<CreateProductModalProps> = ({ isOpen, onClose }) => {
+  return (
+    <Modal isOpen={isOpen} title="제품 생성" onClose={onClose}>
+      <CreateProductForm onClose={onClose} />
     </Modal>
   );
 };

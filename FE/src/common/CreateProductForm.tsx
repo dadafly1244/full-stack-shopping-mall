@@ -1,4 +1,4 @@
-import { UPDATE_PRODUCT_ADMIN, ProductStatus } from "#/apollo/mutation";
+import { CREATE_PRODUCT_ADMIN } from "#/apollo/mutation";
 import {
   ProductType,
   UpdateProductFormItem,
@@ -6,6 +6,8 @@ import {
   CustomProductSelectProps,
   CustomProductDetermineTextareaProps,
   CategoryType,
+  CreateProductStateType,
+  ProductStatus,
 } from "#/utils/types";
 
 import { useMutation } from "@apollo/client";
@@ -22,10 +24,32 @@ import {
 } from "#/utils/validateProduct";
 import ImageUpload from "#/common/ImageUploadFile";
 import { SelectCategoryTree } from "#/pages/Admin/SelectCategory";
-
-const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose: () => void }) => {
-  const [formState, setFormState] = useState<ProductType>(product);
-  const [updateFc, { data: updateProductData, loading, error }] = useMutation(UPDATE_PRODUCT_ADMIN);
+import { PRODUCTS_INFO_ADMIN } from "#/apollo/query";
+const init_product = {
+  name: "",
+  desc: "",
+  price: 0,
+  sale: 0,
+  count: 0,
+  is_deleted: false,
+  status: "OUT_OF_STOCK" as ProductStatus,
+  main_image_path: "",
+  desc_images_path: "",
+  category: {
+    id: 0,
+    name: "",
+  },
+  store_id: "0eeafcc8-4adb-4a8b-b274-50fe66309d80",
+};
+const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
+  const [formState, setFormState] = useState<CreateProductStateType>(init_product);
+  const [createFc, { data: createProductData, loading, error }] = useMutation(
+    CREATE_PRODUCT_ADMIN,
+    {
+      refetchQueries: [{ query: PRODUCTS_INFO_ADMIN }],
+      awaitRefetchQueries: true,
+    }
+  );
 
   const updateForm: UpdateProductFormItem[] = [
     {
@@ -36,6 +60,7 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
       wrongMessage: (name: string): string => validateProductName(name).message,
       rightMessage: (name: string): string => validateProductName(name).message,
       isRight: (name: string): boolean => validateProductName(name).isValid,
+      isRequired: true,
     },
     {
       type: "determineTextarea",
@@ -50,9 +75,9 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
       onChange: (value: string) => {
         validateProductDesc(value).sanitizedValue;
         handleInputChange("desc", validateProductDesc(value).sanitizedValue);
+        // 예: setProductDesc(result.sanitizedValue);
       },
     },
-
     {
       type: "determineInput",
       key: "price",
@@ -61,6 +86,7 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
       wrongMessage: (price: string | number): string => validateAndFormatPrice(price).message,
       rightMessage: (price: string | number): string => validateAndFormatPrice(price).message,
       isRight: (price: string | number): boolean => validateAndFormatPrice(price).isValid,
+      isRequired: true,
     },
     {
       type: "determineInput",
@@ -84,14 +110,28 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
         }
         return true;
       },
+      isRequired: true,
+    },
+    {
+      type: "selectInput",
+      key: "status",
+      label: "판매상태 (필수)",
+      defaultValue: "OUT_OF_STOCK",
+      options: [
+        { value: "AVAILABLE", label: "판매가능" },
+        { value: "TEMPORARILY_OUT_OF_STOCK", label: "일시품절" },
+        { value: "OUT_OF_STOCK", label: "품절" },
+        { value: "DISCONTINUED", label: "단품" },
+        { value: "PROHIBITION_ON_SALE", label: "판매금지" },
+      ],
     },
   ];
 
   useEffect(() => {
-    if (updateProductData) {
-      console.log(updateProductData);
+    if (createProductData) {
+      console.log(createProductData);
     }
-  }, [updateProductData]);
+  }, [createProductData]);
 
   const isDetermineInput = (
     item: UpdateProductFormItem
@@ -107,6 +147,10 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
       [key]: value,
     }));
   };
+
+  useEffect(() => {
+    console.log(formState.status);
+  }, [formState]);
 
   const handleMainImageSelect = (imagePaths: string[]) => {
     console.log("Selected image paths:", imagePaths);
@@ -127,11 +171,10 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFormState((prev) => ({ ...prev, store_id: "0eeafcc8-4adb-4a8b-b274-50fe66309d80" }));
     // 모든 필드 검증
     const validationResults = await Promise.all(
       Object.keys(formState).map(async (key) => {
-        const typedKey = key as keyof ProductType;
+        const typedKey = key as keyof CreateProductStateType;
         const value = formState[typedKey];
 
         const field = updateForm.find((f) => f.key === typedKey);
@@ -144,9 +187,8 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
 
     if (validationResults.some(Boolean)) {
       try {
-        await updateFc({
+        await createFc({
           variables: {
-            id: formState.id,
             name: formState?.name,
             desc: formState?.desc,
             status: formState?.status,
@@ -157,6 +199,7 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
             main_image_path: formState?.main_image_path,
             desc_images_path: formState?.desc_images_path,
             category_id: Number(formState?.category.id),
+            store_id: formState.store_id,
           },
         });
         onClose();
@@ -179,7 +222,7 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
                 <DetermineInput
                   key={determineItem.key}
                   label={determineItem.label}
-                  placeholder={String(formState[determineItem.key])}
+                  placeholder={determineItem.placeholder}
                   wrongMessage={determineItem.wrongMessage}
                   rightMessage={determineItem.rightMessage}
                   isRight={determineItem.isRight}
@@ -215,7 +258,7 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
           })}
           <ImageUpload
             onImageSelect={handleMainImageSelect}
-            title="제품 대표 사진"
+            title="제품 대표 사진 (필수)"
             multiple={false}
           />
           <ImageUpload
@@ -232,14 +275,14 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
             `bg-blue-500 text-white border text-sm rounded-lg block min-w-20 w-full p-2.5 mb-5`
           )}
         >
-          수정
+          생성
         </button>
       </form>
-      {loading && <p>Loading...</p>}
+      {loading && <p>생성중...</p>}
       {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
       <div className="h-10" />
     </div>
   );
 };
 
-export default UpdateProductForm;
+export default CreateProductForm;
