@@ -127,7 +127,7 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
 
   const handleUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFormState((prev) => ({ ...prev, store_id: "0eeafcc8-4adb-4a8b-b274-50fe66309d80" }));
+    setFormState((prev) => ({ ...prev, store_id: "9f0d3c81-9f15-4c9e-84f5-5fd44085494c" }));
     // 모든 필드 검증
     const validationResults = await Promise.all(
       Object.keys(formState).map(async (key) => {

@@ -258,3 +258,43 @@ export const SEARCH_CATEGORIES = gql`
     }
   }
 `;
+
+// 전체 주문 조회
+export const GET_ALL_ORDERS = gql`
+  query GetAllOrders($page: Int!, $pageSize: Int!) {
+    getAllOrders(page: $page, pageSize: $pageSize) {
+      orders {
+        id
+        user_id
+        status
+        address
+        is_deleted
+        total_price
+        created_at
+        updated_at
+        user {
+          id
+          name
+          user_id
+          phone_number
+        }
+        order_details {
+          id
+          quantity
+          price_at_order
+          product {
+            id
+            name
+            desc
+          }
+        }
+      }
+      pageInfo {
+        currentPage
+        pageSize
+        totalCount
+        totalPages
+      }
+    }
+  }
+`;

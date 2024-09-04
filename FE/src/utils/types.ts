@@ -296,3 +296,30 @@ export interface CreateProductStateType {
   };
   store_id: string;
 }
+
+export interface Order {
+  id: string;
+  user_id: string;
+  status: string;
+  address: string;
+  is_deleted: boolean;
+  total_price: number;
+  created_at: string;
+  updated_at: string;
+  user: {
+    id: string;
+    name: string;
+    user_id: string;
+    phone_number: string;
+  };
+  order_details: Array<{
+    id: number;
+    quantity: number;
+    price_at_order: number;
+    product: {
+      id: string;
+      name: string;
+      desc: string | null;
+    };
+  }>;
+}

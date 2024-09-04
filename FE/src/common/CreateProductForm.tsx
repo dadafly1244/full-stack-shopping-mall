@@ -38,7 +38,7 @@ const init_product = {
     id: 0,
     name: "",
   },
-  store_id: "0eeafcc8-4adb-4a8b-b274-50fe66309d80",
+  store_id: "9f0d3c81-9f15-4c9e-84f5-5fd44085494c",
 };
 const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
   const [formState, setFormState] = useState<CreateProductStateType>(init_product);

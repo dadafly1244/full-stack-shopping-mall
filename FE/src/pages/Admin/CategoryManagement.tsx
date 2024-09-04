@@ -239,23 +239,42 @@ interface CategoryTreeProps {
 }
 
 const CategoryTree: React.FC<CategoryTreeProps> = ({ categories }) => {
+  const [newName, setNewName] = useState("");
+  const [createFc, { error: createError, loading: createLoading }] = useMutation(CREATE_CATEGORY, {
+    refetchQueries: [{ query: GET_ALL_CATEGORIES, variables: { includeHierarchy: true } }],
+    awaitRefetchQueries: true,
+  });
+  const handleCreateCategory = async () => {
+    try {
+      await createFc({
+        variables: {
+          name: newName,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewName(e.target.value);
+  };
+
+  if (createLoading) return <Spinner className="h-12 w-12" />;
+  if (createError) return <p className="text-red-500">Error: {createError?.message}</p>;
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Category Tree</h2>
-      {/* <div className="flex justify-start content-center">
+      <div className="flex justify-start content-center">
         <Input
           onChange={handleChange}
           placeholder="새로운 카테고리 이름을 입력해 주세요"
           crossOrigin={undefined}
         />
-        <Button
-          size="sm"
-          className="break-keep"
-          onClick={() => handleCreateCategory(Number(category.id))}
-        >
+        <Button size="sm" className="break-keep" onClick={handleCreateCategory}>
           생성
         </Button>
-      </div> */}
+      </div>
       {categories.map((category) => (
         <TreeNode key={category.id} category={category} level={0} />
       ))}
