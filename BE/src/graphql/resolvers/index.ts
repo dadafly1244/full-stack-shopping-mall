@@ -8,3 +8,7 @@ export * from "#/graphql/resolvers/Store/query";
 export * from "#/graphql/resolvers/Store/mutation";
 export * from "#/graphql/resolvers/Product/query";
 export * from "#/graphql/resolvers/Product/mutation";
+// export * from "#/graphql/resolvers/Cart/query";
+// export * from "#/graphql/resolvers/Cart/mutation";
+export * from "#/graphql/resolvers/Order/query";
+export * from "#/graphql/resolvers/Order/mutation";

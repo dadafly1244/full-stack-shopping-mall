@@ -55,6 +55,7 @@ model Product {
   category Category @relation(fields: [category_id], references: [id])
   carts    Cart[]
   reviews  Review[]
+  OrderDetail OrderDetail[]
 
   @@map("product")
 }
@@ -101,18 +102,33 @@ model Cart {
 }
 
 model Order {
-  id String @id @default(uuid())
-  user_id String
-  status OrderStatus @default(READY_TO_ORDER)
-  address String?
-  is_deleted String?
-  price_at_order Int
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id              String       @id @default(uuid())
+  user_id         String
+  status          OrderStatus  @default(READY_TO_ORDER)
+  address         String?
+  is_deleted      Boolean      @default(false)
+  total_price     Int
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
 
-  users User @relation(fields: [user_id], references: [id])
-  carts Cart[] @relation("OrderToCart")
+  user            User         @relation(fields: [user_id], references: [id])
+  order_details   OrderDetail[]
+   carts Cart[] @relation("OrderToCart")
+
   @@map("order")
+}
+
+model OrderDetail {
+  id              Int      @id @default(autoincrement())
+  order_id        String
+  product_id      String
+  quantity        Int
+  price_at_order  Int
+
+  order           Order    @relation(fields: [order_id], references: [id])
+  product         Product  @relation(fields: [product_id], references: [id])
+
+  @@map("order_detail")
 }
 
 model Review{
