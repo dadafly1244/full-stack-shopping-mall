@@ -274,9 +274,12 @@ export const GET_ALL_ORDERS = gql`
         updated_at
         user {
           id
-          name
           user_id
+          name
+          email
+          gender
           phone_number
+          status
         }
         order_details {
           id
@@ -285,7 +288,13 @@ export const GET_ALL_ORDERS = gql`
           product {
             id
             name
+            sale
+            price
             desc
+            main_image_path
+            desc_images_path
+            is_deleted
+            status
           }
         }
       }
@@ -294,6 +303,127 @@ export const GET_ALL_ORDERS = gql`
         pageSize
         totalCount
         totalPages
+      }
+    }
+  }
+`;
+
+export const GET_ORDER = gql`
+  query GetOrder($id: String!) {
+    getOrder(id: $id) {
+      id
+      user_id
+      status
+      address
+      is_deleted
+      total_price
+      created_at
+      updated_at
+      user {
+        id
+        user_id
+        name
+        email
+        gender
+        phone_number
+        status
+      }
+      order_details {
+        id
+        quantity
+        price_at_order
+        product {
+          id
+          name
+          sale
+          price
+          desc
+          main_image_path
+          desc_images_path
+          is_deleted
+          status
+        }
+      }
+    }
+  }
+`;
+
+export const SEARCH_ORDER = gql`
+  query SearchOrder($searchTerm: String!) {
+    searchOrders(searchTerm: $searchTerm) {
+      id
+      user_id
+      status
+      address
+      is_deleted
+      total_price
+      created_at
+      updated_at
+      user {
+        id
+        user_id
+        name
+        email
+        gender
+        phone_number
+        status
+      }
+      order_details {
+        id
+        quantity
+        price_at_order
+        product {
+          id
+          name
+          sale
+          price
+          desc
+          main_image_path
+          desc_images_path
+          is_deleted
+          status
+        }
+      }
+    }
+  }
+`;
+
+export const SEARCH_ORDER_BY_STATUS = gql`
+  query GetAllOrders($status: OrderStatus!) {
+    searchOrders(status: $status) {
+      id
+      user_id
+      status
+      address
+      is_deleted
+      total_price
+      created_at
+      updated_at
+      user {
+        id
+        user_id
+        name
+        email
+        password
+        gender
+        phone_number
+        status
+      }
+      order_details {
+        id
+        quantity
+        price_at_order
+        product {
+          id
+          name
+          sale
+          price
+          desc
+          main_image_path
+          desc_images_path
+          is_deleted
+          status
+        }
       }
     }
   }

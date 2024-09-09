@@ -25,6 +25,15 @@ export enum ProductStatus {
   PROHIBITION_ON_SALE = "PROHIBITION_ON_SALE", // 판매금지
 }
 
+export enum OrderStatus {
+  READY_TO_ORDER = "READY_TO_ORDER",
+  ORDER = "ORDER",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+  REFUND = "REFUND",
+  UNKNOWN = "UNKNOWN",
+}
+
 export type UpdateUserInput = {
   id: string;
   user_id?: string;
@@ -297,29 +306,47 @@ export interface CreateProductStateType {
   store_id: string;
 }
 
-export interface Order {
+export interface OrderProductType {
+  id: string;
+  name: string;
+  sale?: number;
+  price: number;
+  desc: string;
+  main_image_path: string;
+  desc_images_path?: string[];
+  is_deleted: boolean;
+  status: ProductStatus;
+}
+export interface OrderDetailType {
+  id: string;
+  quantity: number;
+  price_at_order: number;
+  product: OrderProductType;
+}
+
+export interface OrderUserType {
   id: string;
   user_id: string;
-  status: string;
+  name: string;
+  email: string;
+  gender: Gender;
+  phone_number: string;
+  status: UserStatus;
+}
+export interface OrderType {
+  id: string;
+  user_id: string;
+  status: OrderStatus;
   address: string;
   is_deleted: boolean;
-  total_price: number;
+  total_price: string;
   created_at: string;
   updated_at: string;
-  user: {
-    id: string;
-    name: string;
-    user_id: string;
-    phone_number: string;
-  };
-  order_details: Array<{
-    id: number;
-    quantity: number;
-    price_at_order: number;
-    product: {
-      id: string;
-      name: string;
-      desc: string | null;
-    };
-  }>;
+  user: OrderUserType;
+  order_details: OrderDetailType[];
+}
+
+export interface OrdersInfoType {
+  orders: OrderType[];
+  pageInfo: PageInfo;
 }

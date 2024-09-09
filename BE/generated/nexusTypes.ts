@@ -290,6 +290,7 @@ export interface NexusGenFieldTypes {
     isDuplicatedBusinessNumber: boolean | null; // Boolean
     searchCategories: NexusGenRootTypes['Category'][]; // [Category!]!
     searchOrders: NexusGenRootTypes['Order'][]; // [Order!]!
+    searchOrdersByStatus: NexusGenRootTypes['Order'][]; // [Order!]!
     searchProducts: NexusGenRootTypes['PaginatedProductsResult']; // PaginatedProductsResult!
     searchStores: Array<NexusGenRootTypes['Store'] | null> | null; // [Store]
     store: NexusGenRootTypes['Store'] | null; // Store
@@ -459,6 +460,7 @@ export interface NexusGenFieldTypeNames {
     isDuplicatedBusinessNumber: 'Boolean'
     searchCategories: 'Category'
     searchOrders: 'Order'
+    searchOrdersByStatus: 'Order'
     searchProducts: 'PaginatedProductsResult'
     searchStores: 'Store'
     store: 'Store'
@@ -688,6 +690,9 @@ export interface NexusGenArgTypes {
     }
     searchOrders: { // args
       searchTerm: string; // String!
+    }
+    searchOrdersByStatus: { // args
+      status?: NexusGenEnums['OrderStatus'] | null; // OrderStatus
     }
     searchProducts: { // args
       category_id?: number | null; // Int

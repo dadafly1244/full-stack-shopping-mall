@@ -120,6 +120,30 @@ export const OrderQuery = extendType({
         }
       },
     });
+    t.nonNull.list.nonNull.field("searchOrdersByStatus", {
+      type: "Order",
+      args: {
+        status: nullable(arg({ type: "OrderStatus" })),
+      },
+      resolve: async (_, { status }, context) => {
+        try {
+          return await context.prisma.order.findMany({
+            where: {
+              status,
+              is_deleted: false,
+            },
+            include: { order_details: true },
+          });
+        } catch (error) {
+          if (error instanceof GraphQLError) {
+            throw error;
+          }
+          throw new GraphQLError("Failed to search orders", {
+            extensions: { code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR },
+          });
+        }
+      },
+    });
   },
 });
 

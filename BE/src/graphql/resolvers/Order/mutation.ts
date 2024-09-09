@@ -94,12 +94,14 @@ export const OrderMutation = extendType({
                       },
                     );
                   }
-                  total_price += product.price * quantities[index];
+
+                  const price = product.sale ?? product.price;
+                  total_price += price * quantities[index];
                   return {
                     order_id: "", // Will be set after order creation
                     product_id,
                     quantity: quantities[index],
-                    price_at_order: product.price,
+                    price_at_order: price,
                   };
                 },
               );

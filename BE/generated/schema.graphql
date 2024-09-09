@@ -165,6 +165,7 @@ type Query {
   isDuplicatedBusinessNumber(business_registration_number: String): Boolean
   searchCategories(includeHierarchy: Boolean, nameContains: String!): [Category!]!
   searchOrders(searchTerm: String!): [Order!]!
+  searchOrdersByStatus(status: OrderStatus): [Order!]!
   searchProducts(category_id: Int, desc: String, id: String, is_deleted: Boolean, name: String, page: Int! = 1, pageSize: Int! = 10, status: ProductStatus, store_id: String): PaginatedProductsResult!
   searchStores(searchTerm: String!): [Store]
   store(id: String!): Store

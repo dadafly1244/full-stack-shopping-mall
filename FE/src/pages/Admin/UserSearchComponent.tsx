@@ -13,7 +13,25 @@ interface UserSearchComponentProps {
   setLocalFilters: React.Dispatch<React.SetStateAction<SearchFilters>>;
   setLocalCheckboxes: React.Dispatch<React.SetStateAction<CheckboxStates>>;
 }
-
+interface searchLabelType {
+  name: string;
+  email: string;
+  status: string;
+  gender: string;
+  user_id: string;
+  phone_number: string;
+  permissions: string;
+  [key: string]: string;
+}
+const searchLabel: searchLabelType = {
+  name: "이름",
+  email: "이메일",
+  status: "상태",
+  gender: "성별",
+  user_id: "아이디",
+  phone_number: "휴대폰번호",
+  permissions: "권한",
+};
 export const UserSearchComponent: React.FC<UserSearchComponentProps> = ({
   filters,
   checkboxes,
@@ -69,7 +87,7 @@ export const UserSearchComponent: React.FC<UserSearchComponentProps> = ({
                 <Checkbox
                   checked={checkboxes[key as keyof CheckboxStates]}
                   onChange={() => handleCheckboxChange(key as keyof CheckboxStates)}
-                  label={key}
+                  label={searchLabel[key]}
                 />
                 {["status", "permissions", "gender"].includes(key) ? (
                   <Select

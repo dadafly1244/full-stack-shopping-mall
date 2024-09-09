@@ -13,7 +13,23 @@ interface UserSearchComponentProps {
   setLocalFilters: React.Dispatch<React.SetStateAction<ProductSearchFilters>>;
   setLocalCheckboxes: React.Dispatch<React.SetStateAction<ProductCheckboxStates>>;
 }
-
+interface searchLabelType {
+  name: string;
+  desc: string;
+  is_deleted: string;
+  category_id: string;
+  status: string;
+  store_id: string;
+  [key: string]: string;
+}
+const searchLabel: searchLabelType = {
+  name: "이름",
+  desc: "설명",
+  is_deleted: "삭제여부",
+  category_id: "카테고리ID",
+  status: "상태",
+  store_id: "판매처ID",
+};
 export const ProductSearchComponent: React.FC<UserSearchComponentProps> = ({
   filters,
   checkboxes,
@@ -71,7 +87,7 @@ export const ProductSearchComponent: React.FC<UserSearchComponentProps> = ({
                   <Checkbox
                     checked={checkboxes[key as keyof ProductCheckboxStates]}
                     onChange={() => handleCheckboxChange(key as keyof ProductCheckboxStates)}
-                    label={key}
+                    label={searchLabel[key]}
                   />
                   {["status", "is_deleted"].includes(key) ? (
                     <Select
