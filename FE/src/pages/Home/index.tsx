@@ -7,6 +7,8 @@ import Welcome from "#/pages/Home/Welcome";
 import Ad from "#/pages/Home/Ad";
 import { useQuery } from "@apollo/client";
 import { HOME_QUERY } from "#/apollo/query";
+import NewProducts from "./NewProducts";
+import Categories from "./Categories";
 const HomePage = () => {
   const token = localStorage.getItem("token") || "";
 
@@ -51,6 +53,8 @@ const HomePage = () => {
           )}
         </div>
         <Ad data={data?.ad} />
+        <Categories current={selectedCategory} onCategoryChange={setSelectedCategory} />
+        <NewProducts data={data?.new} />
       </div>
     </>
   );
