@@ -122,18 +122,17 @@ const Categories = ({
   current: string;
   onCategoryChange: React.Dispatch<React.SetStateAction<string>>;
 }) => {
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>, name: string) => {
-    e.stopPropagation();
+  const handleClick = (name: string) => {
     onCategoryChange(name);
   };
   return (
-    <div className="max-w-screen-xl flex overflow-y-auto my-14 h-10">
+    <div className="max-w-screen-xl flex overflow-y-auto my-14 ">
       <Button
         key={0}
         name="전체"
-        onClick={(e) => handleClick(e, "")}
+        onClick={() => handleClick("")}
         className={cn(
-          "mx-14 w-fit text-sm break-keep",
+          "m-5 py-0.5 px-10 text-sm break-keep min-w-fit rounded-full",
           current === "" ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
         )}
       >
@@ -143,10 +142,10 @@ const Categories = ({
         <Button
           key={c.id}
           name={c.name}
-          onClick={(e) => handleClick(e, c.name)}
+          onClick={() => handleClick(c.name)}
           className={cn(
-            "mx-14 w-fit  text-sm break-keep",
-            current === c.name ? "bg-gray-800 text-white" : "bg-gray-100 text-black"
+            "m-5 py-0.5 px-10 text-sm break-keep min-w-fit rounded-full",
+            current === c.name ? "bg-gray-800 text-white" : "bg-gray-300 text-black"
           )}
         >
           {c.name}

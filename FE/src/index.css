@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 스크롤바 넓이 지정 */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 3px;
+}
+
+/* 스크롤바 트랙 꾸미기 */
+::-webkit-scrollbar-track {
+  background: #fff;
+  border-radius: 50%;
+}
+
+/* 스크롤바 손잡이 꾸미기 */
+::-webkit-scrollbar-thumb {
+  background: rgb(226 232 240);
+  border-radius: 50%;
+}
+
+/* 스크롤바 손잡이 호버 시 색 */
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184);
+}

@@ -3,7 +3,6 @@ import NoImage from "#/assets/noImage.png";
 import NewImage from "#/assets/new.png";
 import { ProductType } from "#/utils/types";
 import React from "react";
-import { Typography } from "@material-tailwind/react";
 
 const NewProducts = ({ data }: { data: ProductType }) => {
   const handleImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -19,7 +18,7 @@ const NewProducts = ({ data }: { data: ProductType }) => {
           key="headerImage"
           alt="New products header image"
           src={NewImage}
-          className="h-44 w-44 object-contain object-center"
+          className="h-44 w-44 object-contain object-center "
           onError={handleImageError}
         />
         <h4 className="flex-wrap justify-start content-center w-full font-bold text-5xl ml-14">
@@ -28,13 +27,13 @@ const NewProducts = ({ data }: { data: ProductType }) => {
         </h4>
       </div>
       <div>
-        <ProductImage
+        {/* <ProductImage
           key="headerImage"
           alt="New products header image"
           imagePath={NewImage}
           fallbackImage={NoImage}
           className="h-80 w-full object-contain object-center"
-        />
+        /> */}
       </div>
     </div>
   );
