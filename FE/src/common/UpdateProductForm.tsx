@@ -1,4 +1,4 @@
-import { UPDATE_PRODUCT_ADMIN, ProductStatus } from "#/apollo/mutation";
+import { UPDATE_PRODUCT_ADMIN, ProductStatus as PrStatus } from "#/apollo/mutation";
 import {
   ProductType,
   UpdateProductFormItem,
@@ -6,6 +6,7 @@ import {
   CustomProductSelectProps,
   CustomProductDetermineTextareaProps,
   CategoryType,
+  ProductStatus,
 } from "#/utils/types";
 
 import { useMutation } from "@apollo/client";
@@ -22,9 +23,23 @@ import {
 } from "#/utils/validateProduct";
 import ImageUpload from "#/common/ImageUploadFile";
 import { SelectCategoryTree } from "#/pages/Admin/SelectCategory";
-
+type UpdateProductInput = {
+  id: string;
+  name: string;
+  desc?: string;
+  status: ProductStatus;
+  is_deleted: boolean;
+  price: number;
+  sale?: number;
+  count: number;
+  category_id: number;
+  main_image_path?: File;
+  desc_images_path?: File[];
+};
 const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose: () => void }) => {
   const [formState, setFormState] = useState<ProductType>(product);
+  const [mainImage, setMainImage] = useState<File | null>(null);
+  const [descImages, setDescImages] = useState<File[]>([]);
   const [updateFc, { data: updateProductData, loading, error }] = useMutation(UPDATE_PRODUCT_ADMIN);
 
   const updateForm: UpdateProductFormItem[] = [
@@ -99,7 +114,7 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
     return item.type === "determineInput";
   };
 
-  type valueType = string | number | ProductStatus;
+  type valueType = string | number | PrStatus;
 
   const handleInputChange = (key: keyof ProductType, value: valueType) => {
     setFormState((prev) => ({
@@ -108,14 +123,12 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
     }));
   };
 
-  const handleMainImageSelect = (imagePaths: string[]) => {
-    console.log("Selected image paths:", imagePaths);
-    handleInputChange("main_image_path", imagePaths.toString());
+  const handleMainImageSelect = (files: File[]) => {
+    setMainImage(files[0]);
   };
 
-  const handleDescImageSelect = (imagePaths: string[]) => {
-    console.log("Selected image paths:", imagePaths);
-    handleInputChange("desc_images_path", `[${imagePaths.toString()}]`);
+  const handleDescImageSelect = (files: File[]) => {
+    setDescImages(files);
   };
 
   const handleSelect = (category: CategoryType) => {
@@ -144,21 +157,27 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
 
     if (validationResults.some(Boolean)) {
       try {
-        await updateFc({
-          variables: {
-            id: formState.id,
-            name: formState?.name,
-            desc: formState?.desc,
-            status: formState?.status,
-            is_deleted: formState.is_deleted,
-            price: Number(formState?.price),
-            sale: Number(formState?.sale),
-            count: Number(formState?.count),
-            main_image_path: formState?.main_image_path,
-            desc_images_path: formState?.desc_images_path,
-            category_id: Number(formState?.category.id),
-          },
-        });
+        const variables: UpdateProductInput = {
+          id: formState.id,
+          name: formState?.name,
+          desc: formState?.desc,
+          status: formState?.status,
+          is_deleted: formState.is_deleted,
+          price: Number(formState?.price),
+          sale: Number(formState?.sale),
+          count: Number(formState?.count),
+          category_id: Number(formState?.category.id),
+        };
+
+        if (mainImage) {
+          variables.main_image_path = mainImage;
+        }
+
+        if (descImages.length > 0) {
+          variables.desc_images_path = descImages;
+        }
+
+        await updateFc({ variables });
         onClose();
       } catch (error) {
         console.error("Error during update: ", error);

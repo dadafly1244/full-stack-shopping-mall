@@ -1,21 +1,44 @@
 import {
   nonNull,
+  nullable,
   stringArg,
   intArg,
   booleanArg,
   extendType,
   idArg,
+  list,
 } from "nexus";
 import { ApolloServerErrorCode } from "@apollo/server/errors";
 import { GraphQLError } from "graphql";
+import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
+import path from "path";
+import { pipeline } from "stream/promises";
 
-const MAX_NAME_LENGTH = 255; // 적절한 길이로 조정
-const MAX_DESC_LENGTH = 5000; // 적절한 길이로 조정
+const MAX_NAME_LENGTH = 255;
+const MAX_DESC_LENGTH = 5000;
+const UPLOAD_DIR =
+  process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
 
-function sanitizeInput(input: string) {
-  // 기본적인 HTML 태그 제거 (더 강력한 라이브러리 사용 권장)
+const sanitizeInput = (input: string) => {
   return input.replace(/<[^>]*>?/gm, "");
-}
+};
+
+const saveFile = async (file: any, folder: string): Promise<string> => {
+  const { createReadStream, filename } = await file;
+  const uniqueFilename = `${uuidv4()}-${filename.replaceAll(" ", "_")}`;
+  const uploadPath = path.join(UPLOAD_DIR, folder);
+
+  if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath, { recursive: true });
+  }
+
+  const filePath = path.join(uploadPath, uniqueFilename);
+
+  await pipeline(createReadStream(), fs.createWriteStream(filePath));
+
+  return `/${folder}/${uniqueFilename}`;
+};
 
 export const ProductMutation = extendType({
   type: "Mutation",
@@ -31,8 +54,8 @@ export const ProductMutation = extendType({
         count: intArg(),
         is_deleted: booleanArg(),
         status: nonNull("ProductStatus"),
-        main_image_path: nonNull(stringArg()),
-        desc_images_path: "JSON",
+        main_image_path: nonNull("Upload"),
+        desc_images_path: nullable(list(nonNull("Upload"))),
         category_id: nonNull(intArg()),
         store_id: nonNull(stringArg()),
       },
@@ -119,11 +142,31 @@ export const ProductMutation = extendType({
             });
           }
 
+          // Save main image
+          const main_image_path = await saveFile(
+            args.main_image_path?.file,
+            "product_images",
+          );
+
+          // Save description images
+          const desc_images_path = [];
+          if (args.desc_images_path) {
+            for (const image of args.desc_images_path) {
+              const imagePath = await saveFile(
+                image?.file,
+                "product_desc_images",
+              );
+              desc_images_path.push(imagePath);
+            }
+          }
+
           const result = await context.prisma.product.create({
             data: {
               ...args,
               name: sanitizedName,
               desc: sanitizedDesc,
+              main_image_path,
+              desc_images_path: JSON.stringify(desc_images_path),
             },
           });
           if (!result) {
@@ -134,7 +177,10 @@ export const ProductMutation = extendType({
             });
           }
 
-          return result;
+          return {
+            ...result,
+            desc_images_path: JSON.parse(result.desc_images_path),
+          };
         } catch (error) {
           if (error instanceof GraphQLError) {
             throw error;
@@ -204,13 +250,13 @@ export const ProductMutation = extendType({
         price: intArg(),
         sale: intArg(),
         count: intArg(),
-        main_image_path: stringArg(),
-        desc_images_path: "JSON",
+        main_image_path: "Upload",
+        desc_images_path: list(nonNull("Upload")),
         category_id: intArg(),
       },
       resolve: async (_, args, context) => {
         try {
-          const { id, ...updateData } = args;
+          const { id, main_image_path, desc_images_path, ...updateData } = args;
 
           if (updateData.name) {
             updateData.name = sanitizeInput(updateData.name);
@@ -303,6 +349,26 @@ export const ProductMutation = extendType({
             }
           }
 
+          if (main_image_path) {
+            updateData.main_image_path = await saveFile(
+              main_image_path?.file,
+              "product_images",
+            );
+          }
+
+          // Update description images if provided
+          if (desc_images_path && desc_images_path.length > 0) {
+            const newDescImagesPaths = [];
+            for (const image of desc_images_path) {
+              const imagePath = await saveFile(
+                image?.file,
+                "product_desc_images",
+              );
+              newDescImagesPaths.push(imagePath);
+            }
+            updateData.desc_images_path = JSON.stringify(newDescImagesPaths);
+          }
+
           // 제품 업데이트
           const updatedProduct = await context.prisma.product.update({
             where: { id },
@@ -314,6 +380,8 @@ export const ProductMutation = extendType({
             },
           });
 
+          console.log(updateData);
+
           if (!updatedProduct) {
             throw new GraphQLError("제품 정보 수정을 실패했습니다. ", {
               extensions: {
@@ -321,7 +389,10 @@ export const ProductMutation = extendType({
               },
             });
           }
-          return updatedProduct;
+          return {
+            ...updatedProduct,
+            desc_images_path: JSON.parse(updatedProduct.desc_images_path),
+          };
         } catch (error) {
           if (error instanceof GraphQLError) {
             throw error;
@@ -410,14 +481,5 @@ export const ProductMutation = extendType({
         }
       },
     });
-    /**
-     *
-     * order 구현시  더 구현이 필요한 부분
-     * 1. count 변화시키는 mutation 만들기.
-     * 2. order에서 mutation 동작 시키기.
-     * 3. 구매, 반품, 환불, 매출 등을 자동으로 관리하도록 !!!
-     * 4. 동시에 들어오면 어떻게 처리할지 고민해보기(시간관계상 넘어가기.. )
-     *
-     */
   },
 });

@@ -32,8 +32,8 @@ const init_product = {
   count: 0,
   is_deleted: false,
   status: "OUT_OF_STOCK" as ProductStatus,
-  main_image_path: "",
-  desc_images_path: "",
+  main_image_path: null,
+  desc_images_path: [],
   category: {
     id: 0,
     name: "",
@@ -42,6 +42,9 @@ const init_product = {
 };
 const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
   const [formState, setFormState] = useState<CreateProductStateType>(init_product);
+  const [mainImage, setMainImage] = useState<File | null>(null);
+  const [descImages, setDescImages] = useState<File[]>([]);
+
   const [createFc, { loading, error }] = useMutation(CREATE_PRODUCT_ADMIN);
 
   const updateForm: UpdateProductFormItem[] = [
@@ -135,16 +138,15 @@ const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
     }));
   };
 
-  const handleMainImageSelect = (imagePaths: string[]) => {
-    console.log("Selected image paths:", imagePaths);
-    handleInputChange("main_image_path", imagePaths.toString());
+  const handleMainImageSelect = (files: File[]) => {
+    if (files.length > 0) {
+      setMainImage(files[0]);
+    }
   };
 
-  const handleDescImageSelect = (imagePaths: string[]) => {
-    console.log("Selected image paths:", imagePaths);
-    handleInputChange("desc_images_path", `[${imagePaths.toString()}]`);
+  const handleDescImageSelect = (files: File[]) => {
+    setDescImages(files);
   };
-
   const handleSelect = (category: CategoryType) => {
     setFormState((prevState) => ({
       ...prevState,
@@ -170,21 +172,24 @@ const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
 
     if (validationResults.some(Boolean)) {
       try {
+        const variables = {
+          name: formState?.name,
+          desc: formState?.desc,
+          status: formState?.status,
+          is_deleted: formState.is_deleted,
+          price: Number(formState?.price),
+          sale: Number(formState?.sale),
+          count: Number(formState?.count),
+          category_id: Number(formState?.category.id),
+          store_id: formState.store_id,
+          main_image_path: mainImage,
+          desc_images_path: descImages,
+        };
+
         await createFc({
-          variables: {
-            name: formState?.name,
-            desc: formState?.desc,
-            status: formState?.status,
-            is_deleted: formState.is_deleted,
-            price: Number(formState?.price),
-            sale: Number(formState?.sale),
-            count: Number(formState?.count),
-            main_image_path: formState?.main_image_path,
-            desc_images_path: formState?.desc_images_path,
-            category_id: Number(formState?.category.id),
-            store_id: formState.store_id,
-          },
+          variables,
         });
+
         onClose();
       } catch (error) {
         console.error("Error during update: ", error);

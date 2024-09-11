@@ -7,6 +7,9 @@ import {
   booleanArg,
   extendType,
 } from "nexus";
+import { GraphQLUpload } from "graphql-upload-minimal";
+
+export const Upload = GraphQLUpload;
 
 export const PageInfo = objectType({
   name: "PageInfo",
@@ -27,6 +30,15 @@ export const PaginatedProductsResult = objectType({
   },
 });
 
+export const ProductsResultFormHome = objectType({
+  name: "ProductsResultFormHome",
+  definition(t) {
+    t.nonNull.list.nonNull.field("ad", { type: "Product" }); // 제품 4개
+    t.nonNull.list.nonNull.field("new", { type: "Product" }); // 제품 8개
+    t.nonNull.list.nonNull.field("event", { type: "Product" }); // 제품 9개
+  },
+});
+
 export const ProductType = objectType({
   name: "Product",
   definition(t) {
@@ -38,8 +50,8 @@ export const ProductType = objectType({
     t.nonNull.int("count");
     t.nonNull.boolean("is_deleted");
     t.nonNull.field("status", { type: "ProductStatus" });
-    t.nonNull.string("main_image_path");
-    t.nullable.field("desc_images_path", { type: "JSON" });
+    t.field("main_image_path", { type: "String" });
+    t.list.string("desc_images_path");
     t.nonNull.field("created_at", { type: "DateTime" });
     t.nonNull.field("updated_at", { type: "DateTime" });
     t.nonNull.list.nonNull.field("categories", {

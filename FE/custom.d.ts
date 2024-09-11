@@ -34,4 +34,5 @@ declare module "@material-tailwind/react" {
   interface ListItemProps extends MaterialTailwindComponent {}
   interface AccordionProps extends MaterialTailwindComponent {}
   interface AccordionHeaderProps extends MaterialTailwindComponent {}
+  interface CarouselProps extends MaterialTailwindComponent {}
 }

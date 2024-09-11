@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { cn } from "#/utils/utils";
 
 interface ImageUploadProps {
-  onImageSelect: (imagePaths: string[]) => void;
+  onImageSelect: (files: File[]) => void;
   title: string;
   multiple: boolean;
 }
@@ -15,23 +15,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelect, title, multipl
       const files = event.target.files;
       if (!files) return;
 
-      const validFiles: File[] = [];
-      const validImagePaths: string[] = [];
-
-      Array.from(files).forEach((file) => {
-        if (
-          file.type === "image/jpeg" ||
-          file.type === "image/png" ||
-          file.type === "image/svg+xml"
-        ) {
-          validFiles.push(file);
-          validImagePaths.push(URL.createObjectURL(file));
-        }
-      });
+      const validFiles: File[] = Array.from(files).filter(
+        (file) =>
+          file.type === "image/jpeg" || file.type === "image/png" || file.type === "image/svg+xml"
+      );
 
       if (validFiles.length > 0) {
         setSelectedFiles((prev) => (multiple ? [...prev, ...validFiles] : validFiles));
-        onImageSelect(multiple ? validImagePaths : [validImagePaths[0]]);
+        onImageSelect(multiple ? validFiles : [validFiles[0]]);
       } else {
         alert("Please select valid image files (jpg, png, or svg).");
       }
@@ -44,11 +35,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelect, title, multipl
       setSelectedFiles((prev) => {
         const newFiles = [...prev];
         newFiles.splice(index, 1);
+        onImageSelect(newFiles);
         return newFiles;
       });
-      onImageSelect(selectedFiles.filter((_, i) => i !== index).map(URL.createObjectURL));
     },
-    [selectedFiles, onImageSelect]
+    [onImageSelect]
   );
 
   return (

@@ -3,9 +3,9 @@ import NavBar from "#/common/NavBar";
 
 const RootLayout = () => {
   return (
-    <div>
+    <div className="font-sans">
       <NavBar />
-      <div className="flex justify-center content-center">
+      <div className="flex flex-col justify-center content-center">
         <Outlet />
       </div>
     </div>

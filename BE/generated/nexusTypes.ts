@@ -9,20 +9,34 @@ import type { FieldAuthorizeResolver } from "nexus/dist/plugins/fieldAuthorizePl
 import type { core } from "nexus"
 declare global {
   interface NexusGenCustomInputMethods<TypeName extends string> {
+    /**
+     * The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+     */
     json<FieldName extends string>(fieldName: FieldName, opts?: core.CommonInputFieldConfig<TypeName, FieldName>): void // "JSON";
     /**
      * A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
      */
     date<FieldName extends string>(fieldName: FieldName, opts?: core.CommonInputFieldConfig<TypeName, FieldName>): void // "DateTime";
+    /**
+     * The `Upload` scalar type represents a file upload.
+     */
+    upload<FieldName extends string>(fieldName: FieldName, opts?: core.CommonInputFieldConfig<TypeName, FieldName>): void // "Upload";
   }
 }
 declare global {
   interface NexusGenCustomOutputMethods<TypeName extends string> {
+    /**
+     * The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+     */
     json<FieldName extends string>(fieldName: FieldName, ...opts: core.ScalarOutSpread<TypeName, FieldName>): void // "JSON";
     /**
      * A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
      */
     date<FieldName extends string>(fieldName: FieldName, ...opts: core.ScalarOutSpread<TypeName, FieldName>): void // "DateTime";
+    /**
+     * The `Upload` scalar type represents a file upload.
+     */
+    upload<FieldName extends string>(fieldName: FieldName, ...opts: core.ScalarOutSpread<TypeName, FieldName>): void // "Upload";
   }
 }
 
@@ -55,6 +69,7 @@ export interface NexusGenScalars {
   ID: string
   DateTime: Date
   JSON: any
+  Upload: Promise<File>
 }
 
 export interface NexusGenObjects {
@@ -76,6 +91,10 @@ export interface NexusGenObjects {
     category_parent_id?: number | null; // Int
     id: number; // Int!
     name: string; // String!
+  }
+  CustomError: { // root type
+    code: string; // String!
+    message: string; // String!
   }
   Mutation: {};
   Order: { // root type
@@ -113,16 +132,21 @@ export interface NexusGenObjects {
     count: number; // Int!
     created_at: NexusGenScalars['DateTime']; // DateTime!
     desc?: string | null; // String
-    desc_images_path?: NexusGenScalars['JSON'] | null; // JSON
+    desc_images_path?: Array<string | null> | null; // [String]
     id: string; // ID!
     is_deleted: boolean; // Boolean!
-    main_image_path: string; // String!
+    main_image_path?: string | null; // String
     name: string; // String!
     price: number; // Int!
     sale?: number | null; // Int
     status: NexusGenEnums['ProductStatus']; // ProductStatus!
     store_id: string; // String!
     updated_at: NexusGenScalars['DateTime']; // DateTime!
+  }
+  ProductsResultFormHome: { // root type
+    ad: NexusGenRootTypes['Product'][]; // [Product!]!
+    event: NexusGenRootTypes['Product'][]; // [Product!]!
+    new: NexusGenRootTypes['Product'][]; // [Product!]!
   }
   Query: {};
   Review: { // root type
@@ -197,6 +221,10 @@ export interface NexusGenFieldTypes {
     products: NexusGenRootTypes['Product'][]; // [Product!]!
     subcategories: NexusGenRootTypes['Category'][]; // [Category!]!
   }
+  CustomError: { // field return type
+    code: string; // String!
+    message: string; // String!
+  }
   Mutation: { // field return type
     createCategory: NexusGenRootTypes['Category']; // Category!
     createOrder: NexusGenRootTypes['Order']; // Order!
@@ -221,6 +249,7 @@ export interface NexusGenFieldTypes {
     updateUser: NexusGenRootTypes['User']; // User!
     updateUserStateActive: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     updateUserStateSuspended: NexusGenRootTypes['AuthPayload']; // AuthPayload!
+    uploadFile: boolean | null; // Boolean
     withdrawal: NexusGenRootTypes['AuthPayload'] | null; // AuthPayload
   }
   Order: { // field return type
@@ -265,10 +294,10 @@ export interface NexusGenFieldTypes {
     count: number; // Int!
     created_at: NexusGenScalars['DateTime']; // DateTime!
     desc: string | null; // String
-    desc_images_path: NexusGenScalars['JSON'] | null; // JSON
+    desc_images_path: Array<string | null> | null; // [String]
     id: string; // ID!
     is_deleted: boolean; // Boolean!
-    main_image_path: string; // String!
+    main_image_path: string | null; // String
     name: string; // String!
     price: number; // Int!
     reviews: NexusGenRootTypes['Review'][]; // [Review!]!
@@ -278,12 +307,18 @@ export interface NexusGenFieldTypes {
     store_id: string; // String!
     updated_at: NexusGenScalars['DateTime']; // DateTime!
   }
+  ProductsResultFormHome: { // field return type
+    ad: NexusGenRootTypes['Product'][]; // [Product!]!
+    event: NexusGenRootTypes['Product'][]; // [Product!]!
+    new: NexusGenRootTypes['Product'][]; // [Product!]!
+  }
   Query: { // field return type
     categories: NexusGenRootTypes['Category'][]; // [Category!]!
     category: NexusGenRootTypes['Category'] | null; // Category
     filteredUsers: Array<NexusGenRootTypes['User'] | null>; // [User]!
     getAllOrders: NexusGenRootTypes['PaginatedOrdersResult']; // PaginatedOrdersResult!
     getAllProducts: NexusGenRootTypes['PaginatedProductsResult']; // PaginatedProductsResult!
+    getAllProductsForHomePage: NexusGenRootTypes['ProductsResultFormHome']; // ProductsResultFormHome!
     getOrder: NexusGenRootTypes['Order'] | null; // Order
     getProduct: NexusGenRootTypes['Product'] | null; // Product
     isDuplicated: NexusGenRootTypes['UserBoolean'] | null; // UserBoolean
@@ -367,6 +402,10 @@ export interface NexusGenFieldTypeNames {
     products: 'Product'
     subcategories: 'Category'
   }
+  CustomError: { // field return type name
+    code: 'String'
+    message: 'String'
+  }
   Mutation: { // field return type name
     createCategory: 'Category'
     createOrder: 'Order'
@@ -391,6 +430,7 @@ export interface NexusGenFieldTypeNames {
     updateUser: 'User'
     updateUserStateActive: 'AuthPayload'
     updateUserStateSuspended: 'AuthPayload'
+    uploadFile: 'Boolean'
     withdrawal: 'AuthPayload'
   }
   Order: { // field return type name
@@ -435,7 +475,7 @@ export interface NexusGenFieldTypeNames {
     count: 'Int'
     created_at: 'DateTime'
     desc: 'String'
-    desc_images_path: 'JSON'
+    desc_images_path: 'String'
     id: 'ID'
     is_deleted: 'Boolean'
     main_image_path: 'String'
@@ -448,12 +488,18 @@ export interface NexusGenFieldTypeNames {
     store_id: 'String'
     updated_at: 'DateTime'
   }
+  ProductsResultFormHome: { // field return type name
+    ad: 'Product'
+    event: 'Product'
+    new: 'Product'
+  }
   Query: { // field return type name
     categories: 'Category'
     category: 'Category'
     filteredUsers: 'User'
     getAllOrders: 'PaginatedOrdersResult'
     getAllProducts: 'PaginatedProductsResult'
+    getAllProductsForHomePage: 'ProductsResultFormHome'
     getOrder: 'Order'
     getProduct: 'Product'
     isDuplicated: 'UserBoolean'
@@ -529,9 +575,9 @@ export interface NexusGenArgTypes {
       category_id: number; // Int!
       count?: number | null; // Int
       desc?: string | null; // String
-      desc_images_path?: NexusGenScalars['JSON'] | null; // JSON
+      desc_images_path?: NexusGenScalars['Upload'][] | null; // [Upload!]
       is_deleted?: boolean | null; // Boolean
-      main_image_path: string; // String!
+      main_image_path: NexusGenScalars['Upload']; // Upload!
       name: string; // String!
       price: number; // Int!
       sale?: number | null; // Int
@@ -608,9 +654,9 @@ export interface NexusGenArgTypes {
       category_id?: number | null; // Int
       count?: number | null; // Int
       desc?: string | null; // String
-      desc_images_path?: NexusGenScalars['JSON'] | null; // JSON
+      desc_images_path?: NexusGenScalars['Upload'][] | null; // [Upload!]
       id: string; // String!
-      main_image_path?: string | null; // String
+      main_image_path?: NexusGenScalars['Upload'] | null; // Upload
       name?: string | null; // String
       price?: number | null; // Int
       sale?: number | null; // Int
@@ -639,6 +685,9 @@ export interface NexusGenArgTypes {
     }
     updateUserStateSuspended: { // args
       id: string; // String!
+    }
+    uploadFile: { // args
+      file?: NexusGenScalars['Upload'] | null; // Upload
     }
     withdrawal: { // args
       password: string; // String!
@@ -670,6 +719,9 @@ export interface NexusGenArgTypes {
     getAllProducts: { // args
       page: number; // Int!
       pageSize: number; // Int!
+    }
+    getAllProductsForHomePage: { // args
+      category?: string | null; // String
     }
     getOrder: { // args
       id: string; // String!

@@ -297,8 +297,8 @@ export interface CreateProductStateType {
   count?: number;
   is_deleted: boolean;
   status: ProductStatus;
-  main_image_path: string;
-  desc_images_path?: string;
+  main_image_path: File | null;
+  desc_images_path?: File[];
   category: {
     id: number;
     name: string;
@@ -349,4 +349,10 @@ export interface OrderType {
 export interface OrdersInfoType {
   orders: OrderType[];
   pageInfo: PageInfo;
+}
+
+export interface ImageUploadProps {
+  onImageSelect: (mainImage: string, descImages: string[]) => void;
+  title: string;
+  multiple: boolean;
 }

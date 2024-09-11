@@ -167,8 +167,8 @@ export const CREATE_PRODUCT_ADMIN = gql`
     $count: Int
     $is_deleted: Boolean
     $status: ProductStatus!
-    $main_image_path: String!
-    $desc_images_path: JSON
+    $main_image_path: Upload!
+    $desc_images_path: [Upload!]
     $category_id: Int!
     $store_id: String!
   ) {
@@ -244,8 +244,8 @@ export const UPDATE_PRODUCT_ADMIN = gql`
     $price: Int!
     $sale: Int
     $count: Int
-    $main_image_path: String!
-    $desc_images_path: JSON
+    $main_image_path: Upload!
+    $desc_images_path: [Upload!]
     $category_id: Int!
   ) {
     updateProduct(
@@ -338,5 +338,17 @@ export const RENAME_CATEGORY = gql`
 export const DELETE_CATEGORY = gql`
   mutation DeleteCategory($categoryId: Int!) {
     deleteCategory(categoryId: $categoryId)
+  }
+`;
+
+// 파일 업로드 mutation
+export const UPLOAD_FILES = gql`
+  mutation UploadFiles($files: [Upload!]!) {
+    uploadFiles(files: $files) {
+      filename
+      mimetype
+      encoding
+      url
+    }
   }
 `;

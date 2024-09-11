@@ -1,9 +1,14 @@
-import { ApolloClient, InMemoryCache, createHttpLink, from } from "@apollo/client";
+import { ApolloClient, InMemoryCache, from } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
+import { createUploadLink } from "apollo-upload-client";
 
-const httpLink = createHttpLink({
-  uri: "http://localhost:4000/",
+const httpLink = createUploadLink({
+  uri: "http://localhost:4000/graphql",
+  headers: {
+    "x-apollo-operation-name": "UploadFiles",
+    "apollo-require-preflight": "true",
+  },
 });
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {

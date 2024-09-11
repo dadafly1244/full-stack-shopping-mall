@@ -428,3 +428,43 @@ export const SEARCH_ORDER_BY_STATUS = gql`
     }
   }
 `;
+
+export const HOME_QUERY = gql`
+  query GetAllProductsForHomePage($category: String) {
+    getAllProductsForHomePage(category: $category) {
+      ad {
+        id
+        name
+        sale
+        price
+        desc
+        main_image_path
+        desc_images_path
+        is_deleted
+        status
+      }
+      new {
+        id
+        name
+        sale
+        price
+        desc
+        main_image_path
+        desc_images_path
+        is_deleted
+        status
+      }
+      event {
+        id
+        name
+        sale
+        price
+        desc
+        main_image_path
+        desc_images_path
+        is_deleted
+        status
+      }
+    }
+  }
+`;
