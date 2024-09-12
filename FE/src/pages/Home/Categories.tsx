@@ -126,7 +126,7 @@ const Categories = ({
     onCategoryChange(name);
   };
   return (
-    <div className="max-w-screen-xl flex overflow-y-auto my-14 ">
+    <div className="max-w-screen-xl flex mb-7 mt-28 overflow-y-scroll">
       <Button
         key={0}
         name="전체"

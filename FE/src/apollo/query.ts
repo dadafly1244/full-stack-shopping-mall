@@ -453,6 +453,8 @@ export const HOME_QUERY = gql`
         desc_images_path
         is_deleted
         status
+        created_at
+        updated_at
       }
       event {
         id

@@ -5,6 +5,7 @@
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noEmit": true,
@@ -13,5 +14,5 @@
       "#/*": ["./src/*"]
     }
   },
-  "include": ["vite.config.ts", "custom.d.ts"]
+  "include": ["vite.config.ts", "custom.d.ts", "kakao.maps.d.ts"]
 }

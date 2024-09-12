@@ -375,7 +375,7 @@ export const ProductQuery = extendType({
               sale: { not: null },
               is_deleted: false,
             },
-            take: 9,
+            take: 12,
             skip: Math.floor(Math.random() * (count - 9)),
           });
           eventProducts = eventProducts?.map(parseProduct);

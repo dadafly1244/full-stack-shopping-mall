@@ -9,7 +9,6 @@ import { Link } from "react-router-dom";
 import { DetermineInputProps } from "#/utils/types";
 import { Card, CardHeader, Typography, CardBody } from "@material-tailwind/react";
 import { cn } from "#/utils/utils";
-
 interface CustomDetermineInputProps extends Omit<DetermineInputProps, "isRight"> {
   isRight: (value: string) => boolean;
   key: keyof SigninType;
@@ -54,6 +53,11 @@ const SigninPage = () => {
 
   const [signinFc, { data: signinUserData, loading, error }] = useMutation(SIGN_IN_USER);
 
+  const token = localStorage.getItem("token") || "";
+  useEffect(() => {
+    if (token) navigate("/");
+  }, [token, navigate]);
+
   useEffect(() => {
     if (signinUserData) {
       const { token, refresh_token, user } = signinUserData.signin;
@@ -90,7 +94,10 @@ const SigninPage = () => {
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
       {
-        <Card shadow={false} className=" md:px-24 md:py-14 mt-10 py-8 min-w-80 w-3/5">
+        <Card
+          shadow={false}
+          className=" md:px-24 md:py-14 mt-10 py-8 min-w-80 max-w-screen-xl w-2/5 mx-auto"
+        >
           <CardHeader shadow={false} floated={false} className="text-center">
             <Typography variant="h1" color="blue-gray" className="mb-4 !text-3xl lg:text-4xl">
               Sign In

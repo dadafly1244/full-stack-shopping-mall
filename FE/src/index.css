@@ -11,16 +11,27 @@
 /* 스크롤바 트랙 꾸미기 */
 ::-webkit-scrollbar-track {
   background: #fff;
-  border-radius: 50%;
+  border-radius: 3px;
 }
 
 /* 스크롤바 손잡이 꾸미기 */
 ::-webkit-scrollbar-thumb {
   background: rgb(226 232 240);
-  border-radius: 50%;
+  border-radius: 3px;
 }
 
 /* 스크롤바 손잡이 호버 시 색 */
 ::-webkit-scrollbar-thumb:hover {
   background: rgb(148 163 184);
+}
+
+.embla {
+  overflow: hidden;
+}
+.embla__container {
+  display: flex;
+}
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
 }

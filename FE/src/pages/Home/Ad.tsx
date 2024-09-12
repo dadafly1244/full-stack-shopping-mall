@@ -1,21 +1,25 @@
 import { Carousel } from "@material-tailwind/react";
 
-import { ProductType } from "#/utils/types";
-import ProductImage from "#/common/ProductImage";
 import NoImage from "src/assets/noImage.png";
+import { ad } from "#/const";
 
-const Ad = ({ data }: { data: ProductType[] }) => {
+const Ad = () => {
+  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const img = event.currentTarget;
+    img.onerror = null;
+    img.src = NoImage;
+  };
   return (
-    <Carousel transition={{ duration: 1 }} className="max-w-screen-xl h-auto bg-gray-400">
-      {!data?.length && (
-        <div className="grid h-80 w-full place-items-center rounded-lg bg-gray-300">
+    <Carousel transition={{ duration: 0.3 }} className=" h-auto bg-gray-100 mt-10 w-full">
+      {!ad?.length && (
+        <div className="grid h-80 w-full place-items-center rounded-lg bg-gray-100">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={2}
             stroke="currentColor"
-            className="h-12 w-12 text-gray-500"
+            className="w-full text-gray-500"
           >
             <path
               strokeLinecap="round"
@@ -25,15 +29,15 @@ const Ad = ({ data }: { data: ProductType[] }) => {
           </svg>
         </div>
       )}
-      {data &&
-        data?.map((p: ProductType) => {
+      {ad &&
+        ad?.map((p: { id: number; name: string; path: string }) => {
           return (
-            <ProductImage
+            <img
               key={p.id}
               alt={p.name}
-              imagePath={p.main_image_path}
-              fallbackImage={NoImage}
-              className="h-80 w-full object-contain object-center"
+              src={p.path}
+              className="w-full object-contain object-center "
+              onError={handleImageError}
             />
           );
         })}

@@ -202,7 +202,6 @@ export const ProductMutation = extendType({
       },
       resolve: async (_, args, context) => {
         try {
-          console.log({ id: args.id });
           const existProduct = await context.prisma.product.findUnique({
             where: { id: args.id },
           });
@@ -379,8 +378,6 @@ export const ProductMutation = extendType({
                 : Number(existProduct.category_id),
             },
           });
-
-          console.log(updateData);
 
           if (!updatedProduct) {
             throw new GraphQLError("제품 정보 수정을 실패했습니다. ", {

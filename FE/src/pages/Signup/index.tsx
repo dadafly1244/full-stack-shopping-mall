@@ -34,6 +34,12 @@ const SignupPage = () => {
     status: UserStatus.ACTIVE,
     permissions: UserPermissions.USER,
   });
+
+  const token = localStorage.getItem("token") || "";
+  useEffect(() => {
+    if (token) navigate("/");
+  }, [token, navigate]);
+
   const setUserState = useSetRecoilState(userState);
 
   const [signupFc, { data: signupUserData, loading, error }] = useMutation(SIGN_UP_USER);

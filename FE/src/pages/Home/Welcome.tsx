@@ -17,7 +17,7 @@ const Welcome = () => {
     // TODO: 향후 search 관련 로직 추가
   };
   return (
-    <div className="w-screen min-h-96 bg-gray-600 flex flex-col justify-center content-center ">
+    <div className="w-screen min-h-96 bg-gray-400 flex flex-col justify-center content-center ">
       <div className="mx-auto flex flex-col justify-center my-8">
         <Typography type="h2" className="text-center text-5xl font-extrabold mb-4">
           <div className="whitespace-nowrap"> Welcome to Infofla's</div>

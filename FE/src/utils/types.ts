@@ -253,6 +253,8 @@ export interface ProductType {
   status: ProductStatus;
   main_image_path: string;
   desc_images_path?: string;
+  created_at?: string;
+  updated_at?: string;
   category: {
     id: number;
     name: string;
