@@ -53,6 +53,7 @@ const SignupPage = () => {
       label: "이름",
       placeholder: "이름을 한글 또는 알파벳으로 1~20자 사이로 입력하세요.",
       wrongMessage: "다시 입력하세요.",
+      rightMessage: " ",
       isRight: (name: string): boolean => /^[a-zA-Zㄱ-ㅎ가-힣]{1,20}$/.test(name.trim()),
       isRequired: true,
     },
@@ -62,6 +63,7 @@ const SignupPage = () => {
       label: "ID",
       placeholder: "ID를 알파벳 6~20자 사이로 입력하세요.",
       wrongMessage: "다시 입력하세요.",
+      rightMessage: " ",
       isRight: (id: string): boolean => /^[a-zA-Z0-9]{6,20}$/.test(id.trim()),
       isRequired: true,
       button: "중복확인",
@@ -106,6 +108,7 @@ const SignupPage = () => {
       label: "email",
       placeholder: "email 주소를 입력하세요.",
       wrongMessage: "바른 형식의 email 주소를 입력하세요.",
+      rightMessage: " ",
       isRight: (email: string): boolean =>
         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim()),
       isRequired: true,
@@ -126,6 +129,7 @@ const SignupPage = () => {
       label: "휴대폰번호",
       placeholder: "010-0000-0000",
       wrongMessage: "올바른 형식의 전화번호를 입력해주세요",
+      rightMessage: " ",
       isRight: (phone: string): boolean => /^01([0|1|6|7|8|9])-?\d{3,4}-?\d{4}$/.test(phone.trim()),
       formatter: formatPhoneNumber,
       isRequired: false,
@@ -179,7 +183,7 @@ const SignupPage = () => {
 
   useEffect(() => {
     if (signupUserData?.signup?.user?.name) {
-      alert(`<p>Sign up successful! Welcome, ${signupUserData.signup.user.name}.</p>`);
+      alert(`${signupUserData.signup.user.name}님 회원가입을 환영합니다.`);
 
       const { token, refresh_token, user } = signupUserData.signup;
 

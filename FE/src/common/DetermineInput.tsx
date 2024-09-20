@@ -10,7 +10,7 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
     label = "입력",
     placeholder = "입력해주세요",
     wrongMessage = "다시 입력해주세요.",
-    rightMessage = "",
+    rightMessage = " ",
     isRight,
     isRequired = false,
     className,
@@ -194,7 +194,7 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
             </Button>
           )}
         </div>
-        <p className={cn("text-sm ml-10 text-gray-500", className, message ? "block" : "hidden")}>
+        <p className={cn("text-sm  text-gray-500", className, message ? "block" : "hidden")}>
           {message}
         </p>
       </div>
