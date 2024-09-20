@@ -62,7 +62,7 @@ function Table<T extends { id?: string }, S = T>({
 
   return (
     <div className="overflow-x-auto">
-      <h2 className="text-2xl font-bold mb-4">{title}</h2>
+      {title && <h2 className="text-2xl font-bold mb-4">{title}</h2>}
       {!!(!selectedItems?.length && !data?.length) && "값이 없습니다."}
       {!!(selectedItems?.length || data?.length) && (
         <table className="min-w-full bg-white">
@@ -80,16 +80,16 @@ function Table<T extends { id?: string }, S = T>({
                   {column.header}
                   {column.sort && (
                     <button onClick={(e) => handleSorting(e, column.sort as keyof S)}>
-                      {sortState[column.sort] === "none" && "#"}
-                      {sortState[column.sort] === "asc" && "▲"}
-                      {sortState[column.sort] === "desc" && "▼"}
+                      {sortState?.[column.sort] === "none" && "#"}
+                      {sortState?.[column.sort] === "asc" && "▲"}
+                      {sortState?.[column.sort] === "desc" && "▼"}
                     </button>
                   )}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="text-gray-600 text-sm font-light">
+          <tbody className="text-gray-600 text-sm font-normal">
             {data.map((item) => (
               <tr
                 key={item.id}

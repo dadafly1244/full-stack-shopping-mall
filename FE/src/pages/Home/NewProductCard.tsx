@@ -6,14 +6,14 @@ import { formatNumber, isWithinWeek } from "#/utils/formatter";
 const NewProductCard = ({ product }: { product: ProductType }) => {
   const isNewProduct = isWithinWeek(product?.created_at as string);
   return (
-    <div>
-      <div className="flex h-64 items-start w-64 relative self-stretch">
+    <div className="hover:cursor-pointer hover:bg-white group overflow-hidden">
+      <div className="flex h-64 items-start w-64 relative self-stretch ">
         <ProductImage
           key="headerImage"
-          alt="New products header image"
+          alt="New products header image "
           imagePath={product.main_image_path}
           fallbackImage={NoImage}
-          className="flex-1 grow relative self-stretch"
+          className="flex-1 grow relative self-stretch  group-hover:scale-110"
         />
         {isNewProduct && (
           <div className="flex-col inline-flex items-center justify-center px-2 py-1 absolute top-0 left-0 bg-color-background-positive-default rounded-[6px_0px_6px_0px] bg-green-400">

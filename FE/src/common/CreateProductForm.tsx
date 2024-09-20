@@ -58,22 +58,7 @@ const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
       isRight: (name: string): boolean => validateProductName(name).isValid,
       isRequired: true,
     },
-    {
-      type: "determineTextarea",
-      key: "desc",
-      label: "상품설명",
-      placeholder: "상품에 대한 자세한 설명을 입력해주세요.",
-      wrongMessage: (desc: string): string => validateProductDesc(desc).message,
-      rightMessage: (desc: string): string => validateProductDesc(desc).message,
-      isRight: (desc: string): boolean => validateProductDesc(desc).isValid,
-      rows: 4,
-      maxLength: 1000,
-      onChange: (value: string) => {
-        validateProductDesc(value).sanitizedValue;
-        handleInputChange("desc", validateProductDesc(value).sanitizedValue);
-        // 예: setProductDesc(result.sanitizedValue);
-      },
-    },
+
     {
       type: "determineInput",
       key: "price",
@@ -120,6 +105,22 @@ const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
         { value: "DISCONTINUED", label: "단품" },
         { value: "PROHIBITION_ON_SALE", label: "판매금지" },
       ],
+    },
+    {
+      type: "determineTextarea",
+      key: "desc",
+      label: "상품설명",
+      placeholder: "상품에 대한 자세한 설명을 입력해주세요.",
+      wrongMessage: (desc: string): string => validateProductDesc(desc).message,
+      rightMessage: (desc: string): string => validateProductDesc(desc).message,
+      isRight: (desc: string): boolean => validateProductDesc(desc).isValid,
+      rows: 4,
+      maxLength: 1000,
+      onChange: (value: string) => {
+        validateProductDesc(value).sanitizedValue;
+        handleInputChange("desc", validateProductDesc(value).sanitizedValue);
+        // 예: setProductDesc(result.sanitizedValue);
+      },
     },
   ];
 
@@ -200,9 +201,19 @@ const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
   };
 
   return (
-    <div className="h-[80vh]">
+    <div className="h-[80vh]  min-w-96 max-w-full">
       <form onSubmit={handleUpdate}>
-        <div className="grid gap-6 mb-6 md:grid-cols-1 min-w-96 max-w-full">
+        <div className="grid gap-6 mb-6 md:grid-cols-1 lg:grid-cols-2 w-[500px]">
+          <ImageUpload
+            onImageSelect={handleMainImageSelect}
+            title="제품 대표 사진 (필수)"
+            multiple={false}
+          />
+          <ImageUpload
+            onImageSelect={handleDescImageSelect}
+            title="제품 추가 사진"
+            multiple={true}
+          />
           {updateForm.map((item) => {
             if (item.type === "determineInput") {
               const determineItem = item as CustomProductDetermineInputProps;
@@ -244,16 +255,7 @@ const CreateProductForm = ({ onClose }: { onClose: () => void }) => {
             }
             return null;
           })}
-          <ImageUpload
-            onImageSelect={handleMainImageSelect}
-            title="제품 대표 사진 (필수)"
-            multiple={false}
-          />
-          <ImageUpload
-            onImageSelect={handleDescImageSelect}
-            title="제품 추가 사진"
-            multiple={true}
-          />
+
           <SelectCategoryTree parentState={formState} onSelect={handleSelect} />
         </div>
 

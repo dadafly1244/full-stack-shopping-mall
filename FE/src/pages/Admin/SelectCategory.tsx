@@ -33,14 +33,14 @@ const TreeNode: React.FC<TreeNodeProps> = ({ category, level, selectedId, onSele
         level === 0 ? "border-t border-blue-gray-400" : "border-none"
       )}
     >
-      <div className="flex items-center py-2">
+      <div className="flex items-center">
         {hasChildren ? (
-          <IconButton variant="text" size="sm" onClick={toggleOpen} className="mr-2">
+          <IconButton variant="text" onClick={toggleOpen} className="mr-2 w-8 h-8">
             {isOpen ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="8"
+                height="8"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="#000000"
@@ -53,8 +53,8 @@ const TreeNode: React.FC<TreeNodeProps> = ({ category, level, selectedId, onSele
             ) : (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="8"
+                height="8"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="#000000"
@@ -67,11 +67,11 @@ const TreeNode: React.FC<TreeNodeProps> = ({ category, level, selectedId, onSele
             )}
           </IconButton>
         ) : (
-          <IconButton disabled variant="text" size="sm" className="mr-2">
+          <IconButton disabled variant="text" className="mr-2 w-8 h-8">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
+              width="8"
+              height="8"
               viewBox="0 0 24 24"
               fill="none"
               stroke="#000000"
@@ -85,7 +85,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ category, level, selectedId, onSele
         )}
         <span
           className={cn(
-            "cursor-pointer",
+            "hover:cursor-pointer text-xs",
             selectedId === category.id ? "text-red-500" : "text-gray-800"
           )}
           onClick={handleClick}
@@ -123,7 +123,7 @@ const SelectCategoryTree: React.FC<CategoryTreeProps> = ({
 }) => {
   return (
     <div className="p-4 bg-white rounded-lg shadow">
-      <h2 className="text-base font-bold mb-4 text-gray-800">
+      <h2 className="text-sm font-bold mb-2 text-gray-800">
         카테고리 :<span className="text-gray-400">{selectedCategory?.name}</span>
       </h2>
       {categories.map((category) => (

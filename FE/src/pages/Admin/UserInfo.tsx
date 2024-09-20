@@ -7,19 +7,18 @@ import { FILTERED_USER_INFO_ADMIN } from "#/apollo/query";
 import {
   UserType,
   UserStatus,
-  UserPermissions,
-  Gender,
-  SearchFilters,
-  CheckboxStates,
   sortingItem,
   SortState,
   TableColumn,
+  UserPermissions,
+  Gender,
 } from "#/utils/types";
-import UserSearchComponent from "#/pages/Admin/UserSearchComponent";
 import Modal from "#/common/Modal";
 import UpdateUserForm from "#/common/UpdateUserForm";
 import { sortObjectsByKey } from "#/utils/sort";
 import { useSearchParams } from "react-router-dom";
+import SearchUser from "./SearchUser";
+import { Button } from "@material-tailwind/react";
 
 const init_user = {
   id: "",
@@ -32,46 +31,40 @@ const init_user = {
   gender: "PREFER_NOT_TO_SAY",
 };
 
-const initialFilters: SearchFilters = {
-  name: "",
-  user_id: "",
-  email: "",
-  phone_number: "",
-  status: "ACTIVE" as UserStatus,
-  permissions: "USER" as UserPermissions,
-  gender: "PREFER_NOT_TO_SAY" as Gender,
+type PredefinedOptionsType = {
+  status: Record<UserStatus, string>;
+  permissions: Record<UserPermissions, string>;
+  gender: Record<Gender, string>;
 };
 
-const initialCheckboxes: CheckboxStates = {
-  name: false,
-  user_id: false,
-  email: false,
-  phone_number: false,
-  status: false,
-  permissions: false,
-  gender: false,
+const predefinedOptions: PredefinedOptionsType = {
+  status: {
+    [UserStatus.ACTIVE]: "활성화",
+    [UserStatus.INACTIVE]: "탈퇴",
+    [UserStatus.SUSPENDED]: "정지",
+  },
+  permissions: {
+    [UserPermissions.ADMIN]: "관리자",
+    [UserPermissions.USER]: "사용자",
+  },
+  gender: {
+    [Gender.MALE]: "남성",
+    [Gender.FEMALE]: "여성",
+    [Gender.OTHER]: "기타",
+    [Gender.PREFER_NOT_TO_SAY]: "선택안함",
+  },
 };
 
+type PredefinedOptionKeys = keyof PredefinedOptionsType;
+function isPredefinedOption(option: string): option is PredefinedOptionKeys {
+  return option in predefinedOptions;
+}
 const UserInfoTab = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [localFilters, setLocalFilters] = useState<SearchFilters>({
-    name: searchParams.get("filter_name") || "",
-    user_id: searchParams.get("filter_user_id") || "",
-    email: searchParams.get("filter_email") || "",
-    phone_number: searchParams.get("filter_phone_number") || "",
-    status: (searchParams.get("filter_status") as UserStatus) || "ACTIVE",
-    permissions: (searchParams.get("filter_permissions") as UserPermissions) || "USER",
-    gender: (searchParams.get("filter_gender") as Gender) || "PREFER_NOT_TO_SAY",
-  });
-  const [localCheckboxes, setLocalCheckboxes] = useState<CheckboxStates>({
-    name: searchParams.get("check_name") === "true",
-    user_id: searchParams.get("check_user_id") === "true",
-    email: searchParams.get("check_email") === "true",
-    phone_number: searchParams.get("check_phone_number") === "true",
-    status: searchParams.get("check_status") === "true",
-    permissions: searchParams.get("check_permissions") === "true",
-    gender: searchParams.get("check_gender") === "true",
-  });
+
+  const [selectedOption, setSelectedOption] = useState(searchParams.get("searchField") || "");
+  const [searchValue, setSearchValue] = useState(searchParams.get("searchTerm") || "");
+  const [selectedOption2nd, setSelectedOption2nd] = useState(searchParams.get("searchTerm") || "");
 
   const [shouldSearch, setShouldSearch] = useState(searchParams.get("searchOpen") === "true");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -100,16 +93,28 @@ const UserInfoTab = () => {
     useLazyQuery(FILTERED_USER_INFO_ADMIN);
 
   const performSearch = useCallback(async () => {
-    const filterVariables = Object.fromEntries(
-      Object.entries(localFilters).filter(
-        ([key, value]) => localCheckboxes[key as keyof CheckboxStates] && value !== ""
-      )
-    );
-    const { data: usersData } = await filteredUser({ variables: filterVariables });
+    let searchTermValue: string;
+
+    if (isPredefinedOption(selectedOption)) {
+      const selectedEnum = Object.entries(predefinedOptions[selectedOption]).find(
+        ([, value]) => value === selectedOption2nd
+      );
+      searchTermValue = selectedEnum ? selectedEnum[0] : selectedOption2nd;
+    } else {
+      searchTermValue = searchValue;
+    }
+
+    const { data: usersData } = await filteredUser({
+      variables: {
+        searchTerm: searchTermValue,
+        searchField: selectedOption,
+      },
+    });
+
     if (usersData?.filteredUsers) {
       setData(usersData.filteredUsers);
     }
-  }, [filteredUser, localFilters, localCheckboxes]);
+  }, [selectedOption, selectedOption2nd, searchValue, filteredUser]);
 
   useEffect(() => {
     setData(allData?.usersList);
@@ -170,7 +175,6 @@ const UserInfoTab = () => {
   };
 
   const handleRowClick = (user: UserType) => {
-    console.log("Clicked user:", user);
     openModal(user);
   };
 
@@ -198,43 +202,27 @@ const UserInfoTab = () => {
 
   const handleSearchUser = () => {
     const newSearchParams = new URLSearchParams();
-    Object.entries(localFilters).forEach(([key, value]) => {
-      if (value) {
-        newSearchParams.set(`filter_${key}`, value);
-      }
-    });
-    Object.entries(localCheckboxes).forEach(([key, value]) => {
-      if (value) {
-        newSearchParams.set(`check_${key}`, "true");
-      }
-    });
+    newSearchParams.set("searchTerm", searchValue || selectedOption2nd);
+    newSearchParams.set("searchField", selectedOption);
     newSearchParams.set("searchOpen", "true");
     setSearchParams(newSearchParams);
     setShouldSearch(true);
   };
 
-  const handleCloseSearch = () => {
-    setSearchParams(new URLSearchParams());
-    setLocalFilters(initialFilters);
-    setLocalCheckboxes(initialCheckboxes);
-    if (allData?.usersList) {
-      setData(allData.usersList);
-    }
-  };
-
   const handleResetSearch = () => {
     const newSearchParams = new URLSearchParams();
-    newSearchParams.set("searchOpen", "true");
+    newSearchParams.set("searchOpen", "false");
     setSearchParams(newSearchParams);
-    setLocalFilters(initialFilters);
-    setLocalCheckboxes(initialCheckboxes);
+    setSelectedOption("");
+    setSelectedOption2nd("");
+    setSearchValue("");
     if (allData?.usersList) {
       setData(allData.usersList);
     }
   };
 
   const columns: TableColumn<UserType, sortingItem>[] = [
-    { header: "ID", key: "id" },
+    // { header: "ID", key: "id" },
     { header: "User ID", key: "user_id", sort: sortState.user_id as keyof sortingItem },
     { header: "Name", key: "name", sort: sortState.name as keyof sortingItem },
     { header: "Email", key: "email", sort: sortState.email as keyof sortingItem },
@@ -289,22 +277,36 @@ const UserInfoTab = () => {
   ];
 
   if (loading || filteredLoading) return <p>Loading...</p>;
-  if (error || filteredError) return <p>Error: {error?.message || filteredError?.message}</p>;
+  if (error || filteredError)
+    return (
+      <div className="w-full">
+        <div>Error: {error?.message || filteredError?.message}</div>
+        <div className="w-full flex flex-col justify-center content-center">
+          <div className="w-56 h-56">
+            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+              <path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z" />
+            </svg>
+          </div>
+          <Button onClick={handleResetSearch}>되돌아가기</Button>
+        </div>
+      </div>
+    );
 
   return (
-    <div>
+    <div className="p-10">
       <UpdateUserModal isOpen={isModalOpen} onClose={closeModal} user={clickedUser as UserType} />
-      <UserSearchComponent
-        filters={localFilters}
-        checkboxes={localCheckboxes}
-        onClickSearch={handleSearchUser}
-        setLocalFilters={setLocalFilters}
-        onCloseSearch={handleCloseSearch}
-        setLocalCheckboxes={setLocalCheckboxes}
+      <SearchUser
+        selectedOption={selectedOption}
+        onSelect={setSelectedOption}
+        searchValue={searchValue}
+        onSearchValue={setSearchValue}
+        selectedOption2nd={selectedOption2nd}
+        onSelected2nd={setSelectedOption2nd}
         onResetSearch={handleResetSearch}
+        onClickSearch={handleSearchUser}
       />
       <Table<UserType, sortingItem>
-        title="User List"
+        // title="User List"
         data={data}
         sortState={sortState}
         columns={columns}

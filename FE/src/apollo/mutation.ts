@@ -220,8 +220,8 @@ export const UPDATE_PRODUCT_STATUS_ADMIN = gql`
       count
       is_deleted
       status
-      main_image_path
-      desc_images_path
+      # main_image_path
+      # desc_images_path
       created_at
       updated_at
       category {

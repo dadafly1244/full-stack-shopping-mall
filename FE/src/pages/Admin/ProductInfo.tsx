@@ -6,19 +6,17 @@ import { DELETE_PRODUCT_ADMIN, UPDATE_PRODUCT_STATUS_ADMIN } from "#/apollo/muta
 import {
   ProductType,
   ProductStatus,
-  ProductSearchFilters,
-  ProductCheckboxStates,
   ProductSortingItem,
   SortState,
   ProductsInfoType,
   TableColumn,
 } from "#/utils/types";
-import ProductSearchComponent from "#/pages/Admin/ProductSearchComponent";
+import ProductSearchComponent from "#/pages/Admin/SearchProduct";
 import Modal from "#/common/Modal";
 import UpdateProductForm from "#/common/UpdateProductForm";
 import { sortObjectsByKey } from "#/utils/sort";
 import { useSearchParams } from "react-router-dom";
-import { Select, Option, Button } from "@material-tailwind/react";
+import { Select, Option, Button, Drawer, Typography, IconButton } from "@material-tailwind/react";
 
 import CircularPagination from "#/common/Pagenation";
 import { CategoryTree } from "./CategoryManagement";
@@ -38,44 +36,15 @@ const init_product = {
   store_name: "",
 };
 
-const initialFilters: ProductSearchFilters = {
-  name: "",
-  desc: "",
-  is_deleted: null,
-  status: "OUT_OF_STOCK" as ProductStatus,
-  category_id: 0,
-  store_id: "",
-};
-
-const initialCheckboxes: ProductCheckboxStates = {
-  name: false,
-  desc: false,
-  is_deleted: false,
-  status: false,
-  category_id: false,
-  store_id: false,
-};
-
 const ProductInfoTab = () => {
+  const [openDrawer, setOpenDrawer] = useState(false);
+  const handleOpenDrawer = () => setOpenDrawer(true);
+  const handleCloseDrawer = () => setOpenDrawer(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [localFilters, setLocalFilters] = useState<ProductSearchFilters>({
-    name: searchParams.get("filter_name") || "",
-    desc: searchParams.get("filter_desc") || "",
-    is_deleted: Boolean(searchParams.get("filter_is_deleted")) || null,
-    status: (searchParams.get("filter_status") as ProductStatus) || "AVAILABLE",
-    category_id: Number(searchParams.get("filter_category_name")) || 0,
-    store_id: searchParams.get("filter_store_name") || "",
-  });
-  const [localCheckboxes, setLocalCheckboxes] = useState<ProductCheckboxStates>({
-    name: searchParams.get("check_name") === "true",
-    desc: searchParams.get("check_desc") === "true",
-    is_deleted: searchParams.get("check_is_deleted") === "true",
-    status: searchParams.get("check_status") === "true",
-    category_id: searchParams.get("check_category_name") === "true",
-    store_id: searchParams.get("check_store_name") === "true",
-  });
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("searchTerm") || "");
+  const [field, setField] = useState<string>(searchParams.get("field") || "");
 
-  const [pageStatus, setPageStatus] = useState(1);
+  const [pageStatus, setPageStatus] = useState(Number(searchParams.get("pageStatus")) || 1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -133,30 +102,28 @@ const ProductInfoTab = () => {
   const [deleteFc] = useMutation(DELETE_PRODUCT_ADMIN);
 
   const performSearch = useCallback(async () => {
-    const filterVariables = Object.fromEntries(
-      Object.entries(localFilters).filter(
-        ([key, value]) => localCheckboxes[key as keyof ProductCheckboxStates] && value !== ""
-      )
-    );
+    const filterVariables = {
+      searchTerm,
+      field,
+      page: pageStatus,
+      pageSize: PAGE_SIZE,
+    };
     const { data: productsData } = await filteredProducts({
       variables: filterVariables,
     });
     if (productsData?.searchProducts) {
       setData(productsData.searchProducts);
     }
-  }, [filteredProducts, localFilters, localCheckboxes]);
+  }, [filteredProducts, field, searchTerm, pageStatus]);
 
   useEffect(() => {
-    const hasCheckParams = Array.from(searchParams.keys()).some((key) => key.startsWith("check_"));
-
-    if (hasCheckParams) {
+    if (searchParams.get("searchOpen") === "true") {
       performSearch();
     } else {
-      if (allData?.productsData) {
-        setData(allData.productsData);
-      }
+      refetch();
     }
-  }, [searchParams, allData, performSearch]);
+  }, [searchParams, performSearch, refetch, pageStatus]);
+
   const openCreateModal = () => {
     setIsCreateModalOpen(true);
   };
@@ -179,13 +146,10 @@ const ProductInfoTab = () => {
   };
 
   const handleRowClick = (product: ProductType) => {
-    console.log("Clicked product:", product);
     openModal(product);
   };
 
   const handleSelectionChange = (selectedProducts: ProductType[]) => {
-    console.log("Selected Products:", selectedProducts);
-
     setWillDelete(selectedProducts);
   };
 
@@ -212,17 +176,12 @@ const ProductInfoTab = () => {
 
   const handleSearchProducts = () => {
     const newSearchParams = new URLSearchParams();
-    Object.entries(localFilters).forEach(([key, value]) => {
-      if (value) {
-        newSearchParams.set(`filter_${key}`, value);
-      }
-    });
-    Object.entries(localCheckboxes).forEach(([key, value]) => {
-      if (value) {
-        newSearchParams.set(`check_${key}`, "true");
-      }
-    });
+    console.log(searchTerm);
+    newSearchParams.set("searchTerm", searchTerm);
+    newSearchParams.set("searchField", field === "all" ? "" : field);
     newSearchParams.set("searchOpen", "true");
+    newSearchParams.set("pageStatus", "1");
+    setPageStatus(1);
     setSearchParams(newSearchParams);
   };
 
@@ -232,17 +191,10 @@ const ProductInfoTab = () => {
     }
   }, [allData?.getAllProducts]);
 
-  const handleCloseSearch = async () => {
-    searchParams.set("searchOpen", "false");
-    setSearchParams(searchParams);
-  };
-
   const handleResetSearch = () => {
     const newSearchParams = new URLSearchParams();
-    newSearchParams.set("searchOpen", "true");
+    newSearchParams.set("searchOpen", "false");
     setSearchParams(newSearchParams);
-    setLocalFilters(initialFilters);
-    setLocalCheckboxes(initialCheckboxes);
     setData(allData.getAllProducts);
   };
 
@@ -290,9 +242,7 @@ const ProductInfoTab = () => {
   };
 
   const columns: TableColumn<ProductType, ProductSortingItem>[] = [
-    { header: "ID", key: "id" },
     { header: "Name", key: "name", sort: sortState.name as keyof ProductSortingItem },
-    { header: "Description", key: "desc" },
     { header: "정가", key: "price", sort: sortState.price as keyof ProductSortingItem },
     { header: "판매가", key: "sale", sort: sortState.sale as keyof ProductSortingItem },
     { header: "재고", key: "count", sort: sortState.count as keyof ProductSortingItem },
@@ -317,21 +267,57 @@ const ProductInfoTab = () => {
       ),
       sort: sortState.status as keyof ProductSortingItem,
     },
-    { header: "삭제", key: "is_deleted" },
+    {
+      header: "삭제",
+      key: "is_deleted",
+      render: (is_deleted) => (
+        <div>
+          {!is_deleted && "삭제"}
+          {is_deleted && "저장"}
+        </div>
+      ),
+    },
     {
       header: "category",
       key: "category",
       render: (product) => <span>{product.category?.name}</span>,
     },
+    { header: "Description", key: "desc" },
     { header: "판매처", key: "store_id" },
   ];
+
+  const handleChangePage = (p: number) => {
+    setPageStatus(p);
+    searchParams.set("pageStatus", String(p));
+    setSearchParams(searchParams);
+  };
 
   if (loading || filteredLoading || updateStateLoading) return <p>Loading...</p>;
   if (error || filteredError || updateStateError)
     return <p>Error: {error?.message || filteredError?.message}</p>;
 
   return (
-    <div>
+    <div className="p-10">
+      <Drawer open={openDrawer} onClose={handleCloseDrawer} className="p-4" size={800}>
+        <div className="mb-6 flex items-center justify-between">
+          <Typography variant="h5" color="blue-gray">
+            카테고리 설정
+          </Typography>
+          <IconButton variant="text" color="blue-gray" onClick={handleCloseDrawer}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="h-5 w-5"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </IconButton>
+        </div>
+        <CategoryTree />
+      </Drawer>
       <CreateProductModal isOpen={isCreateModalOpen} onClose={closeCreateModal} />
       <UpdateProductModal
         isOpen={isModalOpen}
@@ -344,17 +330,19 @@ const ProductInfoTab = () => {
         onConfirm={() => handleDeleteProducts(willDelete)}
         onCancel={() => setIsDeleteModalOpen(false)}
       />
-      <CategoryTree />
+
       <ProductSearchComponent
-        filters={localFilters}
-        checkboxes={localCheckboxes}
-        onClickSearch={handleSearchProducts}
-        setLocalFilters={setLocalFilters}
-        onCloseSearch={handleCloseSearch}
-        setLocalCheckboxes={setLocalCheckboxes}
-        onResetSearch={handleResetSearch}
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+        field={field || ""}
+        onFieldChange={setField}
+        onSearch={handleSearchProducts}
+        onReset={handleResetSearch}
       />
       <div className="w-full flex justify-end pt-10 -mb-8">
+        <Button variant="outlined" onClick={handleOpenDrawer} className="mr-2">
+          카테고리 관리
+        </Button>
         <Button variant="outlined" onClick={openCreateModal} className="mr-2">
           제품생성
         </Button>
@@ -375,7 +363,7 @@ const ProductInfoTab = () => {
         <CircularPagination
           currentPage={pageStatus}
           totalPages={data?.pageInfo?.totalPages || 1}
-          onPageChange={(p) => setPageStatus(p)}
+          onPageChange={handleChangePage}
         />
       </div>
     </div>

@@ -1,9 +1,5 @@
 import { gql } from "@apollo/client";
 
-// enum CategoryOrderByInput {
-//   "asc",
-//   "desc",
-// }
 export const CHECK_ID = gql`
   query CheckIdDuplication($user_id: String) {
     isDuplicated(user_id: $user_id) {
@@ -37,25 +33,26 @@ export const USER_INFO_ADMIN = gql`
   }
 `;
 
+// export const FILTERED_USER_INFO_ADMIN = gql`
+//   query FilteredUsers($searchTerm: String!) {
+//     filteredUsers(searchTerm: $searchTerm) {
+//       id
+//       name
+//       user_id
+//       email
+//       phone_number
+//       status
+//       permissions
+//       gender
+//       created_at
+//       updated_at
+//     }
+//   }
+// `;
+
 export const FILTERED_USER_INFO_ADMIN = gql`
-  query FilteredUsers(
-    $name: String
-    $user_id: String
-    $email: String
-    $phone_number: String
-    $status: UserStatus
-    $permissions: UserPermissions
-    $gender: Gender
-  ) {
-    filteredUsers(
-      name: $name
-      user_id: $user_id
-      email: $email
-      phone_number: $phone_number
-      status: $status
-      permissions: $permissions
-      gender: $gender
-    ) {
+  query FilteredUserInfoAdmin($searchTerm: String!, $searchField: String!) {
+    filteredUsers(searchTerm: $searchTerm, searchField: $searchField) {
       id
       name
       user_id
@@ -72,24 +69,16 @@ export const FILTERED_USER_INFO_ADMIN = gql`
 
 export const PRODUCT_SEARCH_ADMIN = gql`
   query SearchProducts(
-    $id: String
-    $name: String
-    $desc: String
-    $status: ProductStatus
-    $is_deleted: Boolean
-    $category_id: Int
+    $searchTerm: String
+    $field: String
     $store_id: String
     $page: Int!
     $pageSize: Int!
   ) {
     searchProducts(
-      id: $id
-      name: $name
-      desc: $desc
-      category_id: $category_id
+      searchTerm: $searchTerm
+      field: $field
       store_id: $store_id
-      status: $status
-      is_deleted: $is_deleted
       page: $page
       pageSize: $pageSize
     ) {
@@ -135,7 +124,7 @@ export const PRODUCTS_INFO_ADMIN = gql`
         is_deleted
         status
         main_image_path
-        desc_images_path
+        # desc_images_path
         store_id
         created_at
         updated_at
@@ -169,7 +158,7 @@ export const PRODUCT_DETAILS_ADMIN = gql`
       is_deleted
       status
       main_image_path
-      desc_images_path
+      # desc_images_path
       created_at
       updated_at
       store_id
@@ -292,7 +281,7 @@ export const GET_ALL_ORDERS = gql`
             price
             desc
             main_image_path
-            desc_images_path
+            # desc_images_path
             is_deleted
             status
           }
@@ -339,7 +328,7 @@ export const GET_ORDER = gql`
           price
           desc
           main_image_path
-          desc_images_path
+          # desc_images_path
           is_deleted
           status
         }
@@ -379,7 +368,7 @@ export const SEARCH_ORDER = gql`
           price
           desc
           main_image_path
-          desc_images_path
+          # desc_images_path
           is_deleted
           status
         }
@@ -420,7 +409,7 @@ export const SEARCH_ORDER_BY_STATUS = gql`
           price
           desc
           main_image_path
-          desc_images_path
+          # desc_images_path
           is_deleted
           status
         }

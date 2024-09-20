@@ -12,11 +12,11 @@ import { cn } from "#/utils/utils";
 import DetermineInput from "#/common/DetermineInput";
 import SelectBox from "#/common/SelectBox";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void }) => {
   const [formState, setFormState] = useState<UserType>(user);
-  const [updateFc, { data: updateUserData, loading, error }] = useMutation(UPDATE_USER_ADMIN);
+  const [updateFc, { loading, error }] = useMutation(UPDATE_USER_ADMIN);
   const [checkEmailFc] = useLazyQuery(CHECK_EMAIL);
   const updateForm: UpdateUserFormItem[] = [
     {
@@ -77,11 +77,6 @@ const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void
       console.error(e);
     }
   };
-  useEffect(() => {
-    if (updateUserData) {
-      console.log(updateUserData);
-    }
-  }, [updateUserData]);
 
   const isDetermineInput = (item: UpdateUserFormItem): item is CustomUserDetermineInputProps => {
     return item.type === "determineInput";

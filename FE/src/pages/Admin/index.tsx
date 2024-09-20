@@ -1,18 +1,13 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
-import { Tab } from "#/common/Tabs";
+import HeaderAdmin from "#/common/HeaderAdmin";
 
-const AdminLayout: React.FC = () => {
+const AdminLayout = () => {
   return (
-    <div className="container mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
-      <nav className="flex border-b mb-4">
-        <Tab to="/" label="Home" />
-        <Tab to="/admin/user-info" label="User" />
-        <Tab to="/admin/product-info" label="Product" />
-        <Tab to="/admin/order-info" label="Order" />
-      </nav>
-      <Outlet />
+    <div className="font-sans">
+      <HeaderAdmin />
+      <div className="flex flex-col justify-center content-center">
+        <Outlet />
+      </div>
     </div>
   );
 };

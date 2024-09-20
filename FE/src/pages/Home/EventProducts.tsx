@@ -25,7 +25,7 @@ const EventProducts = ({ data }: { data: ProductType[] }) => {
           onError={handleImageError}
         />
       </div>
-      <div className="grid grid-cols-2 items-center auto-rows-max gap-10 rounded-md overflow-scroll mb-28 md:grid-cols-4">
+      <div className="grid grid-cols-2 items-center auto-rows-max gap-10 rounded-md overflow-scroll mb-28 md:grid-cols-4 ">
         {data?.map((p: ProductType) => (
           <EventProductCard key={p.id} product={p} />
         ))}

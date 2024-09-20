@@ -704,13 +704,8 @@ export interface NexusGenArgTypes {
       includeHierarchy?: boolean | null; // Boolean
     }
     filteredUsers: { // args
-      email?: string | null; // String
-      gender?: NexusGenEnums['Gender'] | null; // Gender
-      name?: string | null; // String
-      permissions?: NexusGenEnums['UserPermissions'] | null; // UserPermissions
-      phone_number?: string | null; // String
-      status?: NexusGenEnums['UserStatus'] | null; // UserStatus
-      user_id?: string | null; // String
+      searchField: string; // String!
+      searchTerm: string; // String!
     }
     getAllOrders: { // args
       page: number; // Int!
@@ -747,14 +742,10 @@ export interface NexusGenArgTypes {
       status?: NexusGenEnums['OrderStatus'] | null; // OrderStatus
     }
     searchProducts: { // args
-      category_id?: number | null; // Int
-      desc?: string | null; // String
-      id?: string | null; // String
-      is_deleted?: boolean | null; // Boolean
-      name?: string | null; // String
+      field?: string | null; // String
       page: number; // Int!
       pageSize: number; // Int!
-      status?: NexusGenEnums['ProductStatus'] | null; // ProductStatus
+      searchTerm?: string | null; // String
       store_id?: string | null; // String
     }
     searchStores: { // args

@@ -5,8 +5,7 @@ import { useQuery } from "@apollo/client";
 import { HOME_QUERY } from "#/apollo/query";
 import NewProducts from "#/pages/Home/NewProducts";
 import EventProducts from "#/pages/Home/EventProducts";
-import Categories from "#/pages/Home/Categories";
-import Newsletter from "#/pages/Home//Newsletter";
+import CarouselSlider from "#/pages/Home/CategoriesCarousel";
 import Map from "#/pages/Home/Map";
 
 const HomePage = () => {
@@ -34,10 +33,9 @@ const HomePage = () => {
     <>
       <Ad />
       <div className="max-w-screen-xl w-full mx-auto">
-        <Categories current={selectedCategory} onCategoryChange={setSelectedCategory} />
+        <CarouselSlider current={selectedCategory} onCategoryChange={setSelectedCategory} />
         <NewProducts data={data?.new} />
         <EventProducts data={data?.event} />
-        <Newsletter />
         <Map />
       </div>
     </>

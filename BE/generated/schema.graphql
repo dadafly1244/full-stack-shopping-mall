@@ -171,7 +171,7 @@ type ProductsResultFormHome {
 type Query {
   categories(includeHierarchy: Boolean, orderBy: CategoryOrderByInput): [Category!]!
   category(id: Int!, includeHierarchy: Boolean): Category
-  filteredUsers(email: String, gender: Gender, name: String, permissions: UserPermissions, phone_number: String, status: UserStatus, user_id: String): [User]!
+  filteredUsers(searchField: String!, searchTerm: String!): [User]!
   getAllOrders(page: Int! = 1, pageSize: Int! = 10): PaginatedOrdersResult!
   getAllProducts(page: Int! = 1, pageSize: Int! = 10): PaginatedProductsResult!
   getAllProductsForHomePage(category: String): ProductsResultFormHome!
@@ -182,7 +182,7 @@ type Query {
   searchCategories(includeHierarchy: Boolean, nameContains: String!): [Category!]!
   searchOrders(searchTerm: String!): [Order!]!
   searchOrdersByStatus(status: OrderStatus): [Order!]!
-  searchProducts(category_id: Int, desc: String, id: String, is_deleted: Boolean, name: String, page: Int! = 1, pageSize: Int! = 10, status: ProductStatus, store_id: String): PaginatedProductsResult!
+  searchProducts(field: String, page: Int! = 1, pageSize: Int! = 10, searchTerm: String, store_id: String): PaginatedProductsResult!
   searchStores(searchTerm: String!): [Store]
   store(id: String!): Store
   stores: [Store]

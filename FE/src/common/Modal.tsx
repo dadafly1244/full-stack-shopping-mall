@@ -16,7 +16,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, title, onClose, children }) => {
         className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
         onClick={onClose}
       ></div>
-      <div className="relative w-auto max-w-2xl mx-auto my-6">
+      <div className="relative w-auto max-w-4xl mx-auto my-6">
         <div className="relative flex flex-col w-full bg-white border-0 rounded-lg shadow-lg outline-none focus:outline-none">
           <div className="flex items-start justify-between p-5 border-b border-solid border-gray-300 rounded-t">
             <h3 className="text-2xl font-semibold text-gray-700">{title}</h3>

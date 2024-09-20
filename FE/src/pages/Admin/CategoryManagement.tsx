@@ -77,7 +77,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ category, level }) => {
     <div
       className={cn(
         `ml-${level * 3}`,
-        level === 0 ? "border-t border-blue-gray-400" : "border-none"
+        level === 0 ? "border-b border-blue-gray-400" : "border-none"
       )}
     >
       <div className="flex items-center py-2 ">
@@ -264,8 +264,8 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({ categories }) => {
   if (createError) return <p className="text-red-500">Error: {createError?.message}</p>;
   return (
     <div className="p-4 bg-white rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Category Tree</h2>
-      <div className="flex justify-start content-center">
+      {/* <h2 className="text-2xl font-bold mb-4 text-gray-800">Category Tree</h2> */}
+      <div className="flex justify-start content-center w-60">
         <Input
           onChange={handleChange}
           placeholder="새로운 카테고리 이름을 입력해 주세요"

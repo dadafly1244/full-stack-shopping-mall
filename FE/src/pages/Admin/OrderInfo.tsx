@@ -194,7 +194,7 @@ const OrderInfoTab = () => {
   if (error || filteredError) return <p>Error: {error?.message || filteredError?.message}</p>;
 
   return (
-    <div>
+    <div className="p-10">
       {/* <UpdateUserModal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -234,18 +234,18 @@ const OrderInfoTab = () => {
   );
 };
 
-interface UpdateUserModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  order: OrderType;
-}
+// interface UpdateUserModalProps {
+//   isOpen: boolean;
+//   onClose: () => void;
+//   order: OrderType;
+// }
 
-export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({ isOpen, onClose, order }) => {
-  return (
-    <Modal isOpen={isOpen} title="사용자 정보 수정" onClose={onClose}>
-      <UpdateOrderForm order={order} onClose={onClose} />
-    </Modal>
-  );
-};
+// export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({ isOpen, onClose, order }) => {
+//   return (
+//     <Modal isOpen={isOpen} title="사용자 정보 수정" onClose={onClose}>
+//       <UpdateOrderForm order={order} onClose={onClose} />
+//     </Modal>
+//   );
+// };
 
 export default OrderInfoTab;

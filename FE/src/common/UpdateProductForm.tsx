@@ -188,9 +188,9 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
   };
 
   return (
-    <div className="h-[80vh]">
+    <div className="h-[70vh]">
       <form onSubmit={handleUpdate}>
-        <div className="grid gap-6 mb-6 md:grid-cols-1 min-w-96 max-w-full">
+        <div className="grid gap-6 mb-6 md:grid-cols-1 lg:grid-cols-2 min-w-96 max-w-full w-[500px]">
           {updateForm.map((item) => {
             if (item.type === "determineInput") {
               const determineItem = item as CustomProductDetermineInputProps;
@@ -248,7 +248,7 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
         <button
           type="submit"
           className={cn(
-            `bg-blue-500 text-white border text-sm rounded-lg block min-w-20 w-full p-2.5 mb-5`
+            `bg-blue-500 text-white border text-sm rounded-lg block min-w-20 w-full p-2.5`
           )}
         >
           수정

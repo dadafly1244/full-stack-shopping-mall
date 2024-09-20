@@ -212,13 +212,13 @@ export interface TableColumn<T, S = T> {
   render?: (item: T) => ReactNode;
 }
 export interface TableProps<T, S = T> {
-  title: string;
+  title?: string;
   data: T[];
   columns: TableColumn<T, S>[];
   onSortClick?: (key: keyof S) => void;
   onRowClick?: (item: T) => void;
   onSelectionChange?: (selectedItems: T[]) => void;
-  sortState: SortState<S>;
+  sortState?: SortState<S>;
 }
 
 export type sortingItem = {

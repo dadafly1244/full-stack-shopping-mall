@@ -22,43 +22,181 @@ export const CustomError = objectType({
 export const ProductQuery = extendType({
   type: "Query",
   definition(t) {
-    // searchProducts query with pagination
+    // // searchProducts query with pagination
+    // t.field("searchProducts", {
+    //   type: nonNull("PaginatedProductsResult"),
+    //   args: {
+    //     id: stringArg(),
+    //     name: stringArg(),
+    //     desc: stringArg(),
+    //     status: nullable(arg({ type: "ProductStatus" })),
+    //     is_deleted: nullable(booleanArg()),
+    //     category_id: intArg(),
+    //     store_id: stringArg(),
+    //     page: nonNull(intArg({ default: 1 })),
+    //     pageSize: nonNull(intArg({ default: 10 })),
+    //   },
+    //   resolve: async (_, args, context) => {
+    //     try {
+    //       const where = {
+    //         OR: [
+    //           { id: args.id },
+    //           { name: { contains: args.name } },
+    //           { desc: { contains: args.desc } },
+    //           { status: args.status },
+    //           { is_deleted: args.is_deleted },
+    //           { category_id: args.category_id },
+    //           { store_id: args.store_id },
+    //         ],
+    //       };
+
+    //       const totalCount = await context.prisma.product.count({ where });
+
+    //       if (totalCount < 0 || totalCount === undefined) {
+    //         throw new GraphQLError("총 제품 수를 계산하지 못했습니다.", {
+    //           extensions: {
+    //             code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+    //           },
+    //         });
+    //       }
+    //       const products = await context.prisma.product.findMany({
+    //         where,
+    //         skip: (args.page - 1) * args.pageSize,
+    //         take: args.pageSize,
+    //       });
+
+    //       if (!products) {
+    //         throw new GraphQLError("제품을 찾지 못했습니다.", {
+    //           extensions: {
+    //             code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+    //           },
+    //         });
+    //       }
+    //       const processedProducts = products.map((product: Product) => ({
+    //         ...product,
+    //         desc_images_urls: product.desc_images_path
+    //           ? JSON.parse(product.desc_images_path as string)
+    //           : null,
+    //       }));
+
+    //       return {
+    //         products: processedProducts,
+    //         pageInfo: {
+    //           currentPage: args.page,
+    //           pageSize: args.pageSize,
+    //           totalCount,
+    //           totalPages: Math.ceil(totalCount / args.pageSize),
+    //         },
+    //       };
+    //     } catch (error) {
+    //       if (error instanceof GraphQLError) {
+    //         throw error;
+    //       }
+    //       throw new GraphQLError("Failed to search Products", {
+    //         extensions: {
+    //           code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+    //           invalidArgs: Object.keys(args).filter(
+    //             (key) => args[key] !== undefined,
+    //           ),
+    //         },
+    //       });
+    //     }
+    //   },
+    // });
     t.field("searchProducts", {
       type: nonNull("PaginatedProductsResult"),
       args: {
-        id: stringArg(),
-        name: stringArg(),
-        desc: stringArg(),
-        status: nullable(arg({ type: "ProductStatus" })),
-        is_deleted: nullable(booleanArg()),
-        category_id: intArg(),
-        store_id: stringArg(),
+        searchTerm: nullable(stringArg()),
+        field: nullable(stringArg()),
+        store_id: nullable(stringArg()),
         page: nonNull(intArg({ default: 1 })),
         pageSize: nonNull(intArg({ default: 10 })),
       },
       resolve: async (_, args, context) => {
         try {
-          const where = {
-            OR: [
-              { id: args.id },
-              { name: { contains: args.name } },
-              { desc: { contains: args.desc } },
-              { status: args.status },
-              { is_deleted: args.is_deleted },
-              { category_id: args.category_id },
-              { store_id: args.store_id },
-            ],
-          };
-
-          const totalCount = await context.prisma.product.count({ where });
-
-          if (totalCount < 0 || totalCount === undefined) {
-            throw new GraphQLError("총 제품 수를 계산하지 못했습니다.", {
-              extensions: {
-                code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
-              },
+          let where: any = {};
+          console.log(args);
+          if (args.searchTerm && args.field) {
+            switch (args.field) {
+              case "status":
+                const validStatuses = [
+                  "AVAILABLE",
+                  "TEMPORARILY_OUT_OF_STOCK",
+                  "OUT_OF_STOCK",
+                  "DISCONTINUED",
+                  "PROHIBITION_ON_SALE",
+                ];
+                if (validStatuses.includes(args.searchTerm)) {
+                  where.status = args.searchTerm;
+                } else {
+                  throw new GraphQLError("유효하지 않은 상태 값입니다.", {
+                    extensions: {
+                      code: ApolloServerErrorCode.BAD_USER_INPUT,
+                    },
+                  });
+                }
+                break;
+              case "categoryName":
+                const category = await context.prisma.category.findFirst({
+                  where: { name: args.searchTerm },
+                });
+                if (category) {
+                  where.category_id = category.id;
+                } else {
+                  throw new GraphQLError(
+                    "해당 이름의 카테고리를 찾을 수 없습니다.",
+                    {
+                      extensions: {
+                        code: ApolloServerErrorCode.BAD_USER_INPUT,
+                      },
+                    },
+                  );
+                }
+                break;
+              case "is_deleted":
+                where.is_deleted = args.searchTerm.toLowerCase() === "true";
+                break;
+              default:
+                where[args.field] = { contains: args.searchTerm };
+            }
+          } else if (args.searchTerm) {
+            where.OR = [
+              { id: { contains: args.searchTerm } },
+              { name: { contains: args.searchTerm } },
+              { desc: { contains: args.searchTerm } },
+            ];
+            // 카테고리 이름으로도 검색
+            const category = await context.prisma.category.findFirst({
+              where: { name: args.searchTerm },
             });
+            if (category) {
+              where.OR.push({ category_id: category.id });
+            }
+            // is_deleted 검색 추가
+            if (
+              args.searchTerm.toLowerCase() === "true" ||
+              args.searchTerm.toLowerCase() === "false"
+            ) {
+              where.OR.push({
+                is_deleted: args.searchTerm.toLowerCase() === "true",
+              });
+            }
           }
+
+          console.log(where);
+
+          // const totalCount = await context.prisma.product.count({
+          //   where: where,
+          // });
+
+          // if (totalCount < 0 || totalCount === undefined) {
+          //   throw new GraphQLError("총 제품 수를 계산하지 못했습니다.", {
+          //     extensions: {
+          //       code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+          //     },
+          //   });
+          // }
+
           const products = await context.prisma.product.findMany({
             where,
             skip: (args.page - 1) * args.pageSize,
@@ -72,6 +210,7 @@ export const ProductQuery = extendType({
               },
             });
           }
+
           const processedProducts = products.map((product: Product) => ({
             ...product,
             desc_images_urls: product.desc_images_path
@@ -84,8 +223,8 @@ export const ProductQuery = extendType({
             pageInfo: {
               currentPage: args.page,
               pageSize: args.pageSize,
-              totalCount,
-              totalPages: Math.ceil(totalCount / args.pageSize),
+              totalCount: products.length,
+              totalPages: Math.ceil(products.length / args.pageSize),
             },
           };
         } catch (error) {

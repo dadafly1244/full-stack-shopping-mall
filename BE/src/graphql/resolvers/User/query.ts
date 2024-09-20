@@ -11,7 +11,74 @@ import {
   arg,
 } from "nexus";
 import { isAdmin } from "#/graphql/validators";
-import { Prisma } from "@prisma/client";
+import {
+  Gender,
+  User,
+  UserPermissions,
+  UserStatus,
+  Prisma,
+} from "@prisma/client";
+type KoreanToEnumMap = {
+  gender: Record<string, Gender>;
+  permissions: Record<string, UserPermissions>;
+  status: Record<string, UserStatus>;
+};
+const koreanToEnumMap: KoreanToEnumMap = {
+  gender: {
+    남성: Gender.MALE,
+    여성: Gender.FEMALE,
+    기타: Gender.OTHER,
+    선택안함: Gender.PREFER_NOT_TO_SAY,
+  },
+  permissions: {
+    관리자: UserPermissions.ADMIN,
+    사용자: UserPermissions.USER,
+  },
+  status: {
+    활성화: UserStatus.ACTIVE,
+    탈퇴: UserStatus.INACTIVE,
+    정지: UserStatus.SUSPENDED,
+  },
+};
+
+type SearchField = keyof Pick<
+  User,
+  | "gender"
+  | "permissions"
+  | "status"
+  | "name"
+  | "email"
+  | "user_id"
+  | "phone_number"
+>;
+
+type EnumFields = keyof KoreanToEnumMap;
+
+function isEnumField(field: SearchField): field is EnumFields {
+  return field in koreanToEnumMap;
+}
+
+function createWhereClause(
+  searchField: SearchField,
+  searchTerm: string,
+): Prisma.UserWhereInput {
+  if (isEnumField(searchField)) {
+    let enumValue: Gender | Permissions | UserStatus | undefined;
+
+    // 먼저 searchTerm이 직접적인 열거형 값인지 확인
+    if (
+      Object.values(koreanToEnumMap[searchField]).includes(searchTerm as any)
+    ) {
+      enumValue = searchTerm as Gender | Permissions | UserStatus;
+    }
+
+    if (enumValue) {
+      return { [searchField]: { equals: enumValue } };
+    }
+    throw new Error(`Invalid ${searchField} value: ${searchTerm}`);
+  }
+  return { [searchField]: { contains: searchTerm } };
+}
 
 export const UserQuery = extendType({
   type: "Query",
@@ -28,26 +95,18 @@ export const UserQuery = extendType({
       // 관리자: 사용자 검색
       type: "User",
       args: {
-        name: nullable(stringArg()),
-        user_id: nullable(stringArg()),
-        email: nullable(stringArg()),
-        phone_number: nullable(stringArg()),
-        status: nullable(arg({ type: "UserStatus" })),
-        permissions: nullable(arg({ type: "UserPermissions" })),
-        gender: nullable(arg({ type: "Gender" })),
+        searchTerm: nonNull(stringArg()),
+        searchField: nonNull(stringArg()),
       },
       authorize: isAdmin,
-      resolve: async (_, args, context) => {
-        const where: Prisma.UserWhereInput = {};
-        if (args.name) where.name = { contains: args.name };
-        if (args.user_id) where.user_id = { contains: args.user_id };
-        if (args.email) where.email = { contains: args.email };
-        if (args.phone_number)
-          where.phone_number = { contains: args.phone_number };
-        if (args.status) where.status = args.status;
-        if (args.permissions) where.permissions = args.permissions;
-        if (args.gender) where.gender = args.gender;
-        const users = await context.prisma.user.findMany({ where });
+      resolve: async (_, { searchTerm, searchField }, context) => {
+        const validatedSearchField = searchField as SearchField;
+        const whereClause = createWhereClause(validatedSearchField, searchTerm);
+
+        const users = await context.prisma.user.findMany({
+          where: whereClause,
+        });
+
         return users;
       },
     });

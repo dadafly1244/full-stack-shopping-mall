@@ -14,7 +14,7 @@ import DetermineInput from "#/common/DetermineInput";
 import DetermineTextarea from "#/common/DetermineTextarea";
 import SelectBox from "#/common/SelectBox";
 // import { formatNumber } from "#/utils/formatter";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   validateProductName,
   validateProductDesc,
@@ -25,7 +25,7 @@ import { SelectCategoryTree } from "#/pages/Admin/SelectCategory";
 
 const UpdateOrderForm = ({ order, onClose }: { order: ProductType; onClose: () => void }) => {
   const [formState, setFormState] = useState<ProductType>(order);
-  const [updateFc, { data: updateProductData, loading, error }] = useMutation(UPDATE_PRODUCT_ADMIN);
+  const [updateFc, { loading, error }] = useMutation(UPDATE_PRODUCT_ADMIN);
 
   const updateForm: UpdateProductFormItem[] = [
     {
@@ -87,12 +87,6 @@ const UpdateOrderForm = ({ order, onClose }: { order: ProductType; onClose: () =
     },
   ];
 
-  useEffect(() => {
-    if (updateProductData) {
-      console.log(updateProductData);
-    }
-  }, [updateProductData]);
-
   const isDetermineInput = (
     item: UpdateProductFormItem
   ): item is CustomProductDetermineInputProps => {
@@ -108,13 +102,11 @@ const UpdateOrderForm = ({ order, onClose }: { order: ProductType; onClose: () =
     }));
   };
 
-  const handleMainImageSelect = (imagePaths: string[]) => {
-    console.log("Selected image paths:", imagePaths);
+  const handleMainImageSelect = (imagePaths: File[]) => {
     handleInputChange("main_image_path", imagePaths.toString());
   };
 
-  const handleDescImageSelect = (imagePaths: string[]) => {
-    console.log("Selected image paths:", imagePaths);
+  const handleDescImageSelect = (imagePaths: File[]) => {
     handleInputChange("desc_images_path", `[${imagePaths.toString()}]`);
   };
 

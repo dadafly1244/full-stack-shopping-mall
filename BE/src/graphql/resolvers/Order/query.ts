@@ -64,6 +64,7 @@ export const OrderQuery = extendType({
             where: { is_deleted: false },
             include: { order_details: true },
           });
+
           if (!orders) {
             throw new GraphQLError("제품을 찾지 못했습니다.", {
               extensions: {
@@ -72,7 +73,7 @@ export const OrderQuery = extendType({
             });
           }
           return {
-            orders,
+            orders, // TODO: 여기에서 order 에러나는거 고치기
             pageInfo: {
               currentPage: args.page,
               pageSize: args.pageSize,

@@ -11,14 +11,14 @@ const NewProductCard = ({ product }: { product: ProductType }) => {
   const isNewProduct = isSignificantDiscount(product?.sale, product.price);
   const percentage = calculateDiscountPercentage(product?.sale, product.price);
   return (
-    <div className="border border-solid border-gray-300 rounded-md ">
+    <div className="border border-solid border-gray-300 rounded-md group hover:bg-white overflow-hidden hover:cursor-pointer">
       <div className="flex h-64 w-full items-start  relative  box-border">
         <ProductImage
           key="headerImage"
           alt="New products header image"
           imagePath={product.main_image_path}
           fallbackImage={NoImage}
-          className="flex relative self-stretch"
+          className="flex relative self-stretch transition-transform group-hover:scale-110"
         />
         {percentage > 0 && (
           <div className="flex-col inline-flex items-center justify-center px-2 py-1 absolute top-0 right-0 bg-color-background-positive-default rounded-[6px_0px_6px_0px] bg-lime-700">
