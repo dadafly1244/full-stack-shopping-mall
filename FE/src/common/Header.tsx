@@ -102,11 +102,6 @@ const Header = () => {
           <img src={LogoImage} alt="infofla(인포플라) 로고" className="h-8" />
         </NavLink>
 
-        {isShowAdminButton && (
-          <NavLink to="/admin" className="text-blue-gray-200 text-sm flex items-center">
-            관리자 페이지
-          </NavLink>
-        )}
         <Typography
           as="li"
           variant="small"
@@ -148,6 +143,14 @@ const Header = () => {
           </div>
         </Typography>
         <div className="flex items-center gap-x-1">
+          {isShowAdminButton && (
+            <NavLink
+              to="/admin"
+              className="text-blue-gray-200 text-sm flex items-center  after:content-['|'] after:text-gray-400 after:mx-2"
+            >
+              관리자 페이지
+            </NavLink>
+          )}
           {token && refreshToken ? (
             <>
               <Typography
