@@ -63,7 +63,7 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
       return (
         <div className="relative">
           <Select
-            className="w-60"
+            className="w-60 !max-w-[10rem] !min-w-40"
             name={selectedOption}
             label={`${searchLabel[selectedOption as keyof searchLabelType]} 선택`}
             value={selectedOption2nd}
@@ -73,7 +73,7 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
               }
             }}
             containerProps={{
-              className: "min-w-[10rem] max-w-[10rem]",
+              className: "!min-w-[10rem] !max-w-[10rem]",
             }}
           >
             {Object.entries(predefinedOptions[selectedOption as keyof PredefinedOptionsType]).map(
@@ -96,20 +96,12 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
             label={`${searchLabel[selectedOption as keyof searchLabelType]} 검색...`}
             value={searchValue}
             onChange={(e) => onSearchValue(e.target.value)}
-            className="pr-16"
+            className=" !max-w-[10rem]  !min-w-[10rem]"
             containerProps={{
-              className: "min-w-[10rem] max-w-[10rem]",
+              className: "!min-w-[10rem] !max-w-[10rem]",
             }}
             crossOrigin={undefined}
           />
-          {/* <div className="!absolute right-1 top-1 ">
-            <Button onClick={onResetSearch} size="sm" variant="outlined" className="rounded">
-              초기화
-            </Button>
-            <Button onClick={onClickSearch} size="sm" className="rounded">
-              검색
-            </Button>
-          </div> */}
         </div>
       );
     }
@@ -128,8 +120,9 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
               onSelected2nd("");
             }
           }}
+          className="!max-w-[10rem] !min-w-[10rem]"
           containerProps={{
-            className: "min-w-[10rem] max-w-[10rem]",
+            className: "!min-w-[10rem] !max-w-[10rem]",
           }}
         >
           {Object.entries(searchLabel).map(([key, value]) => (
@@ -140,7 +133,7 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
         </Select>
       </div>
       {selectedOption && renderInputOrSelect()}
-      <div className="flex justify-center">
+      <div className="flex justify-center gap-3">
         <Button onClick={onResetSearch} size="sm" variant="outlined" className="rounded">
           초기화
         </Button>

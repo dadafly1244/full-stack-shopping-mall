@@ -223,7 +223,6 @@ const UserInfoTab = () => {
   };
 
   const columns: TableColumn<UserType, sortingItem>[] = [
-    // { header: "ID", key: "id" },
     { header: "User ID", key: "user_id", sort: sortState.user_id as keyof sortingItem },
     { header: "Name", key: "name", sort: sortState.name as keyof sortingItem },
     { header: "Email", key: "email", sort: sortState.email as keyof sortingItem },
