@@ -19,6 +19,7 @@ import { sortObjectsByKey } from "#/utils/sort";
 import { useSearchParams } from "react-router-dom";
 import SearchUser from "./SearchUser";
 import { Button } from "@material-tailwind/react";
+import Breadcrumb from "#/common/Breadcrumb";
 
 const init_user = {
   id: "",
@@ -293,28 +294,33 @@ const UserInfoTab = () => {
     );
 
   return (
-    <div className="p-10">
-      <UpdateUserModal isOpen={isModalOpen} onClose={closeModal} user={clickedUser as UserType} />
-      <SearchUser
-        selectedOption={selectedOption}
-        onSelect={setSelectedOption}
-        searchValue={searchValue}
-        onSearchValue={setSearchValue}
-        selectedOption2nd={selectedOption2nd}
-        onSelected2nd={setSelectedOption2nd}
-        onResetSearch={handleResetSearch}
-        onClickSearch={handleSearchUser}
-      />
-      <Table<UserType, sortingItem>
-        // title="User List"
-        data={data}
-        sortState={sortState}
-        columns={columns}
-        onSortClick={handleSortClick}
-        onRowClick={handleRowClick}
-        onSelectionChange={handleSelectionChange}
-      />
-    </div>
+    <>
+      <div className="pt-5">
+        <Breadcrumb />
+      </div>
+      <div className="py-10">
+        <UpdateUserModal isOpen={isModalOpen} onClose={closeModal} user={clickedUser as UserType} />
+        <SearchUser
+          selectedOption={selectedOption}
+          onSelect={setSelectedOption}
+          searchValue={searchValue}
+          onSearchValue={setSearchValue}
+          selectedOption2nd={selectedOption2nd}
+          onSelected2nd={setSelectedOption2nd}
+          onResetSearch={handleResetSearch}
+          onClickSearch={handleSearchUser}
+        />
+        <Table<UserType, sortingItem>
+          // title="User List"
+          data={data}
+          sortState={sortState}
+          columns={columns}
+          onSortClick={handleSortClick}
+          onRowClick={handleRowClick}
+          onSelectionChange={handleSelectionChange}
+        />
+      </div>
+    </>
   );
 };
 

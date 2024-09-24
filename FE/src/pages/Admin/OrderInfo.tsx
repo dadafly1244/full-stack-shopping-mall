@@ -194,7 +194,7 @@ const OrderInfoTab = () => {
   if (error || filteredError) return <p>Error: {error?.message || filteredError?.message}</p>;
 
   return (
-    <div className="p-10">
+    <div className="pt-5 pb-10">
       {/* <UpdateUserModal
         isOpen={isModalOpen}
         onClose={closeModal}

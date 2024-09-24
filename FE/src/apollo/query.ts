@@ -90,6 +90,8 @@ export const PRODUCT_SEARCH_ADMIN = gql`
         sale
         count
         is_deleted
+        main_image_path
+        desc_images_path
         status
         created_at
         updated_at
@@ -124,7 +126,7 @@ export const PRODUCTS_INFO_ADMIN = gql`
         is_deleted
         status
         main_image_path
-        # desc_images_path
+        desc_images_path
         store_id
         created_at
         updated_at
@@ -158,7 +160,7 @@ export const PRODUCT_DETAILS_ADMIN = gql`
       is_deleted
       status
       main_image_path
-      # desc_images_path
+      desc_images_path
       created_at
       updated_at
       store_id

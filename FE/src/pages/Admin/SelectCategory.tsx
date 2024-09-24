@@ -124,7 +124,12 @@ const SelectCategoryTree: React.FC<CategoryTreeProps> = ({
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       <h2 className="text-sm font-bold mb-2 text-gray-800">
-        카테고리 :<span className="text-gray-400">{selectedCategory?.name}</span>
+        카테고리 :
+        {selectedCategory?.name && (
+          <span className="ml-2 inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+            {selectedCategory?.name}
+          </span>
+        )}
       </h2>
       {categories.map((category) => (
         <TreeNode

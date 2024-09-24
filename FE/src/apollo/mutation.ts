@@ -244,7 +244,7 @@ export const UPDATE_PRODUCT_ADMIN = gql`
     $price: Int!
     $sale: Int
     $count: Int
-    $main_image_path: Upload!
+    $main_image_path: Upload
     $desc_images_path: [Upload!]
     $category_id: Int!
   ) {

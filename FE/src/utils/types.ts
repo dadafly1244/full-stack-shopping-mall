@@ -111,6 +111,7 @@ export interface DetermineInputProps {
   variant?: "default" | "pass" | "nonePass";
   button?: string | (() => Promise<string>);
   buttonClick?: (value: string) => Promise<boolean>;
+  value?: string;
 }
 
 export interface CustomDetermineInputProps extends Omit<DetermineInputProps, "isRight"> {
@@ -167,7 +168,7 @@ export interface DetermineTextareaProps {
   variant?: "default" | "pass" | "nonePass";
   button?: string | (() => Promise<string>);
   buttonClick?: (value: string) => Promise<boolean>;
-
+  value?: string;
   // Textarea 특화 속성
   rows?: number;
   maxLength?: number;

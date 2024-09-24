@@ -15,14 +15,14 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
   onCancel,
 }) => {
   return (
-    <Dialog open={isOpen} handler={onCancel}>
-      <DialogHeader>확인</DialogHeader>
-      <DialogBody divider>{message}</DialogBody>
-      <DialogFooter>
-        <Button variant="text" color="red" onClick={onCancel} className="mr-1">
+    <Dialog open={isOpen} size="xs" handler={onCancel}>
+      <DialogHeader className="text-base font-bold">확인</DialogHeader>
+      <DialogBody className="text-sm font-bold text-center">{message}</DialogBody>
+      <DialogFooter className="flex w-full justify-center ">
+        <Button variant="outlined" onClick={onCancel} className="mr-1">
           취소
         </Button>
-        <Button variant="gradient" color="green" onClick={onConfirm}>
+        <Button variant="filled" onClick={onConfirm}>
           확인
         </Button>
       </DialogFooter>

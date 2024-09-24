@@ -104,7 +104,7 @@ const Header = () => {
 
   return (
     <Navbar className="sticky top-0 z-10 h-max max-w-full rounded-none px-4 py-2 lg:px-8 lg:py-4 shadow-none bg-white border-b border-solid border-blue-gray-50">
-      <ul className="hidden mt-1 mb-2 lg:flex flex-row lg:mb-0 lg:mt-0 justify-center lg:content-center lg:max-w-screen-lg lg:w-full lg:mx-auto lg:justify-between">
+      <ul className="hidden mt-1 mb-2 lg:flex flex-row lg:mb-0 lg:mt-0 justify-center lg:content-center lg:max-w-screen-xl lg:w-full lg:mx-auto lg:justify-between">
         <NavLink to="/" className="flex flex-start items-center space-x-3 rtl:space-x-reverse">
           <img src={LogoImage} alt="infofla(인포플라) 로고" className="h-8" />
         </NavLink>

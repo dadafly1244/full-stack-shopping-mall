@@ -23,6 +23,7 @@ import {
 } from "#/utils/validateProduct";
 import ImageUpload from "#/common/ImageUploadFile";
 import { SelectCategoryTree } from "#/pages/Admin/SelectCategory";
+import { Tooltip } from "@material-tailwind/react";
 type UpdateProductInput = {
   id: string;
   name: string;
@@ -101,12 +102,6 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
       },
     },
   ];
-
-  useEffect(() => {
-    if (updateProductData) {
-      console.log(updateProductData);
-    }
-  }, [updateProductData]);
 
   const isDetermineInput = (
     item: UpdateProductFormItem
@@ -232,6 +227,7 @@ const UpdateProductForm = ({ product, onClose }: { product: ProductType; onClose
             }
             return null;
           })}
+
           <ImageUpload
             onImageSelect={handleMainImageSelect}
             title="제품 대표 사진"

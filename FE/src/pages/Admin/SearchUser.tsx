@@ -72,6 +72,9 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
                 onSelected2nd(value);
               }
             }}
+            containerProps={{
+              className: "min-w-[10rem] max-w-[10rem]",
+            }}
           >
             {Object.entries(predefinedOptions[selectedOption as keyof PredefinedOptionsType]).map(
               ([key, value]) => {
@@ -83,39 +86,38 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
               }
             )}
           </Select>
-          <Button onClick={onClickSearch} size="sm" className="!absolute -right-16 top-1 rounded">
-            검색
-          </Button>
         </div>
       );
     } else {
       return (
-        <div className="relative flex w-fit gap-2">
+        <div className="relative flex w-40 gap-2">
           <Input
             type="search"
             label={`${searchLabel[selectedOption as keyof searchLabelType]} 검색...`}
             value={searchValue}
             onChange={(e) => onSearchValue(e.target.value)}
-            className="pr-20"
+            className="pr-16"
             containerProps={{
-              className: "min-w-[288px]",
+              className: "min-w-[10rem] max-w-[10rem]",
             }}
             crossOrigin={undefined}
           />
-          <Button onClick={onClickSearch} size="sm" className="!absolute right-1 top-1 rounded">
-            검색
-          </Button>
+          {/* <div className="!absolute right-1 top-1 ">
+            <Button onClick={onResetSearch} size="sm" variant="outlined" className="rounded">
+              초기화
+            </Button>
+            <Button onClick={onClickSearch} size="sm" className="rounded">
+              검색
+            </Button>
+          </div> */}
         </div>
       );
     }
   };
 
   return (
-    <div className="relative flex gap-4 max-w-screen-md mb-10">
-      <Button onClick={onResetSearch} size="sm" variant="outlined" className="rounded">
-        초기화
-      </Button>
-      <div className="w-56">
+    <div className="relative flex gap-4 mb-10">
+      <div className="w-40">
         <Select
           label="검색 옵션 선택"
           value={selectedOption}
@@ -126,6 +128,9 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
               onSelected2nd("");
             }
           }}
+          containerProps={{
+            className: "min-w-[10rem] max-w-[10rem]",
+          }}
         >
           {Object.entries(searchLabel).map(([key, value]) => (
             <Option key={key} value={key}>
@@ -135,6 +140,14 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
         </Select>
       </div>
       {selectedOption && renderInputOrSelect()}
+      <div className="flex justify-center">
+        <Button onClick={onResetSearch} size="sm" variant="outlined" className="rounded">
+          초기화
+        </Button>
+        <Button onClick={onClickSearch} size="sm" className="rounded">
+          검색
+        </Button>
+      </div>
     </div>
   );
 };

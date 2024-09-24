@@ -39,6 +39,10 @@ const SearchUser: React.FC<SearchUserProps> = ({
           label="삭제 여부 선택"
           value={searchTerm}
           onChange={(value) => value && onSearchTermChange(value)}
+          className="!max-w-[288px]"
+          containerProps={{
+            className: "min-w-[288px] max-w-[288px]",
+          }}
         >
           <Option value="true">삭제됨</Option>
           <Option value="false">삭제되지 않음</Option>
@@ -50,6 +54,10 @@ const SearchUser: React.FC<SearchUserProps> = ({
           label="상태 선택"
           value={searchTerm}
           onChange={(value) => value && onSearchTermChange(value)}
+          className="!max-w-[288px]"
+          containerProps={{
+            className: "min-w-[288px] max-w-[288px]",
+          }}
         >
           <Option value="AVAILABLE">이용 가능</Option>
           <Option value="DISCONTINUED">단종</Option>
@@ -62,13 +70,17 @@ const SearchUser: React.FC<SearchUserProps> = ({
       return (
         <Input
           type="search"
-          label={`${searchFields[field as keyof typeof searchFields]} 검색...`}
+          label={`${
+            !searchFields[field as keyof typeof searchFields]
+              ? "전체"
+              : searchFields[field as keyof typeof searchFields]
+          } 검색...`}
           value={searchTerm}
           onChange={handleChange}
-          className="pr-20 w-20 h-10"
+          className="w-20 h-10"
           crossOrigin={undefined}
           containerProps={{
-            className: "min-w-[288px]",
+            className: "min-w-[288px] max-w-[288px]",
           }}
         />
       );
@@ -76,16 +88,12 @@ const SearchUser: React.FC<SearchUserProps> = ({
   };
 
   return (
-    <div className="flex gap-4 max-w-screen-md">
-      <div className="flex gap-4">
-        <Button onClick={onReset} size="sm" variant="outlined" className="w-20 h-10 rounded">
-          초기화
-        </Button>
+    <div className="flex w-full justify-end gap-2 mb-4 ">
+      <div className="flex gap-2">
         <Select
           label="검색 필드 선택"
           value={field}
           onChange={(value) => {
-            console.log(22, value);
             if (value === "all") {
               onFieldChange("");
               onSearchTermChange("");
@@ -93,6 +101,10 @@ const SearchUser: React.FC<SearchUserProps> = ({
               onFieldChange(value as string);
               onSearchTermChange("");
             }
+          }}
+          className="!max-w-[8rem]"
+          containerProps={{
+            className: "min-w-[8rem] max-w-[8rem]",
           }}
         >
           {Object.entries(searchFields).map(([key, value]) => (
@@ -102,8 +114,11 @@ const SearchUser: React.FC<SearchUserProps> = ({
           ))}
         </Select>
       </div>
-      <div className="flex gap-4 items-end">
+      <div className="flex gap-2 items-end">
         {renderInput()}
+        <Button onClick={onReset} size="sm" variant="outlined" className="w-20 h-10 rounded">
+          초기화
+        </Button>
         <Button onClick={onSearch} size="sm" className="w-20 h-10 rounded">
           검색
         </Button>

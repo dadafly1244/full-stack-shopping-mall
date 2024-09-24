@@ -20,6 +20,7 @@ const DetermineTextarea = (props: DetermineTextareaProps): ReactElement => {
     button: initialButtonText,
     buttonClick,
     maxLength = 1000,
+    value,
   } = props;
 
   const labelVariants = cva(`block mb-2 text-sm font-medium`, {
@@ -35,7 +36,7 @@ const DetermineTextarea = (props: DetermineTextareaProps): ReactElement => {
     },
   });
 
-  const [_inputValue, setInputValue] = useState("");
+  const [_inputValue, setInputValue] = useState(value ? value : "");
   const [debouncedInput, setDebouncedInput] = useState(_inputValue);
   const [_valiant, setValiant] = useState(variant);
   const textareaRef = useRef(null);

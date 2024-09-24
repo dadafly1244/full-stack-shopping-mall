@@ -19,6 +19,7 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
     variant = "default",
     button: initialButtonText,
     buttonClick,
+    value,
   } = props;
 
   const labelVariants = cva(`block mb-2 text-sm font-medium`, {
@@ -34,7 +35,7 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
     },
   });
 
-  const [_inputValue, setInputValue] = useState("");
+  const [_inputValue, setInputValue] = useState(value ? value : "");
   const [debouncedInput, setDebouncedInput] = useState(_inputValue);
   const [_valiant, setValiant] = useState(variant);
   const inputRef = useRef(null);
