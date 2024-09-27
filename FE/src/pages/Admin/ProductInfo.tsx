@@ -146,6 +146,7 @@ const ProductInfoTab = () => {
     setSearchParams(newSearchParams);
     setData(allData.getAllProducts);
     setSearchTerm("");
+    setField("");
   };
 
   const handleUpdateState = async (v: ProductStatus, id: string) => {

@@ -1,7 +1,7 @@
 import { MouseEvent, useEffect, useState, useCallback } from "react";
 import Table from "#/common/Table";
 import { PAGINATED_USER_LIST } from "#/apollo/query";
-import { useMutation, useQuery } from "@apollo/client";
+import { useLazyQuery, useMutation } from "@apollo/client";
 import { ACTIVE_USER_ADMIN, SUSPENDED_USER_ADMIN } from "#/apollo/mutation";
 import {
   UserType,
@@ -20,6 +20,7 @@ import { Button } from "@material-tailwind/react";
 import Breadcrumb from "#/common/Breadcrumb";
 import { cn } from "#/utils/utils";
 import CircularPagination from "#/common/Pagenation";
+import { NavLink } from "react-router-dom";
 
 const PAGE_SIZE = 10;
 const init_user = {
@@ -80,35 +81,30 @@ const UserInfoTab = () => {
       totalPages: 1,
     },
   });
+  const [paginatedUsersQuery, { data: allData, error, loading }] =
+    useLazyQuery(PAGINATED_USER_LIST);
 
   useEffect(() => {
     searchParams.set("pageStatus", "1");
     setSearchParams(searchParams);
+    paginatedUsersQuery({
+      variables: {
+        page: pageStatus,
+        pageSize: PAGE_SIZE,
+      },
+      onCompleted: (allData) => {
+        if (allData.paginatedUsers.users.length > 0) {
+          setData(allData.paginatedUsers);
+        }
+      },
+      fetchPolicy: "network-only",
+    });
   }, []);
 
   useEffect(() => {
     console.log(data.pageInfo);
   }, [data]);
 
-  const {
-    data: allData,
-    loading,
-    error,
-    refetch,
-  } = useQuery(PAGINATED_USER_LIST, {
-    variables: {
-      page: pageStatus,
-      pageSize: PAGE_SIZE,
-      // searchTerm: "jc",
-      // searchField: "email",
-    },
-    onCompleted: (allData) => {
-      if (allData.paginatedUsers.users.length > 0) {
-        setData(allData.paginatedUsers);
-      }
-    },
-    fetchPolicy: "network-only",
-  });
   const [suspendedUser] = useMutation(SUSPENDED_USER_ADMIN, {
     refetchQueries: [{ query: PAGINATED_USER_LIST }],
     awaitRefetchQueries: true,
@@ -130,7 +126,7 @@ const UserInfoTab = () => {
       searchTermValue = searchValue;
     }
 
-    await refetch({
+    paginatedUsersQuery({
       variables: {
         page: pageStatus,
         pageSize: PAGE_SIZE,
@@ -138,7 +134,7 @@ const UserInfoTab = () => {
         searchField: selectedOption,
       },
     });
-  }, [selectedOption, selectedOption2nd, searchValue, refetch, pageStatus]);
+  }, [selectedOption, selectedOption2nd, searchValue, pageStatus, paginatedUsersQuery]);
 
   useEffect(() => {
     console.log(allData);
@@ -202,7 +198,7 @@ const UserInfoTab = () => {
 
   const handleChangePage = (p: number) => {
     setPageStatus(p);
-    refetch({
+    paginatedUsersQuery({
       variables: {
         page: pageStatus,
         pageSize: PAGE_SIZE,
@@ -298,15 +294,18 @@ const UserInfoTab = () => {
   if (loading) return <p>Loading...</p>;
   if (error)
     return (
-      <div className="w-full">
+      <div className="w-full h-full p-40 flex flex-col justify-center content-center items-center">
+        <div>에러가 났습니다.</div>
         <div>Error: {error?.message}</div>
-        <div className="w-full flex flex-col justify-center content-center">
+        <div className="w-full  flex flex-col justify-center items-center">
           <div className="w-56 h-56">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
               <path d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480L40 480c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24l0 112c0 13.3 10.7 24 24 24s24-10.7 24-24l0-112c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z" />
             </svg>
           </div>
-          <Button onClick={handleResetSearch}>되돌아가기</Button>
+          <NavLink to="/">
+            <Button className="w-52">홈 페이지로 되돌아가기</Button>
+          </NavLink>
         </div>
       </div>
     );
