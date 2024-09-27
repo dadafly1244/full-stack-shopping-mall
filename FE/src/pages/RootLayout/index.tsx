@@ -13,10 +13,20 @@ const RootLayout = () => {
       </div>
     );
   }
+  if (["/"].includes(location.pathname)) {
+    return (
+      <div className="font-sans">
+        <Header />
+        <div className="flex flex-col justify-center content-center">
+          <Outlet />
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="font-sans">
       <Header />
-      <div className="flex flex-col justify-center content-center">
+      <div className="max-w-screen-xl mx-auto py-5">
         <Outlet />
       </div>
     </div>

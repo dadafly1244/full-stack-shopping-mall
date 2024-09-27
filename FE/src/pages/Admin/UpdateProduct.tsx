@@ -58,10 +58,6 @@ const UpdateProduct = () => {
     }
   }, [data]);
 
-  useEffect(() => {
-    console.log(descImages);
-  }, [descImages]);
-
   const updateForm: UpdateProductFormItem[] = [
     {
       type: "determineInput",
@@ -94,9 +90,9 @@ const UpdateProduct = () => {
     {
       type: "determineInput",
       key: "count",
-      label: "수량",
+      label: "재고",
       placeholder: "숫자만 입력해 주세요.",
-      wrongMessage: "수량을 다시 입력해 주세요.",
+      wrongMessage: "재고을 다시 입력해 주세요.",
       isRight: (count: number | string) => {
         if (typeof count === "string") {
           const nan = isNaN(Number(count));

@@ -63,11 +63,6 @@ const Header = () => {
 
   const navList = (
     <ul className="mt-2 mb-4 flex flex-col gap-2 lg:mb-0 lg:mt-0 lg:flex-row lg:items-center lg:gap-6">
-      {isShowAdminButton && (
-        <NavLink to="/admin" className="text-blue-gray-200 text-sm">
-          관리자 페이지
-        </NavLink>
-      )}
       <Typography
         as="li"
         variant="small"
@@ -143,14 +138,6 @@ const Header = () => {
           </div>
         </Typography>
         <div className="flex items-center gap-x-1">
-          {isShowAdminButton && (
-            <NavLink
-              to="/admin"
-              className="text-blue-gray-200 text-sm flex items-center  after:content-['|'] after:text-gray-400 after:mx-2"
-            >
-              관리자 페이지
-            </NavLink>
-          )}
           {token && refreshToken ? (
             <>
               <Typography
@@ -159,6 +146,14 @@ const Header = () => {
                 color="blue-gray"
                 className="flex items-center gap-x-2 p-1 font-medium"
               >
+                {isShowAdminButton && (
+                  <NavLink
+                    to="/admin"
+                    className="text-blue-gray-200 text-sm flex items-center  after:content-['|'] after:text-gray-400 after:mx-2"
+                  >
+                    관리자 페이지
+                  </NavLink>
+                )}
                 <svg
                   width="16"
                   height="17"
@@ -186,7 +181,6 @@ const Header = () => {
             </>
           ) : (
             <>
-              {" "}
               <NavLink
                 to="/signin"
                 className="text-black text-sm after:content-['|'] after:text-gray-400 after:mx-2"
@@ -271,7 +265,12 @@ const Header = () => {
           <div className="flex flex-col gap-x-2">
             <div className="flex justify-start items-center gap-x-1 my-10">
               {token || refreshToken ? (
-                <>
+                <div className="flex flex-col w-full gap-10">
+                  {isShowAdminButton && (
+                    <NavLink to="/admin" className="text-blue-gray-200 text-sm">
+                      관리자 페이지
+                    </NavLink>
+                  )}
                   <Button
                     loading={loading}
                     fullWidth
@@ -281,7 +280,7 @@ const Header = () => {
                   >
                     <span>Sign out</span>
                   </Button>
-                </>
+                </div>
               ) : (
                 <>
                   <NavLink to="/signin" className="text-black">

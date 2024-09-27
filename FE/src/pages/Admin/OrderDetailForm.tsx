@@ -114,7 +114,7 @@ const UserOrderModal: React.FC<ModalProps> = ({ user, orderDetails, isOpen, onCl
                   <AccordionHeader onClick={() => handleOpenAccordion(index + 1)}>
                     <div className="flex justify-between w-full">
                       <div>{orderDetail.product.name}</div>
-                      <div>수량: {orderDetail.quantity}</div>
+                      <div>재고: {orderDetail.quantity}</div>
                     </div>
                   </AccordionHeader>
                   <AccordionBody>

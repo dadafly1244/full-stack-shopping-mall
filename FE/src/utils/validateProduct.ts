@@ -104,3 +104,32 @@ export function validateAndFormatPrice(price: string | number): ValidationResult
     sanitizedValue: numericPrice.toString(),
   };
 }
+
+const MIN_REVIEW_LENGTH = 100;
+const MAX_REVIEW_LENGTH = 5000;
+
+export function validateReview(desc: string): ValidationResult {
+  const sanitizedDesc = DOMPurify.sanitize(desc, { ALLOWED_TAGS: [] });
+
+  if (sanitizedDesc.length < MIN_REVIEW_LENGTH) {
+    return {
+      isValid: false,
+      message: `리뷰는 최소 ${MIN_REVIEW_LENGTH}자 이상이어야 합니다.`,
+      sanitizedValue: sanitizedDesc,
+    };
+  }
+
+  if (sanitizedDesc.length > MAX_REVIEW_LENGTH) {
+    return {
+      isValid: false,
+      message: `상품 설명은 최대 ${MAX_REVIEW_LENGTH}자를 초과할 수 없습니다.`,
+      sanitizedValue: sanitizedDesc,
+    };
+  }
+
+  return {
+    isValid: true,
+    message: "",
+    sanitizedValue: sanitizedDesc,
+  };
+}

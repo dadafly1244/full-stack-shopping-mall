@@ -352,3 +352,79 @@ export const UPLOAD_FILES = gql`
     }
   }
 `;
+
+// Mutations
+export const CREATE_REVIEW = gql`
+  mutation CreateReview(
+    $title: String!
+    $desc: String
+    $score: Float!
+    $images_path: Upload
+    $product_id: String!
+    $parent_review_id: String
+    $user_id: String!
+  ) {
+    createReview(
+      title: $title
+      desc: $desc
+      score: $score
+      images_path: $images_path
+      product_id: $product_id
+      parent_review_id: $parent_review_id
+      user_id: $user_id
+    ) {
+      id
+      title
+      desc
+      score
+      images_path
+      is_deleted
+      user_id
+      product_id
+      parent_review_id
+      created_at
+      updated_at
+    }
+  }
+`;
+
+export const USER_UPDATE_REVIEW = gql`
+  mutation UpdateReview(
+    $id: ID!
+    $title: String
+    $desc: String
+    $score: Float
+    $images_path: Upload
+    $user_id: String!
+  ) {
+    updateReview(
+      id: $id
+      title: $title
+      desc: $desc
+      score: $score
+      images_path: $images_path
+      user_id: $user_id
+    ) {
+      id
+      title
+      desc
+      score
+      images_path
+      is_deleted
+      user_id
+      product_id
+      parent_review_id
+      created_at
+      updated_at
+    }
+  }
+`;
+
+export const ADMIN_MANAGE_REVIEW = gql`
+  mutation AdminManageReview($id: ID!, $is_deleted: Boolean!) {
+    adminManageReview(id: $id, is_deleted: $is_deleted) {
+      id
+      is_deleted
+    }
+  }
+`;

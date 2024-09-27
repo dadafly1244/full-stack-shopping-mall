@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CREATE_PRODUCT_ADMIN } from "#/apollo/mutation";
 import {
   ProductType,
@@ -22,8 +22,9 @@ import {
 } from "#/utils/validateProduct";
 import ImageUpload from "#/common/ImageUploadFile";
 import { SelectCategoryTree } from "#/pages/Admin/SelectCategory";
-import { Button } from "@material-tailwind/react";
+import { Button, Spinner } from "@material-tailwind/react";
 import { useNavigate } from "react-router-dom";
+import NotificationDialog from "#/common/NotificationDialog";
 
 const init_product = {
   name: "",
@@ -32,7 +33,7 @@ const init_product = {
   sale: 0,
   count: 0,
   is_deleted: false,
-  status: "OUT_OF_STOCK" as ProductStatus,
+  status: "AVAILABLE" as ProductStatus,
   main_image_path: null,
   desc_images_path: [],
   category: {
@@ -83,9 +84,9 @@ const CreateProduct = () => {
     {
       type: "determineInput",
       key: "count",
-      label: "수량",
+      label: "재고",
       placeholder: "숫자만 입력해 주세요.",
-      wrongMessage: "수량을 다시 입력해 주세요.",
+      wrongMessage: "재고을 다시 입력해 주세요.",
       isRight: (count: number | string) => {
         if (typeof count === "string") {
           const nan = isNaN(Number(count));
@@ -158,6 +159,7 @@ const CreateProduct = () => {
   };
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
+    console.log(1);
     e.preventDefault();
     // 모든 필드 검증
     const validationResults = await Promise.all(
@@ -172,8 +174,11 @@ const CreateProduct = () => {
         return true;
       })
     );
+    console.log(2);
 
-    if (validationResults.some(Boolean)) {
+    if (validationResults.every(Boolean)) {
+      console.log(3);
+
       try {
         const variables = {
           name: formState?.name,
@@ -203,6 +208,11 @@ const CreateProduct = () => {
     }
   };
 
+  const [isErrorOpen, setIsErrorOpen] = useState(false);
+
+  useEffect(() => {
+    if (error) setIsErrorOpen(true);
+  }, [error]);
   return (
     <div className="pt-5 pb-10">
       <Breadcrumb />
@@ -265,24 +275,22 @@ const CreateProduct = () => {
             />
           </div>
         </div>
+        <div className="flex  justify-end">
+          <Button variant="filled" className="mr-4 px-10" type="submit">
+            제품 생성
+          </Button>
+        </div>
       </form>
-      {loading && <p>생성중...</p>}
-      {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
-      <div className="flex  justify-end">
-        <Button variant="filled" className="mr-4 px-10" type="submit">
-          제품 생성
-        </Button>
-      </div>
+      {loading && <Spinner className="!absolute flex justify-center content-center" />}
+      {error && (
+        <NotificationDialog
+          isOpen={isErrorOpen}
+          title="ERROR!!"
+          message={`에러가 발생했습니다.\n${error?.message}`}
+          onClose={() => setIsErrorOpen(false)}
+        />
+      )}
     </div>
   );
 };
-// 상품 생성 페이지 -
-
-// 한줄에 -
-// 상품 이름, 등등 입력하기.-
-// 두번째 줄 -
-// 상품 이미지-
-// 메인 이미지 -
-// 밑에 추가 이미지들 -
-
 export default CreateProduct;

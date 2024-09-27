@@ -23,6 +23,7 @@ import ConfirmationDialog from "#/common/ConfirmationDialog";
 import { NavLink } from "react-router-dom";
 import { useApolloClient } from "@apollo/client";
 import Breadcrumb from "#/common/Breadcrumb";
+import { cn } from "#/utils/utils";
 export const PAGE_SIZE = 10;
 
 const ProductInfoTab = () => {
@@ -49,6 +50,11 @@ const ProductInfoTab = () => {
     },
   });
 
+  useEffect(() => {
+    searchParams.set("pageStatus", "1");
+    setSearchParams(searchParams);
+  }, []);
+
   const {
     data: allData,
     error,
@@ -63,6 +69,7 @@ const ProductInfoTab = () => {
         setData(allData.getAllProducts);
       }
     },
+    fetchPolicy: "network-only",
   });
 
   const [filteredProducts, { error: filteredError }] = useLazyQuery(PRODUCT_SEARCH_ADMIN, {
@@ -110,18 +117,6 @@ const ProductInfoTab = () => {
     }
   }, [filteredProducts, searchParams]);
 
-  // const openModal = (product: ProductType) => {
-  //   if (product) {
-  //     setIsModalOpen(true);
-  //     setClickedProduct((prev) => ({ ...prev, ...product }));
-  //   }
-  // };
-
-  // const closeModal = () => {
-  //   setIsModalOpen(false);
-  //   setClickedProduct(init_product);
-  // };
-
   const handleRowClick = (product: ProductType) => {
     setWillUpdate([product]);
     navigate(`/admin/product-info/edit/${product.id}`);
@@ -160,9 +155,13 @@ const ProductInfoTab = () => {
           id: id,
           status: v as ProductStatus,
         },
-        onCompleted: () => {
-          refetch();
-        },
+        onCompleted: () =>
+          refetch({
+            variables: {
+              page: pageStatus,
+              pageSize: PAGE_SIZE,
+            },
+          }),
       });
     } catch (error) {
       throw new Error(`제품의 상태를 업데이트하는데 실패했습니다.${error}`);
@@ -189,13 +188,19 @@ const ProductInfoTab = () => {
                   pageSize: PAGE_SIZE,
                 },
                 onCompleted: (productsData) => {
+                  handleChangePage(1);
                   if (productsData?.searchProducts.products.length > 0) {
                     setData(productsData.searchProducts);
                   }
                 },
               });
             } else {
-              refetch();
+              refetch({
+                variables: {
+                  page: pageStatus,
+                  pageSize: PAGE_SIZE,
+                },
+              });
             }
           },
         });
@@ -220,7 +225,13 @@ const ProductInfoTab = () => {
       key: "name",
       render: (product) => (
         <Tooltip content={product?.name} placement="bottom">
-          <div className="overflow-x-hidden overflow-ellipsis">{product?.name}</div>
+          <Button
+            variant="text"
+            className="underline max-w-32 p-2"
+            onClick={() => handleRowClick(product)}
+          >
+            <div className="overflow-x-hidden overflow-ellipsis">{product?.name}</div>
+          </Button>
         </Tooltip>
       ),
     },
@@ -279,7 +290,12 @@ const ProductInfoTab = () => {
 
   const handleChangePage = (p: number) => {
     setPageStatus(p);
-    refetch();
+    refetch({
+      variables: {
+        page: pageStatus,
+        pageSize: PAGE_SIZE,
+      },
+    });
     searchParams.set("pageStatus", String(p));
     setSearchParams(searchParams);
   };
@@ -300,8 +316,14 @@ const ProductInfoTab = () => {
     );
 
   return (
-    <div className="pt-5 pb-10">
-      <Drawer open={openDrawer} onClose={handleCloseDrawer} className="p-4" size={800}>
+    <div className={cn("pt-5 pb-10")}>
+      <Drawer
+        open={openDrawer}
+        onClose={handleCloseDrawer}
+        className="h-full p-4"
+        size={800}
+        overlayProps={{ className: "fixed" }}
+      >
         <div className="mb-6 flex items-center justify-between">
           <Typography variant="h5" color="blue-gray">
             카테고리 설정
@@ -329,7 +351,6 @@ const ProductInfoTab = () => {
       />
       <div>
         <Breadcrumb />
-
         <ProductSearchComponent
           searchTerm={searchTerm}
           onSearchTermChange={setSearchTerm}
@@ -358,10 +379,9 @@ const ProductInfoTab = () => {
       <ProductTable
         data={data.products}
         columns={columns}
-        onRowClick={handleRowClick}
         onSelectionChange={handleSelectionChange}
       />
-      <div className="w-full flex justify-center content-center">
+      <div className={cn("w-full flex justify-center content-center")}>
         <CircularPagination
           currentPage={pageStatus}
           totalPages={data?.pageInfo?.totalPages || 1}

@@ -37,4 +37,8 @@ declare module "@material-tailwind/react" {
   interface CarouselProps extends MaterialTailwindComponent {}
   interface DrawerProps extends MaterialTailwindComponent {}
   interface BreadcrumbsProps extends MaterialTailwindComponent {}
+  interface TabsHeaderProps extends MaterialTailwindComponent {}
+  interface TabsProps extends MaterialTailwindComponent {}
+  interface TabProps extends MaterialTailwindComponent {}
+  interface TabsBodyProps extends MaterialTailwindComponent {}
 }

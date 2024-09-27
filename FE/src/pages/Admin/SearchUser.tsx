@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { Select, Option, Input, Button } from "@material-tailwind/react";
+import { useSearchParams } from "react-router-dom";
 
 interface UserSearchComponentProps {
   selectedOption: string;
@@ -58,6 +59,8 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
   onClickSearch,
   onResetSearch,
 }) => {
+  const [, setSearchParams] = useSearchParams();
+
   const renderInputOrSelect = () => {
     if (selectedOption in predefinedOptions) {
       return (
@@ -118,6 +121,8 @@ const SearchUser: React.FC<UserSearchComponentProps> = ({
               onSelect(value);
               onSearchValue("");
               onSelected2nd("");
+              const newSearchParams = new URLSearchParams();
+              setSearchParams(newSearchParams);
             }
           }}
           className="!max-w-[10rem] !min-w-[10rem]"

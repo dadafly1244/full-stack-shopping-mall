@@ -2,6 +2,8 @@ import { createBrowserRouter } from "react-router-dom";
 import ErrorPage from "#/pages/ErrorPage";
 import RootLayout from "#/pages/RootLayout";
 import HomePage from "#/pages/Home";
+import SearchResult from "#/pages/Home/SearchResult";
+import ProductDetail from "#/pages/Home/ProductDetail";
 import SigninPage from "./pages/Signin";
 import SignupPage from "./pages/Signup";
 import AdminLayout from "./pages/Admin";
@@ -21,9 +23,10 @@ const routes = [
     handle: { title: "홈" },
     children: [
       {
+        index: true,
         path: "",
         element: <HomePage />,
-        handle: { title: "메인 페이지", description: "환영합니다!" },
+        handle: { title: "메인 페이지", description: "환영합니다!", action: "view" },
       },
       {
         path: "signin",
@@ -34,6 +37,16 @@ const routes = [
         path: "signup",
         element: <SignupPage />,
         handle: { title: "회원가입", requiresAuth: false },
+      },
+      {
+        path: "product/search",
+        element: <SearchResult />,
+        handle: { title: "검색 결과", description: "상품 검색 결과", action: "view" },
+      },
+      {
+        path: "product/detail/:productId",
+        element: <ProductDetail />,
+        handle: { title: "상품 상세 페이지", description: "상품 상세 페이지", action: "view" },
       },
     ],
   },
@@ -59,7 +72,7 @@ const routes = [
             index: true,
             path: "",
             element: <ProductInfoTab />,
-            handle: { title: "상품 목록", action: "view" },
+            handle: { action: "view" },
           },
           {
             path: "new-product",

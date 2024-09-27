@@ -10,7 +10,11 @@ export default withMT({
     "./node_modules/@material-tailwind/react/theme/components**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      height: {
+        "drawer-full": "100vh",
+      },
+    },
   },
   plugins: [scrollbarHide],
 });

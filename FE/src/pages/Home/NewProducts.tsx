@@ -21,7 +21,6 @@ const NewProducts = ({ data }: { data: ProductType[] }) => {
           onError={handleImageError}
         />
         <h4 className="flex-wrap justify-start content-center w-full font-bold text-3xl ml-14">
-          <span className="align-middle">NEW </span>
           <span className="align-middle">오늘의 신상품</span>
         </h4>
       </div>

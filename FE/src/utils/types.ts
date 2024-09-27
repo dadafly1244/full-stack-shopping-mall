@@ -261,6 +261,10 @@ export interface ProductType {
     name: string;
   };
   store_id: string;
+  store?: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface ProductsInfoType {
@@ -358,4 +362,27 @@ export interface ImageUploadProps {
   onImageSelect: (mainImage: string, descImages: string[]) => void;
   title: string;
   multiple: boolean;
+}
+
+export interface ReviewType {
+  id: string;
+  title: string;
+  desc?: string;
+  score: number;
+  images_path?: string;
+  is_deleted: boolean;
+  user_id: string;
+  product_id: string;
+  parent_review_id?: string;
+  created_at: Date;
+  updated_at: Date;
+  parentReview?: ReviewType;
+  childReviews?: ReviewType[];
+  user?: UserType;
+  product?: ProductType;
+}
+
+export interface ReviewConnectionType {
+  reviews: ReviewType[];
+  pageInfo: PageInfo;
 }

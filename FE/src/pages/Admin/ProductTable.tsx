@@ -4,7 +4,7 @@ import { formatNumber } from "#/utils/formatter";
 import ProductImage from "#/common/ProductImage";
 import { ProductType } from "#/utils/types";
 
-function ProductTable({ data, columns, onRowClick, onSelectionChange }) {
+function ProductTable({ data, columns, onSelectionChange }) {
   const [selectedItems, setSelectedItems] = useState([]);
 
   useEffect(() => {
@@ -54,8 +54,8 @@ function ProductTable({ data, columns, onRowClick, onSelectionChange }) {
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white">
+    <div className="overflow-x-auto min-h-[500px]">
+      <table className="min-w-full  bg-white">
         <thead>
           <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
             <th className="py-2 px-2 text-left">
@@ -69,18 +69,24 @@ function ProductTable({ data, columns, onRowClick, onSelectionChange }) {
               제품 이미지
             </th>
             {columns.map((column) => (
-              <th key={column.key as string} className="py-2 px-4 text-left">
+              <th
+                key={column.key as string}
+                className={cn(
+                  "py-2 px-4 text-left",
+                  ["sale", "price", "count", "status"].includes(column.key) && "text-center"
+                )}
+              >
                 {column.header}
               </th>
             ))}
           </tr>
         </thead>
         {selectedItems?.length || data?.length ? (
-          <tbody className="text-gray-600 text-sm font-normal">
+          <tbody className="text-gray-600 text-sm font-normal h-full">
             {data.map((item) => (
               <tr
                 key={item.id}
-                className="border-b border-gray-200 hover:bg-gray-100"
+                className="border-b border-gray-200 hover:bg-gray-100 "
                 onClick={() => onRowClick?.(item)}
               >
                 <td className="py-2 px-2 text-left text-wrap">
@@ -98,9 +104,9 @@ function ProductTable({ data, columns, onRowClick, onSelectionChange }) {
                       alt={`${item.name}제품의 대표 이미지`}
                       className="h-16 w-16 cursor-pointer rounded-lg object-contain object-center border border-solid border-gray-200"
                     />
-                    {!!item.desc_images_path.length && (
+                    {!!item.desc_images_path?.length && (
                       <div className="absolute right-0 bottom-0 font-bold text-gray-600 text-sm bg-blue-gray-50 rounded-sm hidden group-hover:block">
-                        +{item.desc_images_path.length}
+                        +{item.desc_images_path?.length}
                       </div>
                     )}
                   </div>
@@ -112,8 +118,8 @@ function ProductTable({ data, columns, onRowClick, onSelectionChange }) {
                     className={cn(
                       "max-w-56 max-h-16 py-2 px-4 text-left whitespace-nowrap",
                       column.key === "desc" && "overflow-x-hidden overflow-ellipsis",
-                      ["sale", "price", "count"].includes(column.key) && "text-right",
-                      column.key === "name" && "max-w-36"
+                      ["sale", "price", "count"].includes(column.key) && "text-center"
+                      // column.key === "name" && "max-w-36 overflow-x-hidden overflow-ellipsis"
                     )}
                   >
                     {renderCell(item, column)}
@@ -123,8 +129,10 @@ function ProductTable({ data, columns, onRowClick, onSelectionChange }) {
             ))}
           </tbody>
         ) : (
-          <tbody className="h-[60vh] text-gray-600 text-sm font-normal">
-            <tr> 값이 없습니다.</tr>
+          <tbody className="min-h-[500px] text-gray-600 text-lg font-normal">
+            <tr className="w-full">
+              <div>값이 없습니다.</div>
+            </tr>
           </tbody>
         )}
       </table>

@@ -16,26 +16,26 @@ export const CHECK_EMAIL = gql`
   }
 `;
 
-export const USER_INFO_ADMIN = gql`
-  query userInfo {
-    usersList {
-      id
-      user_id
-      name
-      email
-      gender
-      phone_number
-      status
-      permissions
-      created_at
-      updated_at
-    }
-  }
-`;
+// export const USER_INFO_ADMIN = gql`
+//   query userInfo {
+//     usersList {
+//       id
+//       user_id
+//       name
+//       email
+//       gender
+//       phone_number
+//       status
+//       permissions
+//       created_at
+//       updated_at
+//     }
+//   }
+// `;
 
 // export const FILTERED_USER_INFO_ADMIN = gql`
-//   query FilteredUsers($searchTerm: String!) {
-//     filteredUsers(searchTerm: $searchTerm) {
+//   query FilteredUserInfoAdmin($searchTerm: String!, $searchField: String!) {
+//     filteredUsers(searchTerm: $searchTerm, searchField: $searchField) {
 //       id
 //       name
 //       user_id
@@ -50,19 +50,32 @@ export const USER_INFO_ADMIN = gql`
 //   }
 // `;
 
-export const FILTERED_USER_INFO_ADMIN = gql`
-  query FilteredUserInfoAdmin($searchTerm: String!, $searchField: String!) {
-    filteredUsers(searchTerm: $searchTerm, searchField: $searchField) {
-      id
-      name
-      user_id
-      email
-      phone_number
-      status
-      permissions
-      gender
-      created_at
-      updated_at
+export const PAGINATED_USER_LIST = gql`
+  query userInfo($page: Int!, $pageSize: Int!, $searchTerm: String, $searchField: String) {
+    paginatedUsers(
+      page: $page
+      pageSize: $pageSize
+      searchTerm: $searchTerm
+      searchField: $searchField
+    ) {
+      users {
+        id
+        user_id
+        name
+        email
+        gender
+        phone_number
+        status
+        permissions
+        created_at
+        updated_at
+      }
+      pageInfo {
+        currentPage
+        pageSize
+        totalCount
+        totalPages
+      }
     }
   }
 `;
@@ -151,6 +164,34 @@ export const PRODUCTS_INFO_ADMIN = gql`
 export const PRODUCT_DETAILS_ADMIN = gql`
   query DetailsProduct($id: String!) {
     getProduct(id: $id) {
+      id
+      name
+      desc
+      price
+      sale
+      count
+      is_deleted
+      status
+      main_image_path
+      desc_images_path
+      created_at
+      updated_at
+      store_id
+      store {
+        id
+        name
+      }
+      category {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const PRODUCT_DETAILS_USER = gql`
+  query DetailsProductForHome($id: String!) {
+    getProductDetailForHome(id: $id) {
       id
       name
       desc
@@ -457,6 +498,54 @@ export const HOME_QUERY = gql`
         desc_images_path
         is_deleted
         status
+      }
+    }
+  }
+`;
+
+export const PAGINATED_REVIEWS = gql`
+  query PaginatedReviews($page: Int!, $pageSize: Int!, $productId: String!, $isDeleted: Boolean) {
+    paginatedReviews(
+      page: $page
+      pageSize: $pageSize
+      productId: $productId
+      isDeleted: $isDeleted
+    ) {
+      reviews {
+        id
+        title
+        desc
+        score
+        images_path
+        is_deleted
+        user_id
+        product_id
+        parent_review_id
+        created_at
+        updated_at
+        user {
+          id
+          user_id
+          name
+        }
+        product {
+          id
+          name
+        }
+        parentReview {
+          id
+          title
+        }
+        childReviews {
+          id
+          title
+        }
+      }
+      pageInfo {
+        currentPage
+        pageSize
+        totalCount
+        totalPages
       }
     }
   }

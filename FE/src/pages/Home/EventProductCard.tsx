@@ -6,12 +6,16 @@ import {
   isSignificantDiscount,
   calculateDiscountPercentage,
 } from "#/utils/formatter";
+import { Link } from "react-router-dom";
 
 const NewProductCard = ({ product }: { product: ProductType }) => {
   const isNewProduct = isSignificantDiscount(product?.sale, product.price);
   const percentage = calculateDiscountPercentage(product?.sale, product.price);
   return (
-    <div className="border border-solid border-gray-300 rounded-md group hover:bg-white overflow-hidden hover:cursor-pointer">
+    <Link
+      to={`/product/detail/${product.id}`}
+      className="border border-solid border-gray-300 rounded-md group hover:bg-white overflow-hidden hover:cursor-pointer"
+    >
       <div className="flex h-64 w-full items-start  relative  box-border">
         <ProductImage
           key="headerImage"
@@ -43,9 +47,11 @@ const NewProductCard = ({ product }: { product: ProductType }) => {
           {product.desc}
         </div>
         <div className="relative self-stretch [font-family:'Roboto-Medium',Helvetica] font-medium text-black text-lg tracking-[0] leading-7 ml-auto">
-          <span className="line-through font-light text-xs mr-1">
-            {formatNumber(Number(product.price))}원
-          </span>
+          {!!product.sale && (
+            <span className="line-through font-light text-xs mr-1">
+              {formatNumber(Number(product.price))}원
+            </span>
+          )}
           <span className="font-bold text-red-600">
             {product.sale
               ? formatNumber(Number(product.sale))
@@ -54,7 +60,7 @@ const NewProductCard = ({ product }: { product: ProductType }) => {
           </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

@@ -1,26 +1,27 @@
 import { MouseEvent, useEffect, useState, useCallback } from "react";
 import Table from "#/common/Table";
-import { USER_INFO_ADMIN } from "#/apollo/query";
-import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
+import { PAGINATED_USER_LIST } from "#/apollo/query";
+import { useMutation, useQuery } from "@apollo/client";
 import { ACTIVE_USER_ADMIN, SUSPENDED_USER_ADMIN } from "#/apollo/mutation";
-import { FILTERED_USER_INFO_ADMIN } from "#/apollo/query";
 import {
   UserType,
   UserStatus,
   sortingItem,
-  SortState,
   TableColumn,
   UserPermissions,
   Gender,
+  PageInfo,
 } from "#/utils/types";
 import Modal from "#/common/Modal";
 import UpdateUserForm from "#/common/UpdateUserForm";
-import { sortObjectsByKey } from "#/utils/sort";
 import { useSearchParams } from "react-router-dom";
 import SearchUser from "./SearchUser";
 import { Button } from "@material-tailwind/react";
 import Breadcrumb from "#/common/Breadcrumb";
+import { cn } from "#/utils/utils";
+import CircularPagination from "#/common/Pagenation";
 
+const PAGE_SIZE = 10;
 const init_user = {
   id: "",
   name: "",
@@ -62,36 +63,60 @@ function isPredefinedOption(option: string): option is PredefinedOptionKeys {
 }
 const UserInfoTab = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [pageStatus, setPageStatus] = useState(Number(searchParams.get("pageStatus")) || 1);
 
   const [selectedOption, setSelectedOption] = useState(searchParams.get("searchField") || "");
   const [searchValue, setSearchValue] = useState(searchParams.get("searchTerm") || "");
   const [selectedOption2nd, setSelectedOption2nd] = useState(searchParams.get("searchTerm") || "");
 
-  const [shouldSearch, setShouldSearch] = useState(searchParams.get("searchOpen") === "true");
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clickedUser, setClickedUser] = useState(init_user);
-  const [data, setData] = useState<UserType[]>([]);
-  const [sortState, setSortState] = useState<SortState<sortingItem>>({
-    user_id: "none",
-    name: "none",
-    email: "none",
-    phone_number: "none",
+  const [data, setData] = useState<{ users: UserType[]; pageInfo: PageInfo }>({
+    users: [],
+    pageInfo: {
+      currentPage: 1,
+      pageSize: 1,
+      totalCount: 1,
+      totalPages: 1,
+    },
   });
 
-  const { data: allData, loading, error } = useQuery(USER_INFO_ADMIN);
+  useEffect(() => {
+    searchParams.set("pageStatus", "1");
+    setSearchParams(searchParams);
+  }, []);
+
+  useEffect(() => {
+    console.log(data.pageInfo);
+  }, [data]);
+
+  const {
+    data: allData,
+    loading,
+    error,
+    refetch,
+  } = useQuery(PAGINATED_USER_LIST, {
+    variables: {
+      page: pageStatus,
+      pageSize: PAGE_SIZE,
+      // searchTerm: "jc",
+      // searchField: "email",
+    },
+    onCompleted: (allData) => {
+      if (allData.paginatedUsers.users.length > 0) {
+        setData(allData.paginatedUsers);
+      }
+    },
+    fetchPolicy: "network-only",
+  });
   const [suspendedUser] = useMutation(SUSPENDED_USER_ADMIN, {
-    refetchQueries: [{ query: USER_INFO_ADMIN }],
+    refetchQueries: [{ query: PAGINATED_USER_LIST }],
     awaitRefetchQueries: true,
   });
   const [activeUser] = useMutation(ACTIVE_USER_ADMIN, {
-    refetchQueries: [{ query: USER_INFO_ADMIN }],
+    refetchQueries: [{ query: PAGINATED_USER_LIST }],
     awaitRefetchQueries: true,
   });
-
-  const [filteredUser, { loading: filteredLoading, error: filteredError }] =
-    useLazyQuery(FILTERED_USER_INFO_ADMIN);
 
   const performSearch = useCallback(async () => {
     let searchTermValue: string;
@@ -105,33 +130,25 @@ const UserInfoTab = () => {
       searchTermValue = searchValue;
     }
 
-    const { data: usersData } = await filteredUser({
+    await refetch({
       variables: {
+        page: pageStatus,
+        pageSize: PAGE_SIZE,
         searchTerm: searchTermValue,
         searchField: selectedOption,
       },
     });
-
-    if (usersData?.filteredUsers) {
-      setData(usersData.filteredUsers);
-    }
-  }, [selectedOption, selectedOption2nd, searchValue, filteredUser]);
+  }, [selectedOption, selectedOption2nd, searchValue, refetch, pageStatus]);
 
   useEffect(() => {
-    setData(allData?.usersList);
-    if (isInitialLoad) {
-      if (allData?.usersList) {
-        setData(allData.usersList);
-      } else if (searchParams.get("searchOpen") === "true") {
-        performSearch();
-      }
-
-      setIsInitialLoad(false);
-    } else if (shouldSearch) {
-      performSearch();
-      setShouldSearch(false);
+    console.log(allData);
+    if (allData?.paginatedUsers) {
+      setData(allData.paginatedUsers);
     }
-  }, [isInitialLoad, shouldSearch, searchParams, allData, performSearch]);
+    if (searchParams.get("searchTerm")) {
+      performSearch();
+    }
+  }, [allData, searchParams, performSearch]);
 
   const openModal = (user: UserType) => {
     if (user) {
@@ -183,50 +200,52 @@ const UserInfoTab = () => {
     console.log("Selected users:", selectedUsers);
   };
 
-  const handleSortClick = (key: keyof sortingItem) => {
-    setSortState((prevState) => {
-      const newSortOrder =
-        prevState[key] === "none" ? "asc" : prevState[key] === "asc" ? "desc" : "none";
-      const newSortState = { ...prevState, [key]: newSortOrder };
-
-      let sortedData = [...data];
-      if (newSortOrder !== "none") {
-        sortedData = sortObjectsByKey(sortedData, key, newSortOrder === "asc");
-      } else {
-        sortedData = allData?.usersList || [];
-      }
-
-      setData(sortedData);
-      return newSortState;
+  const handleChangePage = (p: number) => {
+    setPageStatus(p);
+    refetch({
+      variables: {
+        page: pageStatus,
+        pageSize: PAGE_SIZE,
+      },
     });
+    searchParams.set("pageStatus", String(p));
+    setSearchParams(searchParams);
   };
 
   const handleSearchUser = () => {
     const newSearchParams = new URLSearchParams();
     newSearchParams.set("searchTerm", searchValue || selectedOption2nd);
     newSearchParams.set("searchField", selectedOption);
-    newSearchParams.set("searchOpen", "true");
+    newSearchParams.set("pageStatus", "1");
+    setPageStatus(1);
     setSearchParams(newSearchParams);
-    setShouldSearch(true);
+    performSearch();
   };
 
   const handleResetSearch = () => {
     const newSearchParams = new URLSearchParams();
-    newSearchParams.set("searchOpen", "false");
     setSearchParams(newSearchParams);
     setSelectedOption("");
     setSelectedOption2nd("");
     setSearchValue("");
-    if (allData?.usersList) {
-      setData(allData.usersList);
+    if (allData?.paginatedUsers) {
+      setData(allData.paginatedUsers);
     }
   };
 
   const columns: TableColumn<UserType, sortingItem>[] = [
-    { header: "User ID", key: "user_id", sort: sortState.user_id as keyof sortingItem },
-    { header: "Name", key: "name", sort: sortState.name as keyof sortingItem },
-    { header: "Email", key: "email", sort: sortState.email as keyof sortingItem },
-    { header: "Phone", key: "phone_number", sort: sortState.phone_number as keyof sortingItem },
+    {
+      header: "User ID",
+      key: "user_id",
+      render: (user: UserType) => (
+        <Button variant="text" className="underline" onClick={() => handleRowClick(user)}>
+          {user.name}
+        </Button>
+      ),
+    },
+    { header: "Name", key: "name" },
+    { header: "Email", key: "email" },
+    { header: "Phone", key: "phone_number" },
     {
       header: "Status",
       key: "status",
@@ -245,7 +264,7 @@ const UserInfoTab = () => {
             {user.status}
           </span>
           <button
-            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
             ${
               user.status === "SUSPENDED"
                 ? "bg-green-500 text-white"
@@ -276,11 +295,11 @@ const UserInfoTab = () => {
     { header: "Gender", key: "gender" },
   ];
 
-  if (loading || filteredLoading) return <p>Loading...</p>;
-  if (error || filteredError)
+  if (loading) return <p>Loading...</p>;
+  if (error)
     return (
       <div className="w-full">
-        <div>Error: {error?.message || filteredError?.message}</div>
+        <div>Error: {error?.message}</div>
         <div className="w-full flex flex-col justify-center content-center">
           <div className="w-56 h-56">
             <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -309,15 +328,22 @@ const UserInfoTab = () => {
           onResetSearch={handleResetSearch}
           onClickSearch={handleSearchUser}
         />
-        <Table<UserType, sortingItem>
-          // title="User List"
-          data={data}
-          sortState={sortState}
-          columns={columns}
-          onSortClick={handleSortClick}
-          onRowClick={handleRowClick}
-          onSelectionChange={handleSelectionChange}
-        />
+        {data.users && (
+          <>
+            <Table<UserType, sortingItem>
+              data={data?.users}
+              columns={columns}
+              onSelectionChange={handleSelectionChange}
+            />
+            <div className={cn("w-full flex justify-center content-center")}>
+              <CircularPagination
+                currentPage={pageStatus}
+                totalPages={data?.pageInfo?.totalPages || 1}
+                onPageChange={handleChangePage}
+              />
+            </div>
+          </>
+        )}
       </div>
     </>
   );
