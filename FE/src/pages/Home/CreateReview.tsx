@@ -118,8 +118,8 @@ const CreateReview = ({
   if (!userId) {
     return (
       <div className="flex items-center gap-2">
-        <div className="relative">
-          <div className="absolute  right-2 top-1">
+        <div className="relative flex-grow">
+          <div className="absolute left-16 -top-1">
             <HalfStarRating value={score} onChange={(value) => setScore(value)} disabled />
           </div>
           <DetermineTextarea
@@ -128,19 +128,21 @@ const CreateReview = ({
             wrongMessage={handleWrongMessage}
             rightMessage={handleRightMessage}
             isRight={handleIsRight}
-            rows={6}
+            rows={5}
             maxLength={1000}
             onChange={(value: string) => handleInputChange("desc", value)}
             className="!pr-28 mt-1"
             disabled={true}
           />
-          <div className="absolute right-2 top-9">
+          {/* <div className="absolute right-2 top-9">
             <ImageUpload onImageSelect={handleMainImageSelect} multiple={false} disabled />
-          </div>
+          </div> */}
         </div>
-        <Button className="text-lg py-11 px-10" disabled loading={loading}>
-          등록
-        </Button>
+        <div className="flex justify-start items-center">
+          <Button className="text-lg py-11 px-10" disabled loading={loading}>
+            등록
+          </Button>
+        </div>
       </div>
     );
   }
@@ -154,7 +156,7 @@ const CreateReview = ({
       />
       <form className="flex px-16 items-center gap-2" onSubmit={handleCreateReview}>
         <div className="relative flex-grow">
-          <div className="absolute  left-16 -top-1">
+          <div className="absolute left-16 -top-1">
             {!parentReviewId ? (
               <HalfStarRating value={score} onChange={(value) => setScore(value)} />
             ) : null}

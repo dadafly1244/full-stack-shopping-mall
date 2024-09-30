@@ -7,7 +7,7 @@ const RootLayout = () => {
   if (["/signin", "/signup"].includes(location.pathname)) {
     return (
       <div className="font-sans">
-        <div className="flex flex-col justify-center content-center">
+        <div className="max-w-screen-xl mx-auto flex flex-col justify-center content-center">
           <Outlet />
         </div>
       </div>

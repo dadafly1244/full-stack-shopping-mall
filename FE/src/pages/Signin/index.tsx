@@ -7,7 +7,7 @@ import { userState } from "#/store/atoms";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { DetermineInputProps } from "#/utils/types";
-import { Card, CardHeader, Typography, CardBody } from "@material-tailwind/react";
+import { Card, CardHeader, Typography, CardBody, Button } from "@material-tailwind/react";
 import { cn } from "#/utils/utils";
 interface CustomDetermineInputProps extends Omit<DetermineInputProps, "isRight"> {
   isRight: (value: string) => boolean;
@@ -94,10 +94,7 @@ const SigninPage = () => {
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
       {
-        <Card
-          shadow={false}
-          className=" md:px-24 md:py-14 mt-10 py-8 min-w-80 max-w-screen-xl w-2/5 mx-auto"
-        >
+        <Card shadow={false} className="min-w-96 mx-auto">
           <CardHeader shadow={false} floated={false} className="text-center">
             <Typography variant="h1" color="blue-gray" className="mb-4 !text-3xl lg:text-4xl">
               Sign In
@@ -135,23 +132,23 @@ const SigninPage = () => {
                   }
                 })}
               </div>
-              <button
+              <Button
                 type="submit"
                 disabled={loading}
                 className={cn(
-                  "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
+                  "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-4/5 sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",
                   !loading ? "cursor-pointer" : "cursor-not-allowed"
                 )}
               >
                 로그인
-              </button>
+              </Button>
             </form>
-            <div className="flex flex-col mt-5">
+            <div className="flex mt-5">
               <p className="text-sm text-gray-800">아직 계정이 없다면 회원가입을 눌러주세요.</p>
               <Link
                 to="/signup"
                 className={
-                  "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  "text-gray-500 focus:ring-4 focus:outline-none focus:text-black ml-10 font-medium rounded-lg text-sm w-full sm:w-auto text-center "
                 }
               >
                 회원가입

@@ -268,7 +268,7 @@ const SignupPage = () => {
     <div>
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
-      <Card shadow={false} className=" md:px-24 md:py-14 mt-10 py-8">
+      <Card shadow={false} className="md:px-24 md:py-14 mt-10 py-8">
         <CardHeader shadow={false} floated={false} className="text-center">
           <Typography variant="h1" color="blue-gray" className="mb-4 !text-3xl lg:text-4xl">
             Sign Up
@@ -313,14 +313,16 @@ const SignupPage = () => {
                 return null;
               })}
             </div>
-            <Button
-              type="submit"
-              className={cn(
-                `bg-blue-500 text-white border text-sm rounded-lg block min-w-48 p-2.5 w-full `
-              )}
-            >
-              회원가입
-            </Button>
+            <div className="w-1/5 ml-auto">
+              <Button
+                type="submit"
+                className={cn(
+                  `bg-blue-500 text-white border text-sm rounded-lg block min-w-48 p-2.5 w-full `
+                )}
+              >
+                회원가입
+              </Button>
+            </div>
           </form>
         </CardBody>
       </Card>
