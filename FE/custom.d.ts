@@ -41,4 +41,5 @@ declare module "@material-tailwind/react" {
   interface TabsProps extends MaterialTailwindComponent {}
   interface TabProps extends MaterialTailwindComponent {}
   interface TabsBodyProps extends MaterialTailwindComponent {}
+  interface RatingProps extends MaterialTailwindComponent {}
 }

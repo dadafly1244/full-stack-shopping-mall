@@ -128,6 +128,10 @@ export interface NexusGenObjects {
     pageInfo: NexusGenRootTypes['PageInfo']; // PageInfo!
     products: NexusGenRootTypes['Product'][]; // [Product!]!
   }
+  PaginatedUsersResponse: { // root type
+    pageInfo: NexusGenRootTypes['PageInfo']; // PageInfo!
+    users: Array<NexusGenRootTypes['User'] | null>; // [User]!
+  }
   Product: { // root type
     count: number; // Int!
     created_at: NexusGenScalars['DateTime']; // DateTime!
@@ -152,8 +156,8 @@ export interface NexusGenObjects {
   Review: { // root type
     created_at: NexusGenScalars['DateTime']; // DateTime!
     desc?: string | null; // String
-    id: string; // ID!
-    images_path?: NexusGenScalars['JSON'] | null; // JSON
+    id: string; // String!
+    images_path?: string | null; // String
     is_deleted: boolean; // Boolean!
     parent_review_id?: string | null; // String
     product_id: string; // String!
@@ -161,6 +165,10 @@ export interface NexusGenObjects {
     title: string; // String!
     updated_at: NexusGenScalars['DateTime']; // DateTime!
     user_id: string; // String!
+  }
+  ReviewConnection: { // root type
+    pageInfo: NexusGenRootTypes['PageInfo']; // PageInfo!
+    reviews: NexusGenRootTypes['Review'][]; // [Review!]!
   }
   Store: { // root type
     business_registration_number: string; // String!
@@ -226,9 +234,12 @@ export interface NexusGenFieldTypes {
     message: string; // String!
   }
   Mutation: { // field return type
+    adminManageReviewRealDelete: NexusGenRootTypes['Review'] | null; // Review
+    adminManageReviewSoftDelete: NexusGenRootTypes['Review'] | null; // Review
     createCategory: NexusGenRootTypes['Category']; // Category!
     createOrder: NexusGenRootTypes['Order']; // Order!
     createProduct: NexusGenRootTypes['Product']; // Product!
+    createReview: NexusGenRootTypes['Review'] | null; // Review
     createStore: NexusGenRootTypes['Store'] | null; // Store
     createUser: NexusGenRootTypes['User']; // User!
     deleteCategory: boolean | null; // Boolean
@@ -245,6 +256,7 @@ export interface NexusGenFieldTypes {
     updateOrderQuantity: NexusGenRootTypes['Order']; // Order!
     updateProduct: NexusGenRootTypes['Product']; // Product!
     updateProductStatus: NexusGenRootTypes['Product']; // Product!
+    updateReview: NexusGenRootTypes['Review'] | null; // Review
     updateStore: NexusGenRootTypes['Store'] | null; // Store
     updateUser: NexusGenRootTypes['User']; // User!
     updateUserStateActive: NexusGenRootTypes['AuthPayload']; // AuthPayload!
@@ -287,6 +299,10 @@ export interface NexusGenFieldTypes {
     pageInfo: NexusGenRootTypes['PageInfo']; // PageInfo!
     products: NexusGenRootTypes['Product'][]; // [Product!]!
   }
+  PaginatedUsersResponse: { // field return type
+    pageInfo: NexusGenRootTypes['PageInfo']; // PageInfo!
+    users: Array<NexusGenRootTypes['User'] | null>; // [User]!
+  }
   Product: { // field return type
     carts: NexusGenRootTypes['Cart'][]; // [Cart!]!
     categories: NexusGenRootTypes['Category'][]; // [Category!]!
@@ -321,8 +337,11 @@ export interface NexusGenFieldTypes {
     getAllProductsForHomePage: NexusGenRootTypes['ProductsResultFormHome']; // ProductsResultFormHome!
     getOrder: NexusGenRootTypes['Order'] | null; // Order
     getProduct: NexusGenRootTypes['Product'] | null; // Product
+    getProductDetailForHome: NexusGenRootTypes['Product'] | null; // Product
     isDuplicated: NexusGenRootTypes['UserBoolean'] | null; // UserBoolean
     isDuplicatedBusinessNumber: boolean | null; // Boolean
+    paginatedReviews: NexusGenRootTypes['ReviewConnection'] | null; // ReviewConnection
+    paginatedUsers: NexusGenRootTypes['PaginatedUsersResponse'] | null; // PaginatedUsersResponse
     searchCategories: NexusGenRootTypes['Category'][]; // [Category!]!
     searchOrders: NexusGenRootTypes['Order'][]; // [Order!]!
     searchOrdersByStatus: NexusGenRootTypes['Order'][]; // [Order!]!
@@ -336,8 +355,8 @@ export interface NexusGenFieldTypes {
     childReviews: Array<NexusGenRootTypes['Review'] | null> | null; // [Review]
     created_at: NexusGenScalars['DateTime']; // DateTime!
     desc: string | null; // String
-    id: string; // ID!
-    images_path: NexusGenScalars['JSON'] | null; // JSON
+    id: string; // String!
+    images_path: string | null; // String
     is_deleted: boolean; // Boolean!
     parentReview: NexusGenRootTypes['Review'] | null; // Review
     parent_review_id: string | null; // String
@@ -348,6 +367,10 @@ export interface NexusGenFieldTypes {
     updated_at: NexusGenScalars['DateTime']; // DateTime!
     user: NexusGenRootTypes['User'] | null; // User
     user_id: string; // String!
+  }
+  ReviewConnection: { // field return type
+    pageInfo: NexusGenRootTypes['PageInfo']; // PageInfo!
+    reviews: NexusGenRootTypes['Review'][]; // [Review!]!
   }
   Store: { // field return type
     business_registration_number: string; // String!
@@ -407,9 +430,12 @@ export interface NexusGenFieldTypeNames {
     message: 'String'
   }
   Mutation: { // field return type name
+    adminManageReviewRealDelete: 'Review'
+    adminManageReviewSoftDelete: 'Review'
     createCategory: 'Category'
     createOrder: 'Order'
     createProduct: 'Product'
+    createReview: 'Review'
     createStore: 'Store'
     createUser: 'User'
     deleteCategory: 'Boolean'
@@ -426,6 +452,7 @@ export interface NexusGenFieldTypeNames {
     updateOrderQuantity: 'Order'
     updateProduct: 'Product'
     updateProductStatus: 'Product'
+    updateReview: 'Review'
     updateStore: 'Store'
     updateUser: 'User'
     updateUserStateActive: 'AuthPayload'
@@ -468,6 +495,10 @@ export interface NexusGenFieldTypeNames {
     pageInfo: 'PageInfo'
     products: 'Product'
   }
+  PaginatedUsersResponse: { // field return type name
+    pageInfo: 'PageInfo'
+    users: 'User'
+  }
   Product: { // field return type name
     carts: 'Cart'
     categories: 'Category'
@@ -502,8 +533,11 @@ export interface NexusGenFieldTypeNames {
     getAllProductsForHomePage: 'ProductsResultFormHome'
     getOrder: 'Order'
     getProduct: 'Product'
+    getProductDetailForHome: 'Product'
     isDuplicated: 'UserBoolean'
     isDuplicatedBusinessNumber: 'Boolean'
+    paginatedReviews: 'ReviewConnection'
+    paginatedUsers: 'PaginatedUsersResponse'
     searchCategories: 'Category'
     searchOrders: 'Order'
     searchOrdersByStatus: 'Order'
@@ -517,8 +551,8 @@ export interface NexusGenFieldTypeNames {
     childReviews: 'Review'
     created_at: 'DateTime'
     desc: 'String'
-    id: 'ID'
-    images_path: 'JSON'
+    id: 'String'
+    images_path: 'String'
     is_deleted: 'Boolean'
     parentReview: 'Review'
     parent_review_id: 'String'
@@ -529,6 +563,10 @@ export interface NexusGenFieldTypeNames {
     updated_at: 'DateTime'
     user: 'User'
     user_id: 'String'
+  }
+  ReviewConnection: { // field return type name
+    pageInfo: 'PageInfo'
+    reviews: 'Review'
   }
   Store: { // field return type name
     business_registration_number: 'String'
@@ -560,6 +598,14 @@ export interface NexusGenFieldTypeNames {
 
 export interface NexusGenArgTypes {
   Mutation: {
+    adminManageReviewRealDelete: { // args
+      id: string; // ID!
+      is_deleted: boolean; // Boolean!
+    }
+    adminManageReviewSoftDelete: { // args
+      id: string; // ID!
+      is_deleted: boolean; // Boolean!
+    }
     createCategory: { // args
       name: string; // String!
       parentId?: number | null; // Int
@@ -583,6 +629,15 @@ export interface NexusGenArgTypes {
       sale?: number | null; // Int
       status: NexusGenEnums['ProductStatus']; // ProductStatus!
       store_id: string; // String!
+    }
+    createReview: { // args
+      desc?: string | null; // String
+      images_path?: NexusGenScalars['Upload'] | null; // Upload
+      parent_review_id?: string | null; // String
+      product_id: string; // String!
+      score: number; // Float!
+      title: string; // String!
+      user_id: string; // String!
     }
     createStore: { // args
       business_registration_number: string; // String!
@@ -665,6 +720,14 @@ export interface NexusGenArgTypes {
       id: string; // String!
       status: NexusGenEnums['ProductStatus']; // ProductStatus!
     }
+    updateReview: { // args
+      desc?: string | null; // String
+      id: string; // ID!
+      images_path?: NexusGenScalars['Upload'] | null; // Upload
+      score?: number | null; // Float
+      title?: string | null; // String
+      user_id: string; // String!
+    }
     updateStore: { // args
       business_registration_number?: string | null; // String
       desc?: string | null; // String
@@ -724,12 +787,27 @@ export interface NexusGenArgTypes {
     getProduct: { // args
       id: string; // String!
     }
+    getProductDetailForHome: { // args
+      id: string; // String!
+    }
     isDuplicated: { // args
       email?: string | null; // String
       user_id?: string | null; // String
     }
     isDuplicatedBusinessNumber: { // args
       business_registration_number?: string | null; // String
+    }
+    paginatedReviews: { // args
+      isDeleted?: boolean | null; // Boolean
+      page: number; // Int!
+      pageSize: number; // Int!
+      productId: string; // String!
+    }
+    paginatedUsers: { // args
+      page: number; // Int!
+      pageSize: number; // Int!
+      searchField?: string | null; // String
+      searchTerm?: string | null; // String
     }
     searchCategories: { // args
       includeHierarchy?: boolean | null; // Boolean

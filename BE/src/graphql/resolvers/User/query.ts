@@ -110,6 +110,52 @@ export const UserQuery = extendType({
         return users;
       },
     });
+
+    //pagination 적용한 api
+    t.field("paginatedUsers", {
+      type: "PaginatedUsersResponse",
+      args: {
+        page: nonNull(intArg({ default: 1 })),
+        pageSize: nonNull(intArg({ default: 10 })),
+        searchTerm: nullable(stringArg()),
+        searchField: nullable(stringArg()),
+      },
+      authorize: isAdmin,
+      resolve: async (
+        _,
+        { page, pageSize, searchTerm, searchField },
+        context,
+      ) => {
+        const skip = (page - 1) * pageSize;
+
+        let whereClause = {};
+        if (searchTerm && searchField) {
+          const validatedSearchField = searchField as SearchField;
+          whereClause = createWhereClause(validatedSearchField, searchTerm);
+        }
+
+        const [users, totalCount] = await Promise.all([
+          context.prisma.user.findMany({
+            where: whereClause,
+            skip,
+            take: pageSize,
+          }),
+          context.prisma.user.count({ where: whereClause }),
+        ]);
+
+        const totalPages = Math.ceil(totalCount / pageSize);
+
+        return {
+          users,
+          pageInfo: {
+            currentPage: page,
+            pageSize,
+            totalCount,
+            totalPages,
+          },
+        };
+      },
+    });
   },
 });
 

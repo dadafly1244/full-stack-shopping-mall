@@ -59,3 +59,11 @@ export const UserBooleanType = objectType({
     t.nonNull.boolean("duplicated");
   },
 });
+
+export const PaginatedUsersResponse = objectType({
+  name: "PaginatedUsersResponse",
+  definition(t) {
+    t.nonNull.list.field("users", { type: "User" });
+    t.nonNull.field("pageInfo", { type: "PageInfo" });
+  },
+});

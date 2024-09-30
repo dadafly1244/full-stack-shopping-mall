@@ -127,6 +127,7 @@ export const ProductQuery = extendType({
                   "PROHIBITION_ON_SALE",
                 ];
                 if (validStatuses.includes(args.searchTerm)) {
+                  console.log(validStatuses.includes(args.searchTerm));
                   where.status = args.searchTerm;
                 } else {
                   throw new GraphQLError("유효하지 않은 상태 값입니다.", {
@@ -201,6 +202,7 @@ export const ProductQuery = extendType({
             where,
             skip: (args.page - 1) * args.pageSize,
             take: args.pageSize,
+            orderBy: { created_at: "desc" },
           });
 
           if (!products) {
@@ -211,12 +213,19 @@ export const ProductQuery = extendType({
             });
           }
 
-          const processedProducts = products.map((product: Product) => ({
-            ...product,
-            desc_images_urls: product.desc_images_path
-              ? JSON.parse(product.desc_images_path as string)
-              : null,
-          }));
+          const processedProducts = products.map((product: Product) => {
+            if (product.desc_images_path) {
+              return {
+                ...product,
+                desc_images_path: product.desc_images_path
+                  ? JSON.parse(product.desc_images_path as string)
+                  : // ?(product.desc_images_path as string)
+                    //   .slice(1, -1)
+                    //   .split(", ")
+                    [],
+              };
+            } else return product;
+          });
 
           return {
             products: processedProducts,
@@ -263,6 +272,7 @@ export const ProductQuery = extendType({
           const products = await context.prisma.product.findMany({
             skip: (args.page - 1) * args.pageSize,
             take: args.pageSize,
+            orderBy: { updated_at: "desc" },
           });
 
           if (!products) {
@@ -283,7 +293,7 @@ export const ProductQuery = extendType({
                   : // ?(product.desc_images_path as string)
                     //   .slice(1, -1)
                     //   .split(", ")
-                    null,
+                    [],
               };
             } else return product;
           });
@@ -545,6 +555,46 @@ export const ProductQuery = extendType({
           event: eventProducts,
           errors: errors.length > 0 ? errors : null,
         };
+      },
+    });
+
+    // 제품 상세 페이지 용 api
+    t.field("getProductDetailForHome", {
+      type: "Product",
+      args: {
+        id: nonNull(stringArg()),
+      },
+      resolve: async (_, args, context) => {
+        try {
+          const product = await context.prisma.product.findUnique({
+            where: { id: args.id },
+          });
+          if (!product) {
+            throw new GraphQLError("제품을 찾지 못했습니다.", {
+              extensions: {
+                code: ApolloServerErrorCode.BAD_USER_INPUT,
+                invalidArgs: ["id"],
+              },
+            });
+          }
+          const processedProduct = {
+            ...product,
+            desc_images_path: product.desc_images_path
+              ? JSON.parse(product.desc_images_path as string)
+              : [],
+          };
+
+          return processedProduct;
+        } catch (error) {
+          if (error instanceof GraphQLError) {
+            throw error;
+          }
+          throw new GraphQLError("Failed to fetch Product", {
+            extensions: {
+              code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+            },
+          });
+        }
       },
     });
   },

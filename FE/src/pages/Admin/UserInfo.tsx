@@ -101,10 +101,6 @@ const UserInfoTab = () => {
     });
   }, []);
 
-  useEffect(() => {
-    console.log(data.pageInfo);
-  }, [data]);
-
   const [suspendedUser] = useMutation(SUSPENDED_USER_ADMIN, {
     refetchQueries: [{ query: PAGINATED_USER_LIST }],
     awaitRefetchQueries: true,
@@ -137,7 +133,6 @@ const UserInfoTab = () => {
   }, [selectedOption, selectedOption2nd, searchValue, pageStatus, paginatedUsersQuery]);
 
   useEffect(() => {
-    console.log(allData);
     if (allData?.paginatedUsers) {
       setData(allData.paginatedUsers);
     }

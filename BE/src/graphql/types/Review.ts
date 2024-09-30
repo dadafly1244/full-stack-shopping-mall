@@ -3,11 +3,11 @@ import { objectType } from "nexus";
 export const ReviewType = objectType({
   name: "Review",
   definition(t) {
-    t.nonNull.id("id");
+    t.nonNull.string("id");
     t.nonNull.string("title");
     t.string("desc");
     t.nonNull.float("score");
-    t.field("images_path", { type: "JSON" });
+    t.string("images_path");
     t.nonNull.boolean("is_deleted");
     t.nonNull.string("user_id");
     t.nonNull.string("product_id");
@@ -50,5 +50,13 @@ export const ReviewType = objectType({
           .product();
       },
     });
+  },
+});
+
+export const ReviewConnection = objectType({
+  name: "ReviewConnection",
+  definition(t) {
+    t.nonNull.list.nonNull.field("reviews", { type: "Review" });
+    t.nonNull.field("pageInfo", { type: "PageInfo" });
   },
 });

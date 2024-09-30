@@ -134,13 +134,13 @@ model OrderDetail {
 model Review{
   id String @id @default(uuid())
   title String @default("문의합니다")
-  desc String?
+  desc String? @db.Text
   score Float @default(3.0)
   images_path Json?
   is_deleted Boolean @default(false)
   user_id String
   product_id String
-  parent_review_id String
+  parent_review_id String?
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 

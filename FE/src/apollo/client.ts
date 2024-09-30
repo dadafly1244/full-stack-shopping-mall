@@ -21,13 +21,13 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
           alert("login token is expired. please retry login");
           location.replace("/signin");
         } catch (error) {
-          console.log(error);
+          console.error(error);
         }
       }
     });
   }
   if (networkError) {
-    console.log(networkError);
+    console.error(networkError);
   }
 });
 

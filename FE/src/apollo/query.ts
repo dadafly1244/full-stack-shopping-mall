@@ -538,7 +538,10 @@ export const PAGINATED_REVIEWS = gql`
         }
         childReviews {
           id
-          title
+          user_id
+          desc
+          updated_at
+          is_deleted
         }
       }
       pageInfo {

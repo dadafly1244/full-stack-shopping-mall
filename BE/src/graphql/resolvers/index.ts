@@ -12,3 +12,5 @@ export * from "#/graphql/resolvers/Product/mutation";
 // export * from "#/graphql/resolvers/Cart/mutation";
 export * from "#/graphql/resolvers/Order/query";
 export * from "#/graphql/resolvers/Order/mutation";
+export * from "#/graphql/resolvers/Review/query";
+export * from "#/graphql/resolvers/Review/mutation";

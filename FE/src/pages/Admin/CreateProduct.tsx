@@ -159,7 +159,6 @@ const CreateProduct = () => {
   };
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
-    console.log(1);
     e.preventDefault();
     // 모든 필드 검증
     const validationResults = await Promise.all(
@@ -174,11 +173,8 @@ const CreateProduct = () => {
         return true;
       })
     );
-    console.log(2);
 
     if (validationResults.every(Boolean)) {
-      console.log(3);
-
       try {
         const variables = {
           name: formState?.name,

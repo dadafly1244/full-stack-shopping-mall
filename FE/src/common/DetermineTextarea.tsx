@@ -21,6 +21,7 @@ const DetermineTextarea = (props: DetermineTextareaProps): ReactElement => {
     buttonClick,
     maxLength = 1000,
     value,
+    disabled = false,
   } = props;
 
   const labelVariants = cva(`block mb-2 text-sm font-medium`, {
@@ -177,6 +178,7 @@ const DetermineTextarea = (props: DetermineTextareaProps): ReactElement => {
             error={buttonStatue === "error"}
             success={buttonStatue === "success"}
             maxLength={maxLength}
+            disabled={disabled}
           />
           {initialButtonText && (
             <Button

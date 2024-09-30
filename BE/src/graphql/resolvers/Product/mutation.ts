@@ -376,6 +376,7 @@ export const ProductMutation = extendType({
               category_id: updateData.category_id
                 ? Number(updateData.category_id)
                 : Number(existProduct.category_id),
+              updated_at: new Date(),
             },
           });
 

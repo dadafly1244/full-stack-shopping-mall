@@ -1,6 +1,7 @@
 import { GraphQLError } from "graphql";
 import { AuthTokenPayload } from "#/utils/auth";
 import jwt from "jsonwebtoken";
+import { UserPermissions } from "@prisma/client";
 export const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || "";
 export const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || "";
 
@@ -11,12 +12,30 @@ export const validUser = async (_: any, args: any, context: any) => {
     userRole: "",
   };
   const user = await context.prisma.user.findUnique({
-    where: { user_id: user_id },
+    where: { id: user_id },
   });
+
+  if (!user) {
+    throw new GraphQLError("사용자를 찾을 수 없습니다.", {
+      extensions: {
+        code: "FORBIDDEN",
+      },
+    });
+  }
+
   const token = context.req.headers.authorization.replace("Bearer ", "");
+  // console.log("token", token);
   try {
+    console.log(1);
     decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as AuthTokenPayload;
-    return decoded.userRole === "USER" && user.id === decoded.userId;
+    console.log(2);
+    console.log("user", decoded);
+    console.log("decoded", decoded.userId, decoded.userRole);
+    console.log(
+      "decoded.userRole === UserPermissions.USER && user.id === decoded.userId",
+      decoded.userRole === user.permissions && user.id === decoded.userId,
+    );
+    return decoded.userRole === user.permissions && user.id === decoded.userId;
   } catch (error) {
     throw new GraphQLError("권한을 가진 사용자가 아닙니다.", {
       extensions: {

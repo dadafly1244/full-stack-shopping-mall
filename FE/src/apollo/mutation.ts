@@ -422,7 +422,7 @@ export const USER_UPDATE_REVIEW = gql`
 
 export const ADMIN_MANAGE_REVIEW = gql`
   mutation AdminManageReview($id: ID!, $is_deleted: Boolean!) {
-    adminManageReview(id: $id, is_deleted: $is_deleted) {
+    adminManageReviewSoftDelete(id: $id, is_deleted: $is_deleted) {
       id
       is_deleted
     }

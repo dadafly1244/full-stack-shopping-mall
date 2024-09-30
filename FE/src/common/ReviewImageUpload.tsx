@@ -3,37 +3,36 @@ import { cn } from "#/utils/utils";
 import { Tooltip } from "@material-tailwind/react";
 
 interface ImageUploadProps {
-  onImageSelect: (files: File[]) => void;
+  onImageSelect: (files: File | undefined) => void;
   multiple: boolean;
   rawUrls?: string[];
+  disabled?: boolean;
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelect, rawUrls }) => {
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>(
-    rawUrls ? rawUrls.map((url) => `${import.meta.env.VITE_BE_URL}${url}`) : []
+const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelect, rawUrls, disabled }) => {
+  const [selectedFiles, setSelectedFiles] = useState<File>();
+  const [previewUrl, setPreviewUrl] = useState<string>(
+    rawUrls ? `${import.meta.env.VITE_BE_URL}${rawUrls}` : ""
   );
 
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
       if (!files) return;
-
-      const validFiles: File[] = Array.from(files).filter(
+      const validFile: File[] = Array.from(files).filter(
         (file) =>
           file.type === "image/jpeg" ||
           file.type === "image/png" ||
           file.type === "image/webp" ||
           file.type === "image/svg+xml"
       );
+      if (validFile[0]) {
+        setSelectedFiles(validFile[0]);
 
-      if (validFiles.length > 0) {
-        setSelectedFiles(validFiles);
+        const newPreviewUrl = URL.createObjectURL(validFile[0]);
+        setPreviewUrl(newPreviewUrl);
 
-        const newPreviewUrls = validFiles.map((file) => URL.createObjectURL(file));
-        setPreviewUrls(newPreviewUrls);
-
-        onImageSelect([validFiles[0]]);
+        onImageSelect(validFile[0]);
       } else {
         alert("Please select valid image files (jpg, png, svg or webp).");
       }
@@ -42,36 +41,35 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelect, rawUrls }) => 
   );
 
   const removeFile = useCallback(() => {
-    setPreviewUrls(rawUrls ? rawUrls.map((url) => `${import.meta.env.VITE_BE_URL}${url}`) : []);
+    setPreviewUrl(rawUrls ? `${import.meta.env.VITE_BE_URL}${rawUrls}` : "");
     setSelectedFiles(() => {
-      const newFiles: File[] = [];
-      onImageSelect(newFiles);
-      return newFiles;
+      onImageSelect(undefined);
+      return undefined;
     });
   }, [rawUrls, onImageSelect]);
 
   return (
-    <div className="w-20 ">
+    <div className="w-20 flex flex-col gap-1">
       {/* db에서 온 url 없는 경우 */}
-      {selectedFiles.length > 0 && (
+      {selectedFiles && (
         <PreviewActiveImage
-          url={previewUrls[0]}
+          url={previewUrl}
           removeFile={removeFile}
-          name={selectedFiles[0].name}
-          type={selectedFiles[0].type}
+          name={selectedFiles.name}
+          type={selectedFiles.type}
           hasDBImage={!!rawUrls}
         />
       )}
-      {rawUrls && (
+      {rawUrls && !selectedFiles && (
         <PreviewActiveImage
-          url={previewUrls[0]}
+          url={previewUrl}
           removeFile={removeFile}
           name="main image"
           hasDBImage={!!rawUrls}
         />
       )}
 
-      {selectedFiles.length === 0 && !rawUrls && (
+      {!selectedFiles && !rawUrls && (
         <div className="grid h-20 w-20 mx-auto place-items-center rounded-lg bg-white border border-solid border-gray-200">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -89,13 +87,21 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelect, rawUrls }) => 
           </svg>
         </div>
       )}
-      <label className={cn("h-11 w-20 justify-between items-center inline-flex")}>
-        <input type="file" hidden onChange={handleFileChange} accept=".jpg,.jpeg,.png,.svg,.webp" />
+      <label className={cn("w-20 justify-center items-center  inline-flex")}>
+        <input
+          type="file"
+          disabled={disabled}
+          hidden
+          onChange={handleFileChange}
+          accept=".jpg,.jpeg,.png,.svg,.webp"
+        />
         <div
-          className="flex h-11 w-20 p-2 flex-col bg-gray-900 text-white text-xs font-semibold
-                       items-center justify-center cursor-pointer focus:outline-none rounded-md"
+          className={cn(
+            "flex w-16 p-1 flex-col bg-gray-900 text-white text-xs font-semibold items-center justify-center cursor-pointer focus:outline-none rounded-md",
+            disabled && "cursor-not-allowed bg-gray-500"
+          )}
         >
-          {selectedFiles.length > 0 ? "선택완료" : "사진선택"}
+          {selectedFiles ? "선택완료" : "사진선택"}
         </div>
       </label>
     </div>

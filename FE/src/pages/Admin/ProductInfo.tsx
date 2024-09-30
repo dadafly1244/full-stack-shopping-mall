@@ -99,7 +99,6 @@ const ProductInfoTab = () => {
   const [deleteFc] = useMutation(DELETE_PRODUCT_ADMIN);
 
   useEffect(() => {
-    console.log(searchParams.get("searchTerm"));
     if (searchParams.get("searchTerm")) {
       filteredProducts({
         variables: {
@@ -180,7 +179,6 @@ const ProductInfoTab = () => {
           },
           onCompleted: () => {
             if (searchParams.get("searchTerm")) {
-              console.log(11);
               filteredProducts({
                 variables: {
                   searchTerm: searchParams.get("searchTerm"),

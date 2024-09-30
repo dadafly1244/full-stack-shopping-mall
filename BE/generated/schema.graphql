@@ -57,9 +57,12 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 scalar JSON
 
 type Mutation {
+  adminManageReviewRealDelete(id: ID!, is_deleted: Boolean!): Review
+  adminManageReviewSoftDelete(id: ID!, is_deleted: Boolean!): Review
   createCategory(name: String!, parentId: Int): Category!
   createOrder(address: String, product_ids: [String!]!, quantities: [Int!]!, status: OrderStatus!, user_id: String!): Order!
   createProduct(category_id: Int!, count: Int, desc: String, desc_images_path: [Upload!], is_deleted: Boolean, main_image_path: Upload!, name: String!, price: Int!, sale: Int, status: ProductStatus!, store_id: String!): Product!
+  createReview(desc: String, images_path: Upload, parent_review_id: String, product_id: String!, score: Float!, title: String!, user_id: String!): Review
   createStore(business_registration_number: String!, desc: String, name: String!): Store
   createUser(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): User!
   deleteCategory(categoryId: Int!): Boolean
@@ -76,6 +79,7 @@ type Mutation {
   updateOrderQuantity(newQuantity: Int!, orderId: String!, productId: String!): Order!
   updateProduct(category_id: Int, count: Int, desc: String, desc_images_path: [Upload!], id: String!, main_image_path: Upload, name: String, price: Int, sale: Int): Product!
   updateProductStatus(id: String!, status: ProductStatus!): Product!
+  updateReview(desc: String, id: ID!, images_path: Upload, score: Float, title: String, user_id: String!): Review
   updateStore(business_registration_number: String, desc: String, id: String!, name: String): Store
   updateUser(email: String, gender: Gender, id: String!, name: String, permissions: UserPermissions, phone_number: String, user_id: String): User!
   updateUserStateActive(id: String!): AuthPayload!
@@ -133,6 +137,11 @@ type PaginatedProductsResult {
   products: [Product!]!
 }
 
+type PaginatedUsersResponse {
+  pageInfo: PageInfo!
+  users: [User]!
+}
+
 type Product {
   carts: [Cart!]!
   categories: [Category!]!
@@ -177,8 +186,11 @@ type Query {
   getAllProductsForHomePage(category: String): ProductsResultFormHome!
   getOrder(id: String!): Order
   getProduct(id: String!): Product
+  getProductDetailForHome(id: String!): Product
   isDuplicated(email: String, user_id: String): UserBoolean
   isDuplicatedBusinessNumber(business_registration_number: String): Boolean
+  paginatedReviews(isDeleted: Boolean, page: Int! = 1, pageSize: Int! = 5, productId: String!): ReviewConnection
+  paginatedUsers(page: Int! = 1, pageSize: Int! = 10, searchField: String, searchTerm: String): PaginatedUsersResponse
   searchCategories(includeHierarchy: Boolean, nameContains: String!): [Category!]!
   searchOrders(searchTerm: String!): [Order!]!
   searchOrdersByStatus(status: OrderStatus): [Order!]!
@@ -193,8 +205,8 @@ type Review {
   childReviews: [Review]
   created_at: DateTime!
   desc: String
-  id: ID!
-  images_path: JSON
+  id: String!
+  images_path: String
   is_deleted: Boolean!
   parentReview: Review
   parent_review_id: String
@@ -205,6 +217,11 @@ type Review {
   updated_at: DateTime!
   user: User
   user_id: String!
+}
+
+type ReviewConnection {
+  pageInfo: PageInfo!
+  reviews: [Review!]!
 }
 
 enum SortOrder {

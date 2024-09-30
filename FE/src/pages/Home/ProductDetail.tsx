@@ -1,10 +1,10 @@
-import { PAGINATED_REVIEWS, PRODUCT_DETAILS_USER } from "#/apollo/query";
+import { PRODUCT_DETAILS_USER } from "#/apollo/query";
 import BreadcrumbComponent from "#/common/Breadcrumb";
 import Counter from "#/common/Counter";
 import ProductImage from "#/common/ProductImage";
 import { calculateDiscountPercentage, formatNumber } from "#/utils/formatter";
-import { ProductType, ReviewConnectionType, ReviewType, UserPermissions } from "#/utils/types";
-import { useMutation, useQuery } from "@apollo/client";
+import { ProductType } from "#/utils/types";
+import { useQuery } from "@apollo/client";
 import {
   Button,
   Spinner,
@@ -14,19 +14,11 @@ import {
   Tab,
   TabPanel,
 } from "@material-tailwind/react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { NavLink, useLocation, useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { NavLink, useSearchParams } from "react-router-dom";
 import { useNavigate, useParams } from "react-router-dom";
-import CircularPagination from "#/common/Pagenation";
-import { jwtDecode } from "jwt-decode";
-import { JwtPayload } from "#/utils/auth";
-import { CREATE_REVIEW } from "#/apollo/mutation";
-import NotificationDialog from "#/common/NotificationDialog";
-import ImageUpload from "#/common/ReviewImageUpload";
-import DetermineTextarea from "#/common/DetermineTextarea";
-import { validateReview } from "#/utils/validateProduct";
-
-const PAGE_SIZE = 5;
+import { useFormatDate } from "#/hooks/useFormatDate";
+import ProductReview from "#/pages/Home/ProductReviews";
 
 const ProductInfo = ({
   storeName,
@@ -39,26 +31,9 @@ const ProductInfo = ({
   createAt: string;
   updateAt: string;
 }) => {
-  const create = useMemo(() => new Date(createAt), [createAt]);
-  const [createDate, setCreateDate] = useState("");
-  const [updateDate, setUpdateDate] = useState("");
+  const createDate = useFormatDate({ date: createAt });
+  const updateDate = useFormatDate({ date: updateAt });
 
-  useEffect(() => {
-    const date = `${create.getFullYear()}.${String(create.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}.${String(create.getDate()).padStart(2, "0")}`;
-    setCreateDate(date);
-  }, [create]);
-
-  useEffect(() => {
-    const updateDate = new Date(updateAt);
-    const date = `${updateDate.getFullYear()}.${String(updateDate.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}.${String(updateDate.getDate()).padStart(2, "0")}`;
-    setUpdateDate(date);
-  }, [updateAt]);
   return (
     <div className="grid grid-cols-3 my-10 divide-x divide-y border border-solid border-gray-600">
       <div className="p-1 col-span-1 font-semibold text-center">판매처</div>
@@ -144,210 +119,6 @@ const DetailInfo = ({ product }: { product: ProductType }) => {
   );
 };
 
-interface createReviewArgsType {
-  title: string;
-  desc: string;
-  score: number;
-  images_path: string;
-  product_id: string;
-  parent_review_id: string;
-  user_id: string;
-}
-
-const initReviewArgs: createReviewArgsType = {
-  title: "",
-  desc: "",
-  score: 0,
-  images_path: "",
-  product_id: "",
-  parent_review_id: "",
-  user_id: "",
-};
-const CreateReview = ({
-  parentReviewId,
-  productId,
-  productCount,
-  userId,
-}: {
-  parentReviewId?: string;
-  productId: string;
-  userId: string;
-}) => {
-  const [newReview, setNewReview] = useState<createReviewArgsType>({
-    ...initReviewArgs,
-    product_id: productId,
-    user_id: userId,
-  });
-  const [mainImage, setMainImage] = useState<File | null>(null);
-  const handleMainImageSelect = (files: File[]) => {
-    if (files.length > 0) {
-      setMainImage(files[0]);
-    }
-  };
-  const [isErrorOpen, setIsErrorOpen] = useState(false);
-
-  const [createFc, { data, loading, error }] = useMutation(CREATE_REVIEW);
-  useEffect(() => {
-    if (error) setIsErrorOpen(true);
-  }, [error]);
-
-  const handleCreateReview = async () => {
-    try {
-      const variables = {
-        ...newReview,
-        user_id: userId,
-        title: `${newReview?.desc.slice(0, 30)}...`,
-        parent_review_id: parentReviewId,
-        images_path: mainImage,
-      };
-      console.log(variables);
-      await createFc({ variables });
-      console.log(data);
-      setNewReview({
-        ...initReviewArgs,
-        product_id: productId,
-        user_id: userId,
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleInputChange = (key: keyof ProductType, value: string) => {
-    setNewReview((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
-  const handleWrongMessage = (desc: string): string => validateReview(desc).message;
-  const handleRightMessage = (desc: string): string => validateReview(desc).message;
-  const handleIsRight = (desc: string): boolean => validateReview(desc).isValid;
-
-  if (!userId) {
-    return <div>로그인이 필요합니다.</div>;
-  }
-  return (
-    <div>
-      <NotificationDialog
-        isOpen={isErrorOpen}
-        title="ERROR!!"
-        message={`에러가 발생했습니다.\n${error?.message}`}
-        onClose={() => setIsErrorOpen(false)}
-      />
-      <div className=" flex items-center gap-2">
-        <div className="w-4/5 relative">
-          <DetermineTextarea
-            label="리뷰달기"
-            placeholder="상품에 대한 후기를 남겨주세요.(100자 이상)"
-            wrongMessage={handleWrongMessage}
-            rightMessage={handleRightMessage}
-            isRight={handleIsRight}
-            rows={6}
-            maxLength={1000}
-            onChange={(value: string) => handleInputChange("desc", value)}
-            className="!pr-28"
-          />
-          <div className="absolute right-2 top-10">
-            <ImageUpload onImageSelect={handleMainImageSelect} multiple={false} />
-          </div>
-        </div>
-
-        <Button className="w-1/5 py-16" onClick={handleCreateReview} loading={loading}>
-          등록
-        </Button>
-      </div>
-    </div>
-  );
-};
-
-const ProductReview = ({ product }: { product: ProductType }) => {
-  const location = useLocation();
-  const [token, setToken] = useState(localStorage.getItem("token") || "");
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [id, setId] = useState<string>("");
-  const [data, setData] = useState<ReviewConnectionType>({
-    reviews: [],
-    pageInfo: {
-      currentPage: 1,
-      pageSize: 1,
-      totalCount: 1,
-      totalPages: 1,
-    },
-  });
-  const [isErrorOpen, setIsErrorOpen] = useState(false);
-  const [pageStatus, setPageStatus] = useState(Number(searchParams.get("pageStatus")) || 1);
-  const handleChangePage = (p: number) => {
-    setPageStatus(p);
-    searchParams.set("pageStatus", String(p));
-    setSearchParams(searchParams);
-  };
-  useEffect(() => {
-    setToken(localStorage.getItem("token") || "");
-  }, [location]);
-
-  useEffect(() => {
-    if (token) {
-      const decodedToken = jwtDecode<JwtPayload>(token);
-      setId(decodedToken.userId);
-      if (decodedToken.userRole === UserPermissions.ADMIN) {
-        setIsAdmin(true);
-      }
-    }
-  }, [token]);
-
-  const {
-    data: reviewData,
-    loading,
-    error,
-  } = useQuery(PAGINATED_REVIEWS, {
-    variables: {
-      page: pageStatus,
-      pageSize: PAGE_SIZE,
-      productId: product?.id,
-      isDeleted: isAdmin ? undefined : false,
-    },
-  });
-
-  useEffect(() => {
-    if (error) setIsErrorOpen(true);
-  }, [error]);
-
-  useEffect(() => {
-    console.log(reviewData);
-    setData(reviewData);
-  }, [reviewData]);
-
-  useEffect(() => {}, []);
-
-  return (
-    <div>
-      <NotificationDialog
-        isOpen={isErrorOpen}
-        title="ERROR!!"
-        message={`에러가 발생했습니다.\n${error?.message}`}
-        onClose={() => setIsErrorOpen(false)}
-      />
-      <div>"{product?.name}" 상품 생생 리뷰</div>
-      {loading && <Spinner />}
-      <div>
-        <CreateReview userId={id} productId={product?.id} />
-      </div>
-      <div></div>
-      <div></div>
-
-      <div className="w-full flex justify-center content-center">
-        <CircularPagination
-          currentPage={pageStatus}
-          totalPages={data?.pageInfo?.totalPages || 1}
-          onPageChange={handleChangePage}
-        />
-      </div>
-    </div>
-  );
-};
-
 const TopTabHeader = ({ product }: { product: ProductType }) => {
   return (
     <div className="max-w-screen-xl w-full h-20 pt-2 bg-white  top-0 !fixed !z-[9999] ">
@@ -409,10 +180,12 @@ const tabData = [
 const ProductDetail = () => {
   const navigate = useNavigate();
   const param = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [product, setProduct] = useState<ProductType | undefined>();
   const [count, setCount] = useState(1);
   const [discount, setDiscount] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [tabState, setTabState] = useState(searchParams.get("tabState") || "desc");
 
   const [showTopHeader, setShowTopHeader] = useState(false);
   const tabsRef = useRef(null);
@@ -424,8 +197,12 @@ const ProductDetail = () => {
         setShowTopHeader(tabsTop <= 0);
       }
     };
-
     window.addEventListener("scroll", handleScroll);
+
+    if (!searchParams.get("pageStatus")) {
+      searchParams.set("tabState", "desc");
+      setSearchParams(searchParams);
+    }
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
@@ -437,6 +214,12 @@ const ProductDetail = () => {
     },
     fetchPolicy: "network-only",
   });
+  const handleTabValue = (value: string) => {
+    const newSearchParams = new URLSearchParams();
+    setTabState(value);
+    newSearchParams.set("tabState", value);
+    setSearchParams(newSearchParams);
+  };
 
   useEffect(() => {
     if (data?.getProductDetailForHome) {
@@ -532,12 +315,17 @@ const ProductDetail = () => {
           </div>
           {/** 밑부분 */}
           <div className="py-10">
-            <Tabs value="desc">
+            <Tabs value={tabState}>
               {showTopHeader && <TopTabHeader product={product} />}
               <div ref={tabsRef}>
                 <TabsHeader className="bg-gray-200 border-b border-gray-300">
                   {tabData.map(({ label, value }) => (
-                    <Tab className="text-gray-700 transition-colors" key={value} value={value}>
+                    <Tab
+                      onClick={() => handleTabValue(value)}
+                      className="text-gray-700 transition-colors"
+                      key={value}
+                      value={value}
+                    >
                       {label}
                     </Tab>
                   ))}

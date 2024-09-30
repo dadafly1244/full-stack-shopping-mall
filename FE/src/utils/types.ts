@@ -169,6 +169,7 @@ export interface DetermineTextareaProps {
   button?: string | (() => Promise<string>);
   buttonClick?: (value: string) => Promise<boolean>;
   value?: string;
+  disabled?: boolean;
   // Textarea 특화 속성
   rows?: number;
   maxLength?: number;
