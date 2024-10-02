@@ -428,3 +428,41 @@ export const ADMIN_MANAGE_REVIEW = gql`
     }
   }
 `;
+
+export const UPDATE_USER_My_PROFILE = gql`
+  mutation UpdateMyProfile(
+    $user_id: String
+    $currentPassword: String
+    $newPassword: String
+    $name: String
+    $email: String
+    $gender: Gender
+    $phone_number: String
+  ) {
+    updateMyProfile(
+      user_id: $user_id
+      currentPassword: $currentPassword
+      newPassword: $newPassword
+      name: $name
+      email: $email
+      gender: $gender
+      phone_number: $phone_number
+    ) {
+      id
+      user_id
+      name
+      email
+      gender
+      phone_number
+    }
+  }
+`;
+
+export const WITHDRAWAL_USER = gql`
+  mutation WithdrawalUser($user_id: String!, $password: String!) {
+    withdrawal(user_id: $user_id, password: $password) {
+      id
+      name
+    }
+  }
+`;

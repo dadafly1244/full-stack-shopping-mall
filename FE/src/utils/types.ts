@@ -203,6 +203,22 @@ export interface SignupType {
   status: UserStatus;
   permissions: UserPermissions;
 }
+
+export interface myProfileType {
+  email: string;
+  password: string;
+  id: string;
+  confirmPassword: string;
+  name: string;
+  user_id: string;
+  gender: Gender;
+  phone_number: string;
+  status: UserStatus;
+  permissions: UserPermissions;
+  created_at: string;
+  updated_at: string;
+}
+
 export type SortState<S> = {
   [K in keyof S]?: "asc" | "desc" | "none";
 };

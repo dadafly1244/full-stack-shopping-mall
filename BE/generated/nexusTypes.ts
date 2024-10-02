@@ -252,6 +252,7 @@ export interface NexusGenFieldTypes {
     signin: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signout: NexusGenRootTypes['User']; // User!
     signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
+    updateMyProfile: NexusGenRootTypes['User'] | null; // User
     updateOrder: NexusGenRootTypes['Order']; // Order!
     updateOrderQuantity: NexusGenRootTypes['Order']; // Order!
     updateProduct: NexusGenRootTypes['Product']; // Product!
@@ -262,7 +263,7 @@ export interface NexusGenFieldTypes {
     updateUserStateActive: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     updateUserStateSuspended: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     uploadFile: boolean | null; // Boolean
-    withdrawal: NexusGenRootTypes['AuthPayload'] | null; // AuthPayload
+    withdrawal: NexusGenRootTypes['User']; // User!
   }
   Order: { // field return type
     address: string | null; // String
@@ -340,6 +341,7 @@ export interface NexusGenFieldTypes {
     getProductDetailForHome: NexusGenRootTypes['Product'] | null; // Product
     isDuplicated: NexusGenRootTypes['UserBoolean'] | null; // UserBoolean
     isDuplicatedBusinessNumber: boolean | null; // Boolean
+    myProfile: NexusGenRootTypes['User'] | null; // User
     paginatedReviews: NexusGenRootTypes['ReviewConnection'] | null; // ReviewConnection
     paginatedUsers: NexusGenRootTypes['PaginatedUsersResponse'] | null; // PaginatedUsersResponse
     searchCategories: NexusGenRootTypes['Category'][]; // [Category!]!
@@ -448,6 +450,7 @@ export interface NexusGenFieldTypeNames {
     signin: 'AuthPayload'
     signout: 'User'
     signup: 'AuthPayload'
+    updateMyProfile: 'User'
     updateOrder: 'Order'
     updateOrderQuantity: 'Order'
     updateProduct: 'Product'
@@ -458,7 +461,7 @@ export interface NexusGenFieldTypeNames {
     updateUserStateActive: 'AuthPayload'
     updateUserStateSuspended: 'AuthPayload'
     uploadFile: 'Boolean'
-    withdrawal: 'AuthPayload'
+    withdrawal: 'User'
   }
   Order: { // field return type name
     address: 'String'
@@ -536,6 +539,7 @@ export interface NexusGenFieldTypeNames {
     getProductDetailForHome: 'Product'
     isDuplicated: 'UserBoolean'
     isDuplicatedBusinessNumber: 'Boolean'
+    myProfile: 'User'
     paginatedReviews: 'ReviewConnection'
     paginatedUsers: 'PaginatedUsersResponse'
     searchCategories: 'Category'
@@ -694,6 +698,15 @@ export interface NexusGenArgTypes {
       phone_number?: string | null; // String
       status: NexusGenEnums['UserStatus']; // UserStatus!
       user_id: string; // String!
+    }
+    updateMyProfile: { // args
+      currentPassword?: string | null; // String
+      email?: string | null; // String
+      gender?: NexusGenEnums['Gender'] | null; // Gender
+      name?: string | null; // String
+      newPassword?: string | null; // String
+      phone_number?: string | null; // String
+      user_id?: string | null; // String
     }
     updateOrder: { // args
       address?: string | null; // String

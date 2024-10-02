@@ -17,10 +17,11 @@ import { useLocation } from "react-router-dom";
 import LogoImage from "#/assets/logo.png";
 
 const Header = () => {
-  const location = useLocation();
   const [openNav, setOpenNav] = useState(false);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [currentId, setCurrentId] = useState("");
 
+  const location = useLocation();
   useEffect(() => {
     setToken(localStorage.getItem("token") || "");
   }, [location]);
@@ -35,9 +36,11 @@ const Header = () => {
           variables: {
             id: decodedToken?.userId,
           },
+          onCompleted: () => {
+            localStorage.setItem("token", "");
+            localStorage.setItem("refresh_token", "");
+          },
         });
-        localStorage.setItem("token", "");
-        localStorage.setItem("refresh_token", "");
       } catch (error) {
         console.error("sign out error", error);
       }
@@ -50,6 +53,7 @@ const Header = () => {
     }
     const decodedToken = jwtDecode<JwtPayload>(token);
     if (!decodedToken) setIsShowAdminButton(false);
+    setCurrentId(decodedToken.userId);
     if (decodedToken.userRole === "ADMIN") setIsShowAdminButton(true);
     else setIsShowAdminButton(false);
   }, [token, isShowAdminButton]);
@@ -83,7 +87,7 @@ const Header = () => {
             fill="#90A4AE"
           />
         </svg>
-        <NavLink to="/" className="flex items-center">
+        <NavLink to={`/user/${currentId}/profile`} className="flex items-center">
           My Profile
         </NavLink>
       </Typography>
@@ -169,7 +173,7 @@ const Header = () => {
                   />
                 </svg>
                 <NavLink
-                  to="/"
+                  to={`/user/${currentId}/profile`}
                   className="flex items-center after:content-['|'] after:text-gray-400 after:mx-2"
                 >
                   My Profile

@@ -62,3 +62,27 @@ export const isAdmin = (_: any, __: any, context: any) => {
     });
   }
 };
+
+export const isAuthenticated = (_: any, __: any, context: any) => {
+  const authHeader = context.req.headers.authorization;
+  if (!authHeader) {
+    throw new GraphQLError("인증 토큰이 없습니다.", {
+      extensions: {
+        code: "UNAUTHENTICATED",
+      },
+    });
+  }
+
+  const token = authHeader.replace("Bearer ", "");
+  try {
+    const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as AuthTokenPayload;
+    context.user = { id: decoded.userId, role: decoded.userRole };
+    return true;
+  } catch (error) {
+    throw new GraphQLError("유효하지 않은 토큰입니다.", {
+      extensions: {
+        code: "UNAUTHENTICATED",
+      },
+    });
+  }
+};

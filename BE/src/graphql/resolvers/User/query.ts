@@ -10,7 +10,7 @@ import {
   list,
   arg,
 } from "nexus";
-import { isAdmin } from "#/graphql/validators";
+import { isAdmin, isAuthenticated } from "#/graphql/validators";
 import {
   Gender,
   User,
@@ -186,6 +186,27 @@ export const UserBooleanQuery = extendType({
         if (!user) return { duplicated: false };
 
         return { duplicated: true };
+      },
+    });
+
+    //로그인한 사용자 정보 반환해주는 함수
+    t.field("myProfile", {
+      type: "User",
+      authorize: isAuthenticated,
+      resolve: async (_, __, context) => {
+        if (!context.user?.id) {
+          throw new Error("Not authenticated");
+        }
+
+        const user = await context.prisma.user.findUnique({
+          where: { id: context.user.id },
+        });
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        return user;
       },
     });
   },

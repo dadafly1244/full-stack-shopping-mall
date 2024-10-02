@@ -274,7 +274,7 @@ const Review = ({
         <div className="ml-16">
           <CreateReview
             title="답글달기"
-            userId={currentId}
+            userId={reviewData.user_id}
             productId={reviewData.product_id}
             parentReviewId={reviewData.id}
             variables={variables}

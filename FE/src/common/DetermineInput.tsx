@@ -68,6 +68,12 @@ const DetermineInput = (props: DetermineInputProps): ReactElement => {
   }, [_inputValue]);
 
   useEffect(() => {
+    if (value !== undefined) {
+      setInputValue(value);
+    }
+  }, [value]);
+
+  useEffect(() => {
     if (debouncedInput === "") {
       setValiant("default");
       setButtonStatus(null);

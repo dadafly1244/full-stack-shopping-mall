@@ -75,6 +75,7 @@ type Mutation {
   signin(password: String!, user_id: String!): AuthPayload!
   signout(id: String!): User!
   signup(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): AuthPayload!
+  updateMyProfile(currentPassword: String, email: String, gender: Gender, name: String, newPassword: String, phone_number: String, user_id: String): User
   updateOrder(address: String, id: String!, status: String!): Order!
   updateOrderQuantity(newQuantity: Int!, orderId: String!, productId: String!): Order!
   updateProduct(category_id: Int, count: Int, desc: String, desc_images_path: [Upload!], id: String!, main_image_path: Upload, name: String, price: Int, sale: Int): Product!
@@ -85,7 +86,7 @@ type Mutation {
   updateUserStateActive(id: String!): AuthPayload!
   updateUserStateSuspended(id: String!): AuthPayload!
   uploadFile(file: Upload): Boolean
-  withdrawal(password: String!, user_id: String!): AuthPayload
+  withdrawal(password: String!, user_id: String!): User!
 }
 
 type Order {
@@ -189,6 +190,7 @@ type Query {
   getProductDetailForHome(id: String!): Product
   isDuplicated(email: String, user_id: String): UserBoolean
   isDuplicatedBusinessNumber(business_registration_number: String): Boolean
+  myProfile: User
   paginatedReviews(isDeleted: Boolean, page: Int! = 1, pageSize: Int! = 5, productId: String!): ReviewConnection
   paginatedUsers(page: Int! = 1, pageSize: Int! = 10, searchField: String, searchTerm: String): PaginatedUsersResponse
   searchCategories(includeHierarchy: Boolean, nameContains: String!): [Category!]!

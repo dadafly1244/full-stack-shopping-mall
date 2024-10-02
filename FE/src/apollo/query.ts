@@ -553,3 +553,20 @@ export const PAGINATED_REVIEWS = gql`
     }
   }
 `;
+
+export const GET_SIGN_IN_USER_INFO = gql`
+  query {
+    myProfile {
+      id
+      user_id
+      name
+      email
+      gender
+      phone_number
+      status
+      permissions
+      created_at
+      updated_at
+    }
+  }
+`;

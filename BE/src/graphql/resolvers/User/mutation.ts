@@ -17,6 +17,7 @@ import { UserStatus } from "@prisma/client";
 import {
   validUser,
   isAdmin,
+  isAuthenticated,
   ACCESS_TOKEN_SECRET,
   REFRESH_TOKEN_SECRET,
 } from "#/graphql/validators";
@@ -345,14 +346,13 @@ export const AuthMutation = extendType({
       },
     });
     // 회원 탈퇴 withdrawal
-    t.nullable.field("withdrawal", {
-      type: "AuthPayload",
+    t.nonNull.field("withdrawal", {
+      type: "User",
       args: {
         user_id: nonNull(stringArg()),
         password: nonNull(stringArg()),
       },
-      authorize: validUser,
-      resolve: async (_, args, context) => {
+      authorize: async (_, args, context) => {
         const user = await context.prisma.user.findUnique({
           where: { user_id: args.user_id },
         });
@@ -360,20 +360,99 @@ export const AuthMutation = extendType({
         if (!user) {
           throw new Error("No such user found");
         }
-        const valid = await bcrypt.compare(args.password, user.password);
-        if (!valid) {
-          throw new Error("Invalid password");
+
+        const result = validUser(_, { user_id: user.id }, context);
+        return result;
+      },
+      resolve: async (_, args, context) => {
+        try {
+          const user = await context.prisma.user.findUnique({
+            where: { user_id: args.user_id },
+          });
+
+          if (!user) {
+            throw new Error("No such user found");
+          }
+          const valid = await bcrypt.compare(args.password, user.password);
+          if (!valid) {
+            throw new Error("Invalid password");
+          }
+
+          const deleteUser = await context.prisma.user.update({
+            where: { id: user.id },
+            data: {
+              status: UserStatus.INACTIVE,
+            },
+          });
+
+          if (!deleteUser || !deleteUser.id) {
+            throw new Error(
+              "회원 상태 수정 후 사용자 정보를 찾을 수 없습니다.",
+            );
+          }
+
+          return deleteUser;
+        } catch (error) {
+          console.error("Withdrawal error:", error);
+          throw new Error("회원 탈퇴 처리 중 오류가 발생했습니다.");
+        }
+      },
+    });
+    t.field("updateMyProfile", {
+      type: "User",
+      args: {
+        user_id: nullable(stringArg()),
+        currentPassword: nullable(stringArg()),
+        newPassword: nullable(stringArg()),
+        name: nullable(stringArg()),
+        email: nullable(stringArg()),
+        gender: nullable(arg({ type: "Gender" })),
+        phone_number: nullable(stringArg()),
+      },
+      authorize: isAuthenticated,
+      resolve: async (_, args, context) => {
+        const userId = context.user.id;
+        if (!userId) {
+          throw new Error("Not authenticated");
         }
 
-        const deleteUser = await context.prisma.user.update({
-          where: { user_id: args.user_id },
-          data: {
-            status: UserStatus.INACTIVE,
-          },
+        const user = await context.prisma.user.findUnique({
+          where: { id: userId },
         });
-        return {
-          user: deleteUser,
-        };
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        let updateData: any = {};
+
+        // 비밀번호 변경 처리
+        if (args.currentPassword && args.newPassword) {
+          const isValidPassword = await bcrypt.compare(
+            args.currentPassword,
+            user.password,
+          );
+          if (!isValidPassword) {
+            throw new Error("Current password is incorrect");
+          }
+          updateData["password"] = await bcrypt.hash(args.newPassword, 10);
+        }
+
+        // 다른 필드들 처리
+        const fields = ["user_id", "name", "email", "gender", "phone_number"];
+        fields.forEach((field) => {
+          if (args[field] !== undefined) {
+            updateData[field] = args[field];
+          }
+        });
+
+        // 업데이트 수행
+        const updatedUser = await context.prisma.user.update({
+          where: { id: userId },
+          data: updateData,
+        });
+
+        return updatedUser;
       },
     });
   },
