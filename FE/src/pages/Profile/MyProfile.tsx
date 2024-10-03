@@ -19,7 +19,7 @@ import {
 import { useLazyQuery, useMutation } from "@apollo/client";
 import { Button, Spinner } from "@material-tailwind/react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const initUserInfo = {
   created_at: "",
@@ -42,6 +42,8 @@ const USER_STATUS = {
 };
 const MyProfile = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [formState, setFormState] = useState<myProfileType>(initUserInfo);
   const [originalState, setOriginalState] = useState<myProfileType>(initUserInfo);
   const [withdrawalFormState, setWithdrawalFormState] = useState({
@@ -51,26 +53,29 @@ const MyProfile = () => {
   const [isInfoErrorOpen, setIsInfoErrorOpen] = useState(false);
   const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false);
   const [isUpdateErrorOpen, setIsUpdateErrorOpen] = useState(false);
-  const [userInfoFc, { data: userInfo, error, loading }] = useLazyQuery(GET_SIGN_IN_USER_INFO);
+  const [userInfoFc, { data: userInfo, error, loading }] = useLazyQuery(GET_SIGN_IN_USER_INFO, {
+    fetchPolicy: "network-only",
+  });
 
   useEffect(() => {
-    userInfoFc({
-      onCompleted: () => {
-        if (userInfo?.myProfile) {
-          setFormState(userInfo.myProfile);
-          setOriginalState(userInfo.myProfile);
-        }
-      },
-    });
-  }, []);
-  const token = localStorage.getItem("token") || "";
-
+    const storedToken = localStorage.getItem("token") || "";
+    setToken(storedToken);
+  }, [location, token]);
   useEffect(() => {
     if (!token) {
       alert("로그인이 필요합니다.");
       navigate("/");
+    } else {
+      userInfoFc({
+        onCompleted: () => {
+          if (userInfo?.myProfile) {
+            setFormState(userInfo.myProfile);
+            setOriginalState(userInfo.myProfile);
+          }
+        },
+      });
     }
-  }, [token, navigate]);
+  }, [navigate, userInfoFc, userInfo?.myProfile, token]);
 
   useEffect(() => {
     if (userInfo?.myProfile) {
@@ -233,46 +238,6 @@ const MyProfile = () => {
       throw error;
     }
   };
-
-  // const handleUpdateUserInfo = async () => {
-  //   const validationResults = await Promise.all(
-  //     Object.keys(formState).map(async (key) => {
-  //       const typedKey = key as keyof myProfileType;
-  //       const value = formState[typedKey];
-
-  //       const field = myProfileFrom.find((f) => f.key === typedKey);
-  //       if (field && field.type === "determineInput") {
-  //         if (typedKey === "confirmPassword") {
-  //           if (value === "") return true;
-  //           return isPasswordMatch(value as string);
-  //         } else if (typedKey === "user_id") {
-  //           return (await canUseThisId(value as string)) && field.isRight(value as string);
-  //         } else if (typedKey === "email") {
-  //           return !canUseThisEmail(value as string) && field.isRight(value as string);
-  //         } else if (typedKey === "phone_number") {
-  //           // 빈 값인 경우 검증하지 않음
-  //           if (value === "") return true;
-  //           return /^01([0|1|6|7|8|9])-?\d{3,4}-?\d{4}$/.test(formatPhoneNumber(value as string));
-  //         }
-  //         return field.isRight(value as string);
-  //       }
-  //       return true;
-  //     })
-  //   );
-
-  //   if (validationResults.some(Boolean)) {
-  //     try {
-  //       updateFc({
-  //         variables: {},
-  //         onCompleted: () => {},
-  //       });
-  //     } catch (error) {
-  //       console.error("Error during update: ", error);
-  //     }
-  //   } else {
-  //     alert("형식을 다시 확인해주세요.");
-  //   }
-  // };
 
   const handleUpdateUserInfo = async () => {
     const changedFields = Object.keys(formState).filter(

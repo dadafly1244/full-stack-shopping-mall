@@ -58,8 +58,17 @@ const UpdateReview = ({
 
   const handleCreateReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     try {
       if (newReview?.desc) {
+        if (newReview.desc.trim() === "") {
+          alert("내용을 입력해주세요.");
+          return;
+        }
+        if (!validateReview(newReview.desc).isValid) {
+          alert(validateReview(newReview.desc).message);
+          return;
+        }
         const updateVariables: updateReviewArgsType = {
           id: newReview.id,
           title: `${newReview.desc.slice(0, 30)}...`,
@@ -111,7 +120,7 @@ const UpdateReview = ({
           onClose?.();
         }}
       />
-      <form className=" flex items-center gap-2" onSubmit={handleCreateReview}>
+      <form className=" flex items-start gap-2" onSubmit={handleCreateReview}>
         <div className="w-4/5 relative">
           {!isChild && (
             <div className="absolute  right-2 top-1">
@@ -140,7 +149,7 @@ const UpdateReview = ({
             </div>
           )}
         </div>
-        <div className="w-1/5 text-lg flex flex-col gap-2">
+        <div className="w-1/5 text-lg flex flex-col gap-2 mt-14">
           <Button
             variant="outlined"
             className="w-1/2 "

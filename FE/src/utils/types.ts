@@ -34,6 +34,28 @@ export enum OrderStatus {
   UNKNOWN = "UNKNOWN",
 }
 
+export interface CartItemType {
+  id: string;
+  product_id: string;
+  quantity: number;
+  created_at: string;
+  updated_at: string;
+  product: ProductType;
+}
+
+export interface CartType {
+  id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  total_price: number;
+  items: CartItemType[];
+  user: {
+    id: string;
+    name: string;
+  };
+}
+
 export type UpdateUserInput = {
   id: string;
   user_id?: string;

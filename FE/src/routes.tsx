@@ -17,7 +17,6 @@ import UpdateProduct from "#/pages/Admin/UpdateProduct";
 import ProfilePageLayout from "#/pages/Profile";
 import OrderSheet from "#/pages/Profile/OrderSheet";
 import OrderDetail from "#/pages/Profile/OrderDetail";
-import Payment from "#/pages/Profile/Payment";
 import PaymentList from "#/pages/Profile/PaymentList";
 import Cart from "#/pages/Profile/Cart";
 import MyProfile from "#/pages/Profile/MyProfile";
@@ -97,20 +96,8 @@ const routes = [
       },
       {
         path: "pay",
-        handle: { title: "결제" },
-        children: [
-          {
-            index: true,
-            path: "",
-            element: <PaymentList />,
-            handle: { title: "내역" },
-          },
-          {
-            path: ":paymentId",
-            element: <Payment />,
-            handle: { title: "" },
-          },
-        ],
+        handle: { title: "결제내역" },
+        element: <PaymentList />,
       },
       { index: true, element: <UserIndexRedirect /> },
     ],

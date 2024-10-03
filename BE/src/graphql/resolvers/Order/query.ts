@@ -1,199 +1,328 @@
-import {
-  extendType,
-  idArg,
-  stringArg,
-  intArg,
-  nonNull,
-  nullable,
-  list,
-  arg,
-  booleanArg,
-} from "nexus";
+import { extendType, stringArg, intArg, nonNull, list, arg } from "nexus";
 import { GraphQLError } from "graphql";
 import { ApolloServerErrorCode } from "@apollo/server/errors";
+import { isAdmin, validUser } from "#/graphql/validators";
 
 export const OrderQuery = extendType({
   type: "Query",
   definition(t) {
-    // Get a single order by ID
-    t.field("getOrder", {
-      type: "Order",
+    t.field("getUserOrders", {
+      type: nonNull("PaginatedOrdersResult"),
       args: {
-        id: nonNull(stringArg()),
+        user_id: nonNull(stringArg()),
+        page: nonNull(intArg({ default: 1 })),
+        pageSize: nonNull(intArg({ default: 10 })),
       },
-      resolve: async (_, { id }, context) => {
-        try {
-          const order = await context.prisma.order.findUnique({
-            where: { id },
-            include: { order_details: true },
-          });
-          if (!order) {
-            throw new GraphQLError("Order not found", {
-              extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT },
-            });
-          }
-          return order;
-        } catch (error) {
-          throw new GraphQLError("Failed to fetch order", {
-            extensions: { code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR },
-          });
-        }
+      authorize: validUser,
+      resolve: async (_, { user_id, page, pageSize }, context) => {
+        const totalCount = await context.prisma.order.count({
+          where: { user_id, is_deleted: false },
+        });
+
+        const orders = await context.prisma.order.findMany({
+          where: { user_id, is_deleted: false },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          include: { order_details: true },
+          orderBy: { created_at: "desc" },
+        });
+
+        return {
+          orders,
+          pageInfo: {
+            currentPage: page,
+            pageSize: pageSize,
+            totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+          },
+        };
       },
     });
 
-    // Get all orders
+    t.field("searchUserOrders", {
+      type: nonNull("PaginatedOrdersResult"),
+      args: {
+        user_id: nonNull(stringArg()),
+        searchTerm: nonNull(stringArg()),
+        page: nonNull(intArg({ default: 1 })),
+        pageSize: nonNull(intArg({ default: 10 })),
+        status: arg({ type: "OrderStatus" }),
+      },
+      authorize: validUser,
+      resolve: async (
+        _,
+        { user_id, searchTerm, page, pageSize, status },
+        context,
+      ) => {
+        const whereClause = {
+          user_id,
+          is_deleted: false,
+          OR: [
+            { id: { contains: searchTerm } },
+            { address: { contains: searchTerm } },
+            {
+              order_details: {
+                some: {
+                  product: {
+                    name: { contains: searchTerm },
+                  },
+                },
+              },
+            },
+          ],
+          ...(status && { status }),
+        };
+
+        const totalCount = await context.prisma.order.count({
+          where: whereClause,
+        });
+
+        const orders = await context.prisma.order.findMany({
+          where: whereClause,
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          include: { order_details: { include: { product: true } } },
+          orderBy: { created_at: "desc" },
+        });
+
+        return {
+          orders,
+          pageInfo: {
+            currentPage: page,
+            pageSize: pageSize,
+            totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+          },
+        };
+      },
+    });
+
+    t.field("getUserOrder", {
+      type: "Order",
+      args: {
+        user_id: nonNull(stringArg()),
+        order_id: nonNull(stringArg()),
+      },
+      resolve: async (_, { user_id, order_id }, context) => {
+        const order = await context.prisma.order.findUnique({
+          where: { id: order_id, user_id, is_deleted: false },
+          include: { order_details: true },
+        });
+
+        if (!order) {
+          throw new GraphQLError("Order not found", {
+            extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT },
+          });
+        }
+
+        return order;
+      },
+    });
+    // // 사용자: 자신의 주문 내역 pagination으로 조회
+    // t.field("getUserOrders", {
+    //   type: nonNull("PaginatedOrdersResult"),
+    //   args: {
+    //     cart_id: nonNull(stringArg()),
+    //     page: nonNull(intArg({ default: 1 })),
+    //     pageSize: nonNull(intArg({ default: 10 })),
+    //   },
+    //   authorize: validUser,
+    //   resolve: async (_, { cart_id, page, pageSize }, context) => {
+    //     const cart = await context.prisma.cart.findUnique({
+    //       where: { id: cart_id },
+    //       include: { user: true },
+    //     });
+
+    //     if (!cart) {
+    //       throw new GraphQLError("Cart not found", {
+    //         extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT },
+    //       });
+    //     }
+
+    //     const totalCount = await context.prisma.order.count({
+    //       where: { user_id: cart.user_id, is_deleted: false },
+    //     });
+
+    //     const orders = await context.prisma.order.findMany({
+    //       where: { user_id: cart.user_id, is_deleted: false },
+    //       skip: (page - 1) * pageSize,
+    //       take: pageSize,
+    //       include: { order_details: true },
+    //       orderBy: { created_at: "desc" },
+    //     });
+
+    //     return {
+    //       orders,
+    //       pageInfo: {
+    //         currentPage: page,
+    //         pageSize: pageSize,
+    //         totalCount,
+    //         totalPages: Math.ceil(totalCount / pageSize),
+    //       },
+    //     };
+    //   },
+    // });
+
+    // // 사용자: 주문 내역 검색
+    // t.field("searchUserOrders", {
+    //   type: nonNull("PaginatedOrdersResult"),
+    //   args: {
+    //     cart_id: nonNull(stringArg()),
+    //     searchTerm: nonNull(stringArg()),
+    //     page: nonNull(intArg({ default: 1 })),
+    //     pageSize: nonNull(intArg({ default: 10 })),
+    //     status: arg({ type: "OrderStatus" }),
+    //   },
+    //   authorize: validUser,
+    //   resolve: async (
+    //     _,
+    //     { cart_id, searchTerm, page, pageSize, status },
+    //     context,
+    //   ) => {
+    //     const cart = await context.prisma.cart.findUnique({
+    //       where: { id: cart_id },
+    //       include: { user: true },
+    //     });
+
+    //     if (!cart) {
+    //       throw new GraphQLError("Cart not found", {
+    //         extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT },
+    //       });
+    //     }
+
+    //     const whereClause = {
+    //       user_id: cart.user_id,
+    //       is_deleted: false,
+    //       OR: [
+    //         { id: { contains: searchTerm } },
+    //         { address: { contains: searchTerm } },
+    //         {
+    //           order_details: {
+    //             some: {
+    //               product: {
+    //                 name: { contains: searchTerm },
+    //               },
+    //             },
+    //           },
+    //         },
+    //       ],
+    //       ...(status && { status }),
+    //     };
+
+    //     const totalCount = await context.prisma.order.count({
+    //       where: whereClause,
+    //     });
+
+    //     const orders = await context.prisma.order.findMany({
+    //       where: whereClause,
+    //       skip: (page - 1) * pageSize,
+    //       take: pageSize,
+    //       include: { order_details: { include: { product: true } } },
+    //       orderBy: { created_at: "desc" },
+    //     });
+
+    //     return {
+    //       orders,
+    //       pageInfo: {
+    //         currentPage: page,
+    //         pageSize: pageSize,
+    //         totalCount,
+    //         totalPages: Math.ceil(totalCount / pageSize),
+    //       },
+    //     };
+    //   },
+    // });
+
+    // // 사용자: 주문 상세 조회
+    // t.field("getUserOrder", {
+    //   type: "Order",
+    //   args: {
+    //     cart_id: nonNull(stringArg()),
+    //     order_id: nonNull(stringArg()),
+    //   },
+    //   resolve: async (_, { cart_id, order_id }, context) => {
+    //     const cart = await context.prisma.cart.findUnique({
+    //       where: { id: cart_id },
+    //       include: { user: true },
+    //     });
+
+    //     if (!cart) {
+    //       throw new GraphQLError("Cart not found", {
+    //         extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT },
+    //       });
+    //     }
+
+    //     const order = await context.prisma.order.findUnique({
+    //       where: { id: order_id, user_id: cart.user_id, is_deleted: false },
+    //       include: { order_details: true },
+    //     });
+
+    //     if (!order) {
+    //       throw new GraphQLError("Order not found", {
+    //         extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT },
+    //       });
+    //     }
+
+    //     return order;
+    //   },
+    // });
+
+    // Admin: 모든 주문 조회 (pagination)
     t.field("getAllOrders", {
       type: nonNull("PaginatedOrdersResult"),
       args: {
         page: nonNull(intArg({ default: 1 })),
         pageSize: nonNull(intArg({ default: 10 })),
+        status: arg({ type: "OrderStatus" }),
       },
+      authorize: isAdmin,
       resolve: async (_, args, context) => {
-        try {
-          const totalCount = await context.prisma.order.count();
-          if (totalCount < 0 || totalCount === undefined) {
-            throw new GraphQLError("총 주문 수를 계산하지 못했습니다.", {
-              extensions: {
-                code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
-              },
-            });
-          }
-          const orders = await context.prisma.order.findMany({
-            skip: (args.page - 1) * args.pageSize,
-            take: args.pageSize,
-            where: { is_deleted: false },
-            include: { order_details: true },
-          });
+        const where = args.status
+          ? { status: args.status, is_deleted: false }
+          : { is_deleted: false };
 
-          if (!orders) {
-            throw new GraphQLError("제품을 찾지 못했습니다.", {
-              extensions: {
-                code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
-              },
-            });
-          }
-          return {
-            orders, // TODO: 여기에서 order 에러나는거 고치기
-            pageInfo: {
-              currentPage: args.page,
-              pageSize: args.pageSize,
-              totalCount,
-              totalPages: Math.ceil(totalCount / args.pageSize),
-            },
-          };
-        } catch (error) {
-          if (error instanceof GraphQLError) {
-            throw error;
-          }
-          throw new GraphQLError("Failed to fetch orders", {
-            extensions: { code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR },
-          });
-        }
+        const totalCount = await context.prisma.order.count({ where });
+
+        const orders = await context.prisma.order.findMany({
+          where,
+          skip: (args.page - 1) * args.pageSize,
+          take: args.pageSize,
+          include: { order_details: true },
+          orderBy: { created_at: "desc" },
+        });
+
+        return {
+          orders,
+          pageInfo: {
+            currentPage: args.page,
+            pageSize: args.pageSize,
+            totalCount,
+            totalPages: Math.ceil(totalCount / args.pageSize),
+          },
+        };
       },
     });
 
-    // Search orders
-    t.nonNull.list.nonNull.field("searchOrders", {
-      type: "Order",
+    // Admin: 주문 검색
+    t.field("searchOrders", {
+      type: nonNull(list(nonNull("Order"))),
       args: {
         searchTerm: nonNull(stringArg()),
       },
+      authorize: isAdmin,
       resolve: async (_, { searchTerm }, context) => {
-        try {
-          return await context.prisma.order.findMany({
-            where: {
-              OR: [
-                { id: { contains: searchTerm } },
-                { user_id: { contains: searchTerm } },
-                { address: { contains: searchTerm } },
-              ],
-              is_deleted: false,
-            },
-            include: { order_details: true },
-          });
-        } catch (error) {
-          if (error instanceof GraphQLError) {
-            throw error;
-          }
-          throw new GraphQLError("Failed to search orders", {
-            extensions: { code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR },
-          });
-        }
-      },
-    });
-    t.nonNull.list.nonNull.field("searchOrdersByStatus", {
-      type: "Order",
-      args: {
-        status: nullable(arg({ type: "OrderStatus" })),
-      },
-      resolve: async (_, { status }, context) => {
-        try {
-          return await context.prisma.order.findMany({
-            where: {
-              status,
-              is_deleted: false,
-            },
-            include: { order_details: true },
-          });
-        } catch (error) {
-          if (error instanceof GraphQLError) {
-            throw error;
-          }
-          throw new GraphQLError("Failed to search orders", {
-            extensions: { code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR },
-          });
-        }
+        return context.prisma.order.findMany({
+          where: {
+            OR: [
+              { id: { contains: searchTerm } },
+              { user: { name: { contains: searchTerm } } },
+              { user: { email: { contains: searchTerm } } },
+            ],
+            is_deleted: false,
+          },
+          include: { order_details: true },
+        });
       },
     });
   },
 });
-
-// // Query
-// export const OrderQuery = extendType({
-//   type: "Query",
-//   definition(t) {
-//     // Get a single order
-//     t.field("getOrder", {
-//       type: "Order",
-//       args: {
-//         id: nonNull(stringArg()),
-//       },
-//       resolve: async (_, { id }, ctx) => {
-//         const order = await ctx.prisma.order.findUnique({
-//           where: { id },
-//           include: { users: true, carts: true },
-//         });
-//         if (!order) {
-//           throw new GraphQLError("Order not found", {
-//             extensions: { code: ApolloServerErrorCode.BAD_USER_INPUT },
-//           });
-//         }
-
-//         return order;
-//       },
-//     });
-
-//     // Get all orders for a user
-//     t.nonNull.list.nonNull.field("getUserOrders", {
-//       type: "Order",
-//       args: {
-//         userId: nonNull(stringArg()),
-//       },
-//       resolve: async (_, { userId }, ctx) => {
-//         return ctx.prisma.order.findMany({
-//           where: { user_id: userId, is_deleted: { not: "true" } },
-//           include: { users: true, carts: true },
-//           orderBy: { created_at: "desc" },
-//         });
-//       },
-//     });
-
-//     // Get all orders (you can add pagination here if needed)
-//     t.nonNull.list.nonNull.field("getAllOrders", {
-//       type: "Order",
-//       resolve: (_, __, ctx) => {
-//         return ctx.prisma.order.findMany();
-//       },
-//     });
-//   },
-// });

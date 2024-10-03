@@ -50,11 +50,6 @@ const ProductInfoTab = () => {
     },
   });
 
-  useEffect(() => {
-    searchParams.set("pageStatus", "1");
-    setSearchParams(searchParams);
-  }, []);
-
   const {
     data: allData,
     error,

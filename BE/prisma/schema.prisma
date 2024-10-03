@@ -53,7 +53,7 @@ model Product {
 
   store    Store    @relation(fields: [store_id], references: [id])
   category Category @relation(fields: [category_id], references: [id])
-  carts    Cart[]
+  cartItems    CartItem[]
   reviews  Review[]
   OrderDetail OrderDetail[]
 
@@ -85,52 +85,58 @@ model Store {
 }
 
 model Cart {
-  id String @id @default(uuid())
-  product_id String
-  user_id    String
-  count Int @default(0)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  is_ordered Boolean  @default(false) // 장바구니 항목은 주문 여부와 관계없이 존재할 수 있고, 부분배송도 가능!
-
-
-  users User @relation(fields: [user_id], references: [id])
-  product Product @relation(fields: [product_id], references: [id])
-  orders  Order[] @relation("OrderToCart") //다대다관계 만들었
+  id         String     @id @default(uuid())
+  user_id    String     @unique
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  user       User       @relation(fields: [user_id], references: [id])
+  items      CartItem[]
+  order      Order[]
 
   @@map("cart")
 }
 
-model Order {
-  id              String       @id @default(uuid())
-  user_id         String
-  status          OrderStatus  @default(READY_TO_ORDER)
-  address         String?
-  is_deleted      Boolean      @default(false)
-  total_price     Int
-  created_at      DateTime     @default(now())
-  updated_at      DateTime     @updatedAt
+model CartItem {
+  id         String   @id @default(uuid())
+  cart_id    String
+  product_id String
+  quantity   Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  cart       Cart     @relation(fields: [cart_id], references: [id])
+  product    Product  @relation(fields: [product_id], references: [id])
 
-  user            User         @relation(fields: [user_id], references: [id])
-  order_details   OrderDetail[]
-   carts Cart[] @relation("OrderToCart")
+  @@map("cart_item")
+}
+
+model Order {
+  id            String        @id @default(uuid())
+  user_id       String
+  status        OrderStatus
+  address       String?
+  is_deleted    Boolean       @default(false)
+  total_price   Int
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  user          User          @relation(fields: [user_id], references: [id])
+  cart_id String?
+  cart    Cart?   @relation(fields: [cart_id], references: [id])
+  order_details OrderDetail[]
 
   @@map("order")
 }
 
 model OrderDetail {
-  id              Int      @id @default(autoincrement())
-  order_id        String
-  product_id      String
-  quantity        Int
-  price_at_order  Int
-
-  order           Order    @relation(fields: [order_id], references: [id])
-  product         Product  @relation(fields: [product_id], references: [id])
+  id             Int     @id @default(autoincrement())
+  order_id       String
+  product_id     String
+  quantity       Int
+  price_at_order Int
+  order          Order   @relation(fields: [order_id], references: [id])
+  product        Product @relation(fields: [product_id], references: [id])
 
   @@map("order_detail")
 }
-
 model Review{
   id String @id @default(uuid())
   title String @default("문의합니다")

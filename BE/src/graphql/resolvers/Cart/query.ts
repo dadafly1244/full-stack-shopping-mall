@@ -1,68 +1,60 @@
-import {
-  nonNull,
-  stringArg,
-  intArg,
-  booleanArg,
-  extendType,
-  idArg,
-} from "nexus";
-import { ApolloServerErrorCode } from "@apollo/server/errors";
+import { nonNull, stringArg, extendType, nullable } from "nexus";
 import { GraphQLError } from "graphql";
-import { Cart } from "@prisma/client";
+import { validUser } from "#/graphql/validators";
+
 function createError(message: string, code: string) {
   return new GraphQLError(message, {
     extensions: { code: code },
   });
 }
+
 export const CartQueries = extendType({
   type: "Query",
   definition(t) {
-    t.nonNull.list.nonNull.field("getCarts", {
+    t.field("getUserCart", {
       type: "Cart",
       args: {
-        user_id: nonNull(stringArg()),
+        user_id: nullable(stringArg()),
       },
-      resolve: async (_, { user_id }, ctx) => {
-        const carts = await ctx.prisma.cart.findMany({
-          where: { user_id, order_id: null },
-          include: { product: true },
-        });
+      authorize: validUser,
+      resolve: async (_, args, context) => {
+        const userId = args.user_id || context.user.id; // context.user.id는 현재 인증된 사용자의 ID를 가정합니다.
 
-        if (carts.length === 0) {
+        if (!userId) {
           throw createError(
-            "No items in cart",
-            ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+            "사용자 ID가 제공되지 않았습니다.",
+            "BAD_USER_INPUT",
           );
         }
 
-        return carts;
-      },
-    });
-
-    // Add a new query to get the total price of the cart
-    t.nonNull.int("getCartTotalPrice", {
-      args: {
-        user_id: nonNull(stringArg()),
-      },
-      resolve: async (_, { user_id }, ctx) => {
-        const carts = await ctx.prisma.cart.findMany({
-          where: { user_id, order_id: null, is_selected: true },
-          include: { product: true },
+        const user = await context.prisma.user.findUnique({
+          where: { id: userId },
         });
 
-        return carts.reduce(
-          (
-            total: number,
-            cart: {
-              quantity: number;
-              product: { sale: number | null; price: number };
+        if (!user) {
+          throw createError("사용자를 찾을 수 없습니다.", "NOT_FOUND");
+        }
+
+        const cart = await context.prisma.cart.findUnique({
+          where: { user_id: userId },
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
             },
-          ) => {
-            const price = cart.product.sale ?? cart.product.price;
-            return total + cart.quantity * price;
           },
-          0,
-        );
+        });
+
+        if (!cart) {
+          // 장바구니가 없으면 빈 장바구니를 생성합니다.
+          return context.prisma.cart.create({
+            data: { user_id: userId },
+            include: { items: { include: { product: true } } },
+          });
+        }
+
+        return cart;
       },
     });
   },

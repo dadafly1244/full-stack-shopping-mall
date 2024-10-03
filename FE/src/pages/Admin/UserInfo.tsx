@@ -85,8 +85,6 @@ const UserInfoTab = () => {
     useLazyQuery(PAGINATED_USER_LIST);
 
   useEffect(() => {
-    searchParams.set("pageStatus", "1");
-    setSearchParams(searchParams);
     paginatedUsersQuery({
       variables: {
         page: pageStatus,

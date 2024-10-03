@@ -9,15 +9,24 @@ type AuthPayload {
 }
 
 type Cart {
-  count: Int!
   created_at: DateTime!
   id: String!
-  is_ordered: Boolean!
-  orders: [Order!]!
-  product: Product!
-  product_id: String!
+  items: [CartItem!]!
+  total_price: Int!
   updated_at: DateTime!
+  user: User
   user_id: String!
+}
+
+type CartItem {
+  cart: Cart
+  cart_id: String!
+  created_at: DateTime!
+  id: String!
+  product: Product
+  product_id: String!
+  quantity: Int!
+  updated_at: DateTime!
 }
 
 type Category {
@@ -57,27 +66,31 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 scalar JSON
 
 type Mutation {
+  addToCart(product_id: String!, quantity: Int!, user_id: String!): Cart!
   adminManageReviewRealDelete(id: ID!, is_deleted: Boolean!): Review
   adminManageReviewSoftDelete(id: ID!, is_deleted: Boolean!): Review
+  cancelOrder(order_id: String!, user_id: String!): Order
   createCategory(name: String!, parentId: Int): Category!
-  createOrder(address: String, product_ids: [String!]!, quantities: [Int!]!, status: OrderStatus!, user_id: String!): Order!
+  createOrderFromCart(address: String!, cart_id: String!): Order
+  createOrderFromCartItem(address: String!, cart_id: String!, cart_item_id: String!): Order
   createProduct(category_id: Int!, count: Int, desc: String, desc_images_path: [Upload!], is_deleted: Boolean, main_image_path: Upload!, name: String!, price: Int!, sale: Int, status: ProductStatus!, store_id: String!): Product!
   createReview(desc: String, images_path: Upload, parent_review_id: String, product_id: String!, score: Float!, title: String!, user_id: String!): Review
   createStore(business_registration_number: String!, desc: String, name: String!): Store
   createUser(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): User!
   deleteCategory(categoryId: Int!): Boolean
-  deleteOrder(id: String!): Order!
+  deleteOrder(orderId: String!): Order
   deleteProductIfUnused(id: String!): Product!
   deleteStore(id: String!): Store
   mergeCategories(categoryId1: Int!, categoryId2: Int!, newName: String!): Category!
   refresh(refresh_token: String!): AuthPayload!
+  removeFromCart(cart_item_id: ID!): CartItem!
   renameCategory(categoryId: Int!, newName: String!): Category!
   signin(password: String!, user_id: String!): AuthPayload!
   signout(id: String!): User!
   signup(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): AuthPayload!
+  updateCartItemQuantity(cart_item_id: ID!, quantity: Int!): CartItem!
   updateMyProfile(currentPassword: String, email: String, gender: Gender, name: String, newPassword: String, phone_number: String, user_id: String): User
-  updateOrder(address: String, id: String!, status: String!): Order!
-  updateOrderQuantity(newQuantity: Int!, orderId: String!, productId: String!): Order!
+  updateOrderStatus(order_id: String!, status: OrderStatus!): Order
   updateProduct(category_id: Int, count: Int, desc: String, desc_images_path: [Upload!], id: String!, main_image_path: Upload, name: String, price: Int, sale: Int): Product!
   updateProductStatus(id: String!, status: ProductStatus!): Product!
   updateReview(desc: String, id: ID!, images_path: Upload, score: Float, title: String, user_id: String!): Review
@@ -91,6 +104,8 @@ type Mutation {
 
 type Order {
   address: String
+  cart: Cart
+  cart_id: String
   created_at: DateTime!
   id: String!
   is_deleted: Boolean!
@@ -182,12 +197,14 @@ type Query {
   categories(includeHierarchy: Boolean, orderBy: CategoryOrderByInput): [Category!]!
   category(id: Int!, includeHierarchy: Boolean): Category
   filteredUsers(searchField: String!, searchTerm: String!): [User]!
-  getAllOrders(page: Int! = 1, pageSize: Int! = 10): PaginatedOrdersResult!
+  getAllOrders(page: Int! = 1, pageSize: Int! = 10, status: OrderStatus): PaginatedOrdersResult!
   getAllProducts(page: Int! = 1, pageSize: Int! = 10): PaginatedProductsResult!
   getAllProductsForHomePage(category: String): ProductsResultFormHome!
-  getOrder(id: String!): Order
   getProduct(id: String!): Product
   getProductDetailForHome(id: String!): Product
+  getUserCart(user_id: String): Cart
+  getUserOrder(order_id: String!, user_id: String!): Order
+  getUserOrders(page: Int! = 1, pageSize: Int! = 10, user_id: String!): PaginatedOrdersResult!
   isDuplicated(email: String, user_id: String): UserBoolean
   isDuplicatedBusinessNumber(business_registration_number: String): Boolean
   myProfile: User
@@ -195,9 +212,9 @@ type Query {
   paginatedUsers(page: Int! = 1, pageSize: Int! = 10, searchField: String, searchTerm: String): PaginatedUsersResponse
   searchCategories(includeHierarchy: Boolean, nameContains: String!): [Category!]!
   searchOrders(searchTerm: String!): [Order!]!
-  searchOrdersByStatus(status: OrderStatus): [Order!]!
   searchProducts(field: String, page: Int! = 1, pageSize: Int! = 10, searchTerm: String, store_id: String): PaginatedProductsResult!
   searchStores(searchTerm: String!): [Store]
+  searchUserOrders(page: Int! = 1, pageSize: Int! = 10, searchTerm: String!, status: OrderStatus, user_id: String!): PaginatedOrdersResult!
   store(id: String!): Store
   stores: [Store]
   usersList: [User]!

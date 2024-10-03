@@ -570,3 +570,188 @@ export const GET_SIGN_IN_USER_INFO = gql`
     }
   }
 `;
+
+export const GET_USER_CART = gql`
+  query GetUserCart($user_id: String!) {
+    getUserCart(user_id: $user_id) {
+      id
+      user_id
+      created_at
+      updated_at
+      total_price
+      items {
+        id
+        product_id
+        quantity
+        created_at
+        updated_at
+        product {
+          id
+          name
+          price
+          sale
+          status
+          main_image_path
+        }
+      }
+      user {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const GET_USER_ORDERS = gql`
+  query GetUserOrders($user_id: String!, $page: Int!, $pageSize: Int!) {
+    getUserOrders(user_id: $user_id, page: $page, pageSize: $pageSize) {
+      orders {
+        id
+        user_id
+        status
+        address
+        total_price
+        created_at
+        updated_at
+        order_details {
+          id
+          order_id
+          product_id
+          quantity
+          price_at_order
+          product {
+            name
+            main_image_path
+          }
+        }
+      }
+      pageInfo {
+        currentPage
+        pageSize
+        totalCount
+        totalPages
+      }
+    }
+  }
+`;
+
+export const SEARCH_USER_ORDERS = gql`
+  query SearchUserOrders(
+    $user_id: String!
+    $searchTerm: String!
+    $page: Int!
+    $pageSize: Int!
+    $status: OrderStatus
+  ) {
+    searchUserOrders(
+      user_id: $user_id
+      searchTerm: $searchTerm
+      page: $page
+      pageSize: $pageSize
+      status: $status
+    ) {
+      orders {
+        id
+        user_id
+        status
+        address
+        total_price
+        created_at
+        updated_at
+        order_details {
+          id
+          order_id
+          product_id
+          quantity
+          price_at_order
+          product {
+            name
+            main_image_path
+          }
+        }
+      }
+      pageInfo {
+        currentPage
+        pageSize
+        totalCount
+        totalPages
+      }
+    }
+  }
+`;
+
+export const GET_USER_ORDER = gql`
+  query GetUserOrder($user_id: String!, $order_id: String!) {
+    getUserOrder(user_id: $user_id, order_id: $order_id) {
+      id
+      user_id
+      status
+      address
+      total_price
+      created_at
+      updated_at
+      order_details {
+        id
+        order_id
+        product_id
+        quantity
+        price_at_order
+        product {
+          name
+          main_image_path
+        }
+      }
+    }
+  }
+`;
+
+// Admin Order Queries
+export const GET_ALL_ORDERS_ADMIN = gql`
+  query GetAllOrders($page: Int!, $pageSize: Int!, $status: OrderStatus) {
+    getAllOrders(page: $page, pageSize: $pageSize, status: $status) {
+      orders {
+        id
+        user_id
+        status
+        address
+        total_price
+        created_at
+        updated_at
+        order_details {
+          id
+          order_id
+          product_id
+          quantity
+          price_at_order
+        }
+      }
+      pageInfo {
+        currentPage
+        pageSize
+        totalCount
+        totalPages
+      }
+    }
+  }
+`;
+
+export const SEARCH_ORDERS_ADMIN = gql`
+  query SearchOrders($searchTerm: String!) {
+    searchOrders(searchTerm: $searchTerm) {
+      id
+      user_id
+      status
+      address
+      total_price
+      created_at
+      updated_at
+      order_details {
+        id
+        order_id
+        product_id
+        quantity
+        price_at_order
+      }
+    }
+  }
+`;

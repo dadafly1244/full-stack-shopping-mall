@@ -4,7 +4,7 @@ import Counter from "#/common/Counter";
 import ProductImage from "#/common/ProductImage";
 import { calculateDiscountPercentage, formatNumber } from "#/utils/formatter";
 import { ProductType } from "#/utils/types";
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import {
   Button,
   Spinner,
@@ -15,10 +15,15 @@ import {
   TabPanel,
 } from "@material-tailwind/react";
 import { useEffect, useRef, useState } from "react";
-import { NavLink, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { useFormatDate } from "#/hooks/useFormatDate";
 import ProductReview from "#/pages/Home/ProductReviews";
+import { ADD_TO_CART } from "#/apollo/mutation";
+import { jwtDecode } from "jwt-decode";
+import { JwtPayload } from "#/utils/auth";
+import NotificationDialog from "#/common/NotificationDialog";
+import ConfirmationDialog from "#/common/ConfirmationDialog";
 
 const ProductInfo = ({
   storeName,
@@ -186,6 +191,43 @@ const ProductDetail = () => {
   const [discount, setDiscount] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
   const [tabState, setTabState] = useState(searchParams.get("tabState") || "desc");
+  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [currentUserInfo, setCurrentUserInfo] = useState({ userId: "", userRole: "" });
+  const [isAddCartError, setIsAddCartError] = useState(false);
+  const [moveToCartOpen, setMoveToCartOpen] = useState(false);
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+    const decodedToken = jwtDecode<JwtPayload>(token);
+    if (decodedToken) setCurrentUserInfo(decodedToken);
+  }, [token]);
+
+  useEffect(() => {
+    setToken(localStorage.getItem("token") || "");
+  }, []);
+
+  const [addCartFc, { loading: addCartLoading, error: addCartError }] = useMutation(ADD_TO_CART);
+
+  const handleAddCart = async () => {
+    if (!currentUserInfo.userId || !product) return;
+
+    try {
+      await addCartFc({
+        variables: {
+          user_id: currentUserInfo.userId,
+          product_id: product.id,
+          quantity: count,
+        },
+        onCompleted: () => {
+          setMoveToCartOpen(true);
+        },
+      });
+    } catch (error) {
+      setIsAddCartError(true);
+      console.error("Error adding to cart:", error);
+    }
+  };
 
   const [showTopHeader, setShowTopHeader] = useState(false);
   const tabsRef = useRef(null);
@@ -239,8 +281,50 @@ const ProductDetail = () => {
     }
   }, [count, product]);
 
+  const handleMoveToCartPage = () => {
+    navigate(`/user/${currentUserInfo.userId}/cart`);
+  };
+
+  const handleOrderSingleItem = async (product: ProductType) => {
+    await addCartFc({
+      variables: {
+        user_id: currentUserInfo.userId,
+        product_id: product.id,
+        quantity: count,
+      },
+      onCompleted: (data) => {
+        console.log(data);
+        const singleItemString = encodeURIComponent(JSON.stringify([data.addToCart.items[0]]));
+        const cartIdString = encodeURIComponent(JSON.stringify(data.addToCart?.id));
+
+        navigate(`/user/${currentUserInfo.userId}/order/sheet`, {
+          state: {
+            selectedItems: singleItemString,
+            cartId: cartIdString,
+            isMultipleItems: false,
+          },
+        });
+      },
+      onError: () => {
+        setIsAddCartError(true);
+      },
+    });
+  };
+
   return (
     <div className="w-full">
+      <NotificationDialog
+        isOpen={isAddCartError}
+        title="ERROR!!"
+        message={`에러가 발생했습니다. ${addCartError?.message}`}
+        onClose={() => setIsAddCartError(false)}
+      />
+      <ConfirmationDialog
+        isOpen={moveToCartOpen}
+        message="장바구니에 물건을 추가했습니다. 장바구니로 이동하겠습니까?"
+        onConfirm={handleMoveToCartPage}
+        onCancel={() => setMoveToCartOpen(false)}
+      />
       <BreadcrumbComponent />
       {loading && <Spinner />}
       {product && (
@@ -304,12 +388,17 @@ const ProductDetail = () => {
                 </div>
               </div>
               <div className="w-full flex gap-1 py-5">
-                <Button variant="outlined" className="w-2/5">
+                <Button
+                  variant="outlined"
+                  className="w-2/5"
+                  loading={addCartLoading}
+                  onClick={handleAddCart}
+                >
                   장바구니
                 </Button>
-                <NavLink to="" className="w-3/5">
-                  <Button className="w-full">주문하기</Button>
-                </NavLink>
+                <Button className="w-full" onClick={() => handleOrderSingleItem(product)}>
+                  주문하기
+                </Button>
               </div>
             </div>
           </div>

@@ -11,6 +11,8 @@ export const OrderType = objectType({
     t.nonNull.int("total_price");
     t.nonNull.field("created_at", { type: "DateTime" });
     t.nonNull.field("updated_at", { type: "DateTime" });
+    t.string("cart_id");
+
     t.nonNull.field("user", {
       type: "User",
       resolve: (parent, _, context) => {
@@ -19,12 +21,23 @@ export const OrderType = objectType({
           .user();
       },
     });
+
     t.nonNull.list.nonNull.field("order_details", {
       type: "OrderDetail",
       resolve: (parent, _, context) => {
         return context.prisma.order
           .findUnique({ where: { id: parent.id } })
           .order_details();
+      },
+    });
+
+    t.field("cart", {
+      type: "Cart",
+      resolve: (parent, _, context) => {
+        if (!parent.cart_id) return null;
+        return context.prisma.cart.findUnique({
+          where: { id: parent.cart_id },
+        });
       },
     });
   },

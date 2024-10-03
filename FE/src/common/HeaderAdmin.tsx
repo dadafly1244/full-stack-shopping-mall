@@ -39,7 +39,7 @@ const Header = () => {
           onCompleted: () => {
             localStorage.setItem("token", "");
             localStorage.setItem("refresh_token", "");
-            navigate("/");
+            navigate("/", { replace: true });
           },
         });
       } catch (error) {

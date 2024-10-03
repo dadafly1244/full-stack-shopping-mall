@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   Navbar,
   Typography,
@@ -17,6 +17,8 @@ import { useLocation } from "react-router-dom";
 import LogoImage from "#/assets/logo.png";
 
 const Header = () => {
+  const navigate = useNavigate();
+
   const [openNav, setOpenNav] = useState(false);
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [currentId, setCurrentId] = useState("");
@@ -39,6 +41,7 @@ const Header = () => {
           onCompleted: () => {
             localStorage.setItem("token", "");
             localStorage.setItem("refresh_token", "");
+            navigate("/", { replace: true });
           },
         });
       } catch (error) {
@@ -88,7 +91,7 @@ const Header = () => {
           />
         </svg>
         <NavLink to={`/user/${currentId}/profile`} className="flex items-center">
-          My Profile
+          My
         </NavLink>
       </Typography>
     </ul>
@@ -176,7 +179,7 @@ const Header = () => {
                   to={`/user/${currentId}/profile`}
                   className="flex items-center after:content-['|'] after:text-gray-400 after:mx-2"
                 >
-                  My Profile
+                  My
                 </NavLink>
               </Typography>
               <NavLink to="/" onClick={handleSignout} className="text-black text-sm">

@@ -86,14 +86,11 @@ export const ReviewMutation = extendType({
               extensions: { code: "FORBIDDEN" },
             });
           }
-          let images_path = null;
           // Save main image
-          if (images_path) {
-            images_path = await saveFile(
-              args.images_path?.file,
-              "product_images",
-            );
-          }
+          const image = await saveFile(
+            args.images_path?.file,
+            "product_images",
+          );
 
           //TODO: 사용자가 실제로 이 상품을 주문한 이력이 있는지 확인하기하고 있으면 통과, 없으면 에러
 
@@ -102,7 +99,7 @@ export const ReviewMutation = extendType({
               title,
               desc,
               score,
-              images_path,
+              images_path: image,
               is_deleted: false,
               user: { connect: { id: user.id } },
               product: { connect: { id: product_id } },

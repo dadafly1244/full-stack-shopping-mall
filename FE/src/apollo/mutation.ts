@@ -466,3 +466,109 @@ export const WITHDRAWAL_USER = gql`
     }
   }
 `;
+
+export const ADD_TO_CART = gql`
+  mutation AddToCart($user_id: String!, $product_id: String!, $quantity: Int!) {
+    addToCart(user_id: $user_id, product_id: $product_id, quantity: $quantity) {
+      id
+      user_id
+      user {
+        name
+      }
+      total_price
+      updated_at
+      items {
+        id
+        product_id
+        quantity
+        created_at
+        updated_at
+        product {
+          id
+          name
+          price
+          sale
+          main_image_path
+        }
+      }
+    }
+  }
+`;
+
+export const UPDATE_CART_ITEM_QUANTITY = gql`
+  mutation UpdateCartItemQuantity($cart_item_id: ID!, $quantity: Int!) {
+    updateCartItemQuantity(cart_item_id: $cart_item_id, quantity: $quantity) {
+      id
+      product_id
+      quantity
+      created_at
+      updated_at
+      product {
+        id
+        name
+        price
+        sale
+        main_image_path
+      }
+    }
+  }
+`;
+
+export const REMOVE_FROM_CART = gql`
+  mutation RemoveFromCart($cart_item_id: ID!) {
+    removeFromCart(cart_item_id: $cart_item_id) {
+      id
+    }
+  }
+`;
+
+export const CREATE_ORDER_FROM_CART = gql`
+  mutation CreateOrderFromCart($cart_id: String!, $address: String!) {
+    createOrderFromCart(cart_id: $cart_id, address: $address) {
+      id
+      user_id
+      status
+      address
+      total_price
+      created_at
+      updated_at
+      order_details {
+        id
+        order_id
+        product_id
+        quantity
+        price_at_order
+      }
+    }
+  }
+`;
+
+export const CREATE_ORDER_FROM_CART_ITEM = gql`
+  mutation CreateOrderFromCartItem($cart_id: String!, $cart_item_id: String!, $address: String!) {
+    createOrderFromCartItem(cart_id: $cart_id, cart_item_id: $cart_item_id, address: $address) {
+      id
+      user_id
+      status
+      address
+      total_price
+      created_at
+      updated_at
+      order_details {
+        id
+        order_id
+        product_id
+        quantity
+        price_at_order
+      }
+    }
+  }
+`;
+
+export const CANCEL_ORDER = gql`
+  mutation CancelOrder($user_id: String!, $order_id: String!) {
+    cancelOrder(user_id: $user_id, order_id: $order_id) {
+      id
+      status
+    }
+  }
+`;

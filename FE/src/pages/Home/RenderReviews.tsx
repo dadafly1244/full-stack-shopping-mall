@@ -282,7 +282,7 @@ const Review = ({
           />
         </div>
       )}
-      {reviewData?.childReviews && reviewData.childReviews.length > 0 && (
+      {openReview && reviewData?.childReviews && reviewData.childReviews.length > 0 && (
         <div>
           {reviewData.childReviews.map((r) => (
             <ChildReview

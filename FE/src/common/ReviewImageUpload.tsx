@@ -10,10 +10,15 @@ interface ImageUploadProps {
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelect, rawUrls, disabled }) => {
+  console.log(rawUrls);
   const [selectedFiles, setSelectedFiles] = useState<File>();
-  const [previewUrl, setPreviewUrl] = useState<string>(
-    rawUrls ? `${import.meta.env.VITE_BE_URL}${rawUrls}` : ""
-  );
+  const [previewUrl, setPreviewUrl] = useState<string>(() => {
+    if (rawUrls) {
+      return `${import.meta.env.VITE_BE_URL}${rawUrls}`;
+    } else {
+      return "";
+    }
+  });
 
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,7 +74,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelect, rawUrls, disab
         />
       )}
 
-      {!selectedFiles && !rawUrls && (
+      {!selectedFiles?.name && !rawUrls && (
         <div className="grid h-20 w-20 mx-auto place-items-center rounded-lg bg-white border border-solid border-gray-200">
           <svg
             xmlns="http://www.w3.org/2000/svg"

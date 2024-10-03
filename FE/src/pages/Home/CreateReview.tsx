@@ -64,11 +64,9 @@ const CreateReview = ({
       setMainImage(file);
     }
   };
+
   const [isErrorOpen, setIsErrorOpen] = useState(false);
 
-  useEffect(() => {
-    console.log(score);
-  }, [score]);
   const [createFc, { loading, error }] = useMutation(CREATE_REVIEW, {
     refetchQueries: [{ query: PAGINATED_REVIEWS, variables: variables }],
     awaitRefetchQueries: true,
@@ -79,6 +77,14 @@ const CreateReview = ({
 
   const handleCreateReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // if (newReview.desc.trim() === "") {
+    //   alert("내용을 입력해주세요.");
+    //   return;
+    // }
+    // if (!validateReview(newReview.desc).isValid) {
+    //   alert(validateReview(newReview.desc).message);
+    //   return;
+    // }
     try {
       const newVariables = {
         ...newReview,
@@ -88,6 +94,9 @@ const CreateReview = ({
         parent_review_id: parentReviewId,
         images_path: mainImage,
       };
+      if (mainImage) {
+        newVariables.images_path = mainImage;
+      }
 
       await createFc({ variables: newVariables });
 
@@ -134,9 +143,6 @@ const CreateReview = ({
             className="!pr-28 mt-1"
             disabled={true}
           />
-          {/* <div className="absolute right-2 top-9">
-            <ImageUpload onImageSelect={handleMainImageSelect} multiple={false} disabled />
-          </div> */}
         </div>
         <div className="flex justify-start items-center">
           <Button className="text-lg py-11 px-10" disabled loading={loading}>
@@ -154,7 +160,7 @@ const CreateReview = ({
         message={`에러가 발생했습니다.\n${error?.message}`}
         onClose={() => setIsErrorOpen(false)}
       />
-      <form className="flex px-16 items-center gap-2" onSubmit={handleCreateReview}>
+      <form className="flex px-16 items-start gap-2" onSubmit={handleCreateReview}>
         <div className="relative flex-grow">
           <div className="absolute left-16 -top-1">
             {!parentReviewId ? (
@@ -182,7 +188,7 @@ const CreateReview = ({
             </div>
           )}
         </div>
-        <div className="flex justify-start items-center">
+        <div className="flex justify-start items-center mt-8">
           <Button className="text-lg py-11 px-10" type="submit" loading={loading}>
             등록
           </Button>
