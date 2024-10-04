@@ -13,6 +13,7 @@ import DetermineInput from "#/common/DetermineInput";
 import SelectBox from "#/common/SelectBox";
 
 import { useState } from "react";
+import { Button, Spinner } from "@material-tailwind/react";
 
 const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void }) => {
   const [formState, setFormState] = useState<UserType>(user);
@@ -139,8 +140,6 @@ const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void
   };
   return (
     <div>
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
       <form onSubmit={handleUpdate}>
         <div className="grid gap-6 mb-6 md:grid-cols-2">
           {updateForm.map((item) => {
@@ -176,14 +175,16 @@ const UpdateUserForm = ({ user, onClose }: { user: UserType; onClose: () => void
             return null;
           })}
         </div>
-        <button
+        {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
+        <Button
+          loading={loading}
           type="submit"
           className={cn(
             `bg-blue-500 text-white border text-sm rounded-lg block min-w-20 p-2.5 ml-4`
           )}
         >
           Submit
-        </button>
+        </Button>
       </form>
     </div>
   );

@@ -13,6 +13,7 @@ import { formatNumber } from "#/utils/formatter";
 import { cn } from "#/utils/utils";
 import CircularPagination from "#/common/Pagenation";
 import { CANCEL_ORDER } from "#/apollo/mutation";
+import { Link } from "react-router-dom";
 
 const ORDER_STATE = {
   READY_TO_ORDER: "주문 확인 전",
@@ -55,9 +56,8 @@ const OrderItem = ({ order, onRefresh }) => {
     });
   };
   return (
-    <div
-      // variant="outlined"
-      // onClick={handleOpenDetail}
+    <Link
+      to={`/user/${params.userId}/order/status/${order.id}`}
       className="border border-solid border-gray-200 rounded-xl p-4 "
     >
       <NotificationDialog
@@ -100,7 +100,7 @@ const OrderItem = ({ order, onRefresh }) => {
           </Button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 const PaymentList = () => {

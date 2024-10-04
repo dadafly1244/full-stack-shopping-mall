@@ -6,9 +6,7 @@ import { OrderStatus } from "@prisma/client";
 
 interface CartItem {
   quantity: number;
-  product: {
-    price: number;
-  };
+  product: { price: number; sale?: number };
   product_id: string;
 }
 export const OrderMutation = extendType({
@@ -38,8 +36,16 @@ export const OrderMutation = extendType({
         const totalPrice = cart.items.reduce(
           (
             sum: number,
-            item: { quantity: number; product: { price: number } },
-          ) => sum + item.quantity * item.product.price,
+            item: {
+              quantity: number;
+              product: { price: number; sale?: number };
+            },
+          ) => {
+            const price = item.product?.sale
+              ? item.product?.sale
+              : item.product.price;
+            return sum + item.quantity * price;
+          },
           0,
         );
 
@@ -51,11 +57,16 @@ export const OrderMutation = extendType({
             total_price: totalPrice, // Add this line
             cart_id: cart.id,
             order_details: {
-              create: cart.items.map((item: CartItem) => ({
-                product_id: item.product_id,
-                quantity: item.quantity,
-                price_at_order: item.product.price,
-              })),
+              create: cart.items.map((item: CartItem) => {
+                const price_at_order = item.product?.sale
+                  ? item.product.sale
+                  : item.product.price;
+                return {
+                  product_id: item.product_id,
+                  quantity: item.quantity,
+                  price_at_order,
+                };
+              }),
             },
           },
           include: { order_details: true },

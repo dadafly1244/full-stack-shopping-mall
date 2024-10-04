@@ -93,6 +93,12 @@ const Header = () => {
         <NavLink to={`/user/${currentId}/profile`} className="flex items-center">
           My
         </NavLink>
+        <NavLink
+          to={`/user/${currentId}/cart`}
+          className="flex items-center after:content-['|'] after:text-gray-400 after:mx-2"
+        >
+          장바구니
+        </NavLink>
       </Typography>
     </ul>
   );
@@ -180,6 +186,12 @@ const Header = () => {
                   className="flex items-center after:content-['|'] after:text-gray-400 after:mx-2"
                 >
                   My
+                </NavLink>
+                <NavLink
+                  to={`/user/${currentId}/cart`}
+                  className="flex items-center after:content-['|'] after:text-gray-400 after:mx-2"
+                >
+                  장바구니
                 </NavLink>
               </Typography>
               <NavLink to="/" onClick={handleSignout} className="text-black text-sm">

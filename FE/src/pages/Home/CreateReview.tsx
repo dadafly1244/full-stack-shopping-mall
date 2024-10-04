@@ -77,14 +77,14 @@ const CreateReview = ({
 
   const handleCreateReview = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // if (newReview.desc.trim() === "") {
-    //   alert("내용을 입력해주세요.");
-    //   return;
-    // }
-    // if (!validateReview(newReview.desc).isValid) {
-    //   alert(validateReview(newReview.desc).message);
-    //   return;
-    // }
+    if (newReview.desc.trim() === "") {
+      alert("내용을 입력해주세요.");
+      return;
+    }
+    if (!validateReview(newReview.desc).isValid) {
+      alert(validateReview(newReview.desc).message);
+      return;
+    }
     try {
       const newVariables = {
         ...newReview,

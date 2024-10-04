@@ -76,7 +76,7 @@ const OrderSheet = () => {
 
   const handleCreateOrder = () => {
     try {
-      if (!addressData.address || !addressData.detailAddress) {
+      if (!addressData.address) {
         alert("주소를 입력해 주세요.");
         setPayOpen(false);
         return;

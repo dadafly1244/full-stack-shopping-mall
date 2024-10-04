@@ -697,8 +697,11 @@ export const GET_USER_ORDER = gql`
         quantity
         price_at_order
         product {
+          id
           name
           main_image_path
+          price
+          sale
         }
       }
     }

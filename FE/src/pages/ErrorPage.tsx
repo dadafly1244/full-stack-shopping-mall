@@ -6,7 +6,10 @@ export default function ErrorPage() {
 
   function errorMessage(error: unknown): string {
     if (isRouteErrorResponse(error))
-      return (errorResponse.message = `${error.status} ${error.statusText}`), (errorResponse.data = error.data);
+      return (
+        (errorResponse.message = `${error.status} ${error.statusText}`),
+        (errorResponse.data = error.data)
+      );
     if (error instanceof Error) return (errorResponse.message = error.message);
     if (typeof error === "string") return (errorResponse.message = error);
 
@@ -17,7 +20,7 @@ export default function ErrorPage() {
   errorMessage(error);
 
   return (
-    <div id="error-page">
+    <div className="max-w-screen-xl w-full mx-auto" id="error-page">
       <h1>Oops!</h1>
       <p>Sorry, an unexpected error has occurred.</p>
       <p>

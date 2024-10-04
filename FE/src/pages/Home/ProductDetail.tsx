@@ -293,7 +293,6 @@ const ProductDetail = () => {
         quantity: count,
       },
       onCompleted: (data) => {
-        console.log(data);
         const singleItemString = encodeURIComponent(JSON.stringify([data.addToCart.items[0]]));
         const cartIdString = encodeURIComponent(JSON.stringify(data.addToCart?.id));
 
@@ -344,7 +343,7 @@ const ProductDetail = () => {
               </div>
 
               <div className="flex w-full items-end justify-end pb-5 border-b border-solid border-gray-200">
-                {product.sale && (
+                {!!product.sale && (
                   <>
                     <div className="text-3xl font-normal text-red-600 mr-auto">
                       {calculateDiscountPercentage(product?.sale, product.price)}%

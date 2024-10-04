@@ -21,6 +21,8 @@ import {
   ACCESS_TOKEN_SECRET,
   REFRESH_TOKEN_SECRET,
 } from "#/graphql/validators";
+import { GraphQLError } from "graphql";
+import { ApolloServerErrorCode } from "@apollo/server/errors";
 
 export const UserMutation = extendType({
   type: "Mutation",
@@ -234,6 +236,14 @@ export const AuthMutation = extendType({
         if (!user) {
           throw new Error("No such user found");
         }
+
+        if (user.status === UserStatus.INACTIVE) {
+          throw new Error("탈퇴한 아이디 입니다. ");
+        }
+        if (user.status === UserStatus.SUSPENDED) {
+          throw new Error("관리자에 의해 정지된 아이디 입니다.");
+        }
+
         const valid = await bcrypt.compare(args.password, user.password);
         if (!valid) {
           throw new Error("Invalid password");
@@ -411,48 +421,64 @@ export const AuthMutation = extendType({
       },
       authorize: isAuthenticated,
       resolve: async (_, args, context) => {
-        const userId = context.user.id;
-        if (!userId) {
-          throw new Error("Not authenticated");
-        }
-
-        const user = await context.prisma.user.findUnique({
-          where: { id: userId },
-        });
-
-        if (!user) {
-          throw new Error("User not found");
-        }
-
-        let updateData: any = {};
-
-        // 비밀번호 변경 처리
-        if (args.currentPassword && args.newPassword) {
-          const isValidPassword = await bcrypt.compare(
-            args.currentPassword,
-            user.password,
-          );
-          if (!isValidPassword) {
-            throw new Error("Current password is incorrect");
+        try {
+          const userId = context.user.id;
+          if (!userId) {
+            throw new Error("Not authenticated");
           }
-          updateData["password"] = await bcrypt.hash(args.newPassword, 10);
-        }
 
-        // 다른 필드들 처리
-        const fields = ["user_id", "name", "email", "gender", "phone_number"];
-        fields.forEach((field) => {
-          if (args[field] !== undefined) {
-            updateData[field] = args[field];
+          const user = await context.prisma.user.findUnique({
+            where: { id: userId },
+          });
+
+          if (!user) {
+            throw new GraphQLError("사용자를 찾을 수 없습니다.", {
+              extensions: {
+                code: ApolloServerErrorCode.BAD_USER_INPUT,
+              },
+            });
           }
-        });
 
-        // 업데이트 수행
-        const updatedUser = await context.prisma.user.update({
-          where: { id: userId },
-          data: updateData,
-        });
+          let updateData: any = {};
 
-        return updatedUser;
+          // 비밀번호 변경 처리
+          if (args.currentPassword && args.newPassword) {
+            const isValidPassword = await bcrypt.compare(
+              args.currentPassword,
+              user.password,
+            );
+            if (!isValidPassword) {
+              throw new GraphQLError("현재 비밀번호가 맞지 않습니다.", {
+                extensions: {
+                  code: ApolloServerErrorCode.BAD_USER_INPUT,
+                },
+              });
+            }
+            updateData["password"] = await bcrypt.hash(args.newPassword, 10);
+          }
+
+          // 다른 필드들 처리
+          const fields = ["user_id", "name", "email", "gender", "phone_number"];
+          fields.forEach((field) => {
+            if (args[field] !== undefined) {
+              updateData[field] = args[field];
+            }
+          });
+
+          // 업데이트 수행
+          const updatedUser = await context.prisma.user.update({
+            where: { id: userId },
+            data: updateData,
+          });
+
+          return updatedUser;
+        } catch (error) {
+          throw new GraphQLError("에러가 났습니다.", {
+            extensions: {
+              code: ApolloServerErrorCode.INTERNAL_SERVER_ERROR,
+            },
+          });
+        }
       },
     });
   },

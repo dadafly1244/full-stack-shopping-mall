@@ -83,7 +83,7 @@ const Header = () => {
           />
         </svg>
         <NavLink to={`/user/${currentId}/profile`} className="flex items-center">
-          My Profile
+          My
         </NavLink>
         <NavLink
           to={`/user/${currentId}/cart`}
@@ -135,7 +135,7 @@ const Header = () => {
                   to={`/user/${currentId}/profile`}
                   className="flex items-center after:content-['|'] after:text-gray-400 after:mx-2"
                 >
-                  My Profile
+                  My
                 </NavLink>
                 <NavLink
                   to={`/user/${currentId}/cart`}

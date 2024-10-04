@@ -94,6 +94,16 @@ const ProductInfoTab = () => {
   const [deleteFc] = useMutation(DELETE_PRODUCT_ADMIN);
 
   useEffect(() => {
+    const pageParam = Number(searchParams.get("pageStatus")) || 1;
+    setPageStatus(pageParam);
+
+    if (!searchParams.get("pageStatus")) {
+      searchParams.set("pageStatus", String(pageParam));
+      setSearchParams(searchParams);
+    }
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
     if (searchParams.get("searchTerm")) {
       filteredProducts({
         variables: {

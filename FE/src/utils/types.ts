@@ -228,7 +228,8 @@ export interface SignupType {
 
 export interface myProfileType {
   email: string;
-  password: string;
+  currentPassword: string;
+  newPassword: string;
   id: string;
   confirmPassword: string;
   name: string;

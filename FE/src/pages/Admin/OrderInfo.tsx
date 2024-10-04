@@ -18,7 +18,7 @@ import UpdateOrderForm from "#/common/UpdateOrderForm";
 import { useSearchParams } from "react-router-dom";
 import { PAGE_SIZE } from "./ProductInfo";
 import CircularPagination from "#/common/Pagenation";
-import { Button, Input } from "@material-tailwind/react";
+import { Button, Input, Spinner } from "@material-tailwind/react";
 import UserOrderModal from "./OrderDetailForm";
 
 const init_order: OrderType = {
@@ -124,18 +124,6 @@ const OrderInfoTab = () => {
     }
   }, [isInitialLoad, searchParams, allData, performSearch]);
 
-  // const openModal = (order: OrderType) => {
-  //   if (order) {
-  //     setIsModalOpen(true);
-  //     setClickedOrder((prev) => ({ ...prev, ...order }));
-  //   }
-  // };
-
-  // const closeModal = () => {
-  //   setIsModalOpen(false);
-  //   setClickedOrder(init_order);
-  // };
-
   const handleRowClick = (order: OrderType) => {
     console.log("Clicked user:", order);
     // openModal(order);
@@ -190,7 +178,6 @@ const OrderInfoTab = () => {
     performSearch();
   };
 
-  if (loading || filteredLoading) return <p>Loading...</p>;
   if (error || filteredError) return <p>Error: {error?.message || filteredError?.message}</p>;
 
   return (
@@ -207,13 +194,14 @@ const OrderInfoTab = () => {
           crossOrigin={undefined}
           value={searchTerm}
         />
-        <Button size="sm" className="break-keep" onClick={handleSearch}>
+        <Button loading={filteredLoading} size="sm" className="break-keep" onClick={handleSearch}>
           검색
         </Button>
         <Button size="sm" className="break-keep" onClick={handleResetSearch}>
           초기화
         </Button>
       </div>
+      {loading && <Spinner />}
       <Table<OrderType, sortingItem>
         title="Order List"
         data={data?.orders}

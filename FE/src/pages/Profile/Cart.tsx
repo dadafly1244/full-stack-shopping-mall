@@ -123,6 +123,28 @@ const Cart = () => {
     }
   }, [data, selectedItems]);
 
+  // const handleDeleteSelectedButton = useCallback(() => {
+  //   if (selectedItems.length > 0) {
+  //     Promise.all(
+  //       selectedItems.map((item) =>
+  //         deleteItemFc({
+  //           variables: {
+  //             cart_item_id: item.id,
+  //           },
+  //         })
+  //       )
+  //     )
+  //       .then(() => {
+  //         setSelectedItems([]);
+  //         // Refetch cart data after deleting items
+  //         getCartFc({ variables: { user_id: currentUserInfo.userId } });
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error deleting items:", error);
+  //         setIsDeleteErrorOpen(true);
+  //       });
+  //   }
+  // }, [selectedItems, deleteItemFc, getCartFc, currentUserInfo.userId]);
   const handleDeleteSelectedButton = useCallback(() => {
     if (selectedItems.length > 0) {
       Promise.all(
@@ -131,21 +153,66 @@ const Cart = () => {
             variables: {
               cart_item_id: item.id,
             },
+            update(cache, { data: { removeFromCart } }) {
+              const existingCart = cache.readQuery<{ getUserCart: CartType }>({
+                query: GET_USER_CART,
+                variables: { user_id: currentUserInfo.userId },
+              });
+
+              if (existingCart) {
+                const updatedItems = existingCart.getUserCart.items.filter(
+                  (item) => item.id !== removeFromCart.id
+                );
+
+                cache.writeQuery({
+                  query: GET_USER_CART,
+                  variables: { user_id: currentUserInfo.userId },
+                  data: {
+                    getUserCart: {
+                      ...existingCart.getUserCart,
+                      items: updatedItems,
+                    },
+                  },
+                });
+              }
+            },
           })
         )
       )
         .then(() => {
+          // Update local state
+          setData((prevData) => {
+            if (!prevData) return null;
+            return {
+              ...prevData,
+              items: prevData.items.filter(
+                (item) => !selectedItems.some((selectedItem) => selectedItem.id === item.id)
+              ),
+            };
+          });
           setSelectedItems([]);
-          // Refetch cart data after deleting items
-          getCartFc({ variables: { user_id: currentUserInfo.userId } });
+          // Clear the counts and isOpenCounter states for deleted items
+          setCount((prevCount) => {
+            const newCount = { ...prevCount };
+            selectedItems.forEach((item) => {
+              delete newCount[item.id];
+            });
+            return newCount;
+          });
+          setIsOpenCounter((prevIsOpenCounter) => {
+            const newIsOpenCounter = { ...prevIsOpenCounter };
+            selectedItems.forEach((item) => {
+              delete newIsOpenCounter[item.id];
+            });
+            return newIsOpenCounter;
+          });
         })
         .catch((error) => {
           console.error("Error deleting items:", error);
           setIsDeleteErrorOpen(true);
         });
     }
-  }, [selectedItems, deleteItemFc, getCartFc, currentUserInfo.userId]);
-
+  }, [selectedItems, deleteItemFc, currentUserInfo.userId]);
   const handleSelectItem = (item: CartItemType) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedItems((prev) =>
       e.target.checked ? [...prev, item] : prev.filter((i) => i.id !== item.id)
@@ -158,7 +225,6 @@ const Cart = () => {
   );
 
   useEffect(() => {
-    console.log("selectedItems", selectedItems);
     setTotalSale(0);
     setTotalPrice(0);
 

@@ -10,7 +10,6 @@ interface ImageUploadProps {
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelect, rawUrls, disabled }) => {
-  console.log(rawUrls);
   const [selectedFiles, setSelectedFiles] = useState<File>();
   const [previewUrl, setPreviewUrl] = useState<string>(() => {
     if (rawUrls) {

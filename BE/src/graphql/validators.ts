@@ -33,7 +33,10 @@ export const validUser = async (_: any, args: any, context: any) => {
     console.log("decoded", decoded.userId, decoded.userRole);
     console.log(
       "decoded.userRole === UserPermissions.USER && user.id === decoded.userId",
-      decoded.userRole === user.permissions && user.id === decoded.userId,
+      decoded.userRole,
+      user.permissions,
+      user.id,
+      decoded.userId,
     );
     return decoded.userRole === user.permissions && user.id === decoded.userId;
   } catch (error) {

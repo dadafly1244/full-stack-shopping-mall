@@ -14,7 +14,7 @@ import fs from "fs";
 import path from "path";
 import { pipeline } from "stream/promises";
 import { AuthTokenPayload } from "#/utils/auth";
-import { validUser, isAdmin } from "#/graphql/validators";
+import { validUser, isAdmin, isAuthenticated } from "#/graphql/validators";
 const MAX_NAME_LENGTH = 255;
 const MAX_DESC_LENGTH = 5000;
 const UPLOAD_DIR =
@@ -44,6 +44,81 @@ export const ReviewMutation = extendType({
   type: "Mutation",
   definition(t) {
     // 댓글작성
+    // t.field("createReview", {
+    //   type: "Review",
+    //   args: {
+    //     title: nonNull(stringArg()),
+    //     desc: stringArg(),
+    //     score: nonNull(floatArg()),
+    //     images_path: nullable("Upload"),
+    //     product_id: nonNull(stringArg()),
+    //     parent_review_id: nullable(stringArg()),
+    //     user_id: nonNull(stringArg()),
+    //   },
+    //   authorize: validUser,
+    //   resolve: async (_, args, context) => {
+    //     const { title, desc, score, images_path, product_id, user_id } = args;
+
+    //     try {
+    //       const adminCheck = await isAdmin(_, args, context);
+
+    //       // 대댓글 작성 시도 확인 (관리자가 아닌 경우)
+    //       if (args?.parent_review_id && !adminCheck) {
+    //         throw new GraphQLError("답글은 관리자 권한이 필요합니다.", {
+    //           extensions: { code: "FORBIDDEN" },
+    //         });
+    //       }
+
+    //       // 사용자 정보 조회
+    //       const user = await context.prisma.user.findUnique({
+    //         where: { id: user_id },
+    //       });
+
+    //       if (!user) {
+    //         throw new GraphQLError("User not found", {
+    //           extensions: { code: "NOT_FOUND" },
+    //         });
+    //       }
+
+    //       // 사용자 상태 확인
+    //       if (user.status !== "ACTIVE") {
+    //         throw new GraphQLError("User account is not active", {
+    //           extensions: { code: "FORBIDDEN" },
+    //         });
+    //       }
+    //       const image = await saveFile(
+    //         args.images_path?.file,
+    //         "product_images",
+    //       );
+
+    //       const newReview = await context.prisma.review.create({
+    //         data: {
+    //           title,
+    //           desc,
+    //           score,
+    //           images_path: image,
+    //           is_deleted: false,
+    //           user: { connect: { id: user.id } },
+    //           product: { connect: { id: product_id } },
+    //           parentReview: args.parent_review_id
+    //             ? { connect: { id: args.parent_review_id } }
+    //             : undefined, // 관리자의 경우 대댓글 허용
+    //         },
+    //       });
+    //       return newReview;
+    //       // Save main image
+    //     } catch (error) {
+    //       console.error("Error creating review:", error);
+    //       if (error instanceof GraphQLError) {
+    //         throw error;
+    //       }
+    //       throw new GraphQLError("Failed to create review", {
+    //         extensions: { code: "INTERNAL_SERVER_ERROR" },
+    //       });
+    //     }
+    //   },
+    // });
+
     t.field("createReview", {
       type: "Review",
       args: {
@@ -55,15 +130,23 @@ export const ReviewMutation = extendType({
         parent_review_id: nullable(stringArg()),
         user_id: nonNull(stringArg()),
       },
-      authorize: validUser,
+      authorize: isAuthenticated,
       resolve: async (_, args, context) => {
-        const { title, desc, score, images_path, product_id, user_id } = args;
+        const {
+          title,
+          desc,
+          score,
+          images_path,
+          product_id,
+          user_id,
+          parent_review_id,
+        } = args;
 
         try {
           const adminCheck = await isAdmin(_, args, context);
 
           // 대댓글 작성 시도 확인 (관리자가 아닌 경우)
-          if (args?.parent_review_id && !adminCheck) {
+          if (parent_review_id && !adminCheck) {
             throw new GraphQLError("답글은 관리자 권한이 필요합니다.", {
               extensions: { code: "FORBIDDEN" },
             });
@@ -86,29 +169,27 @@ export const ReviewMutation = extendType({
               extensions: { code: "FORBIDDEN" },
             });
           }
-          // Save main image
-          const image = await saveFile(
-            args.images_path?.file,
-            "product_images",
-          );
 
-          //TODO: 사용자가 실제로 이 상품을 주문한 이력이 있는지 확인하기하고 있으면 통과, 없으면 에러
+          // 이미지 저장 로직을 새 리뷰 작성 시에만 실행
+          let image = null;
+          if (!parent_review_id && images_path) {
+            image = await saveFile(images_path.file, "product_images");
+          }
 
           const newReview = await context.prisma.review.create({
             data: {
               title,
               desc,
               score,
-              images_path: image,
+              images_path: image, // 댓글의 경우 항상 null
               is_deleted: false,
               user: { connect: { id: user.id } },
               product: { connect: { id: product_id } },
-              parentReview: args.parent_review_id
-                ? { connect: { id: args.parent_review_id } }
-                : undefined, // 관리자의 경우 대댓글 허용
+              parentReview: parent_review_id
+                ? { connect: { id: parent_review_id } }
+                : undefined,
             },
           });
-
           return newReview;
         } catch (error) {
           console.error("Error creating review:", error);

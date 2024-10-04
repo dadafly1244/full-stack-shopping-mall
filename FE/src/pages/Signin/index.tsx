@@ -91,8 +91,6 @@ const SigninPage = () => {
 
   return (
     <>
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
       {
         <Card shadow={false} className="min-w-96 mx-auto">
           <CardHeader shadow={false} floated={false} className="text-center">
@@ -132,8 +130,10 @@ const SigninPage = () => {
                   }
                 })}
               </div>
+              {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
               <Button
                 type="submit"
+                loading={loading}
                 disabled={loading}
                 className={cn(
                   "text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-4/5 sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800",

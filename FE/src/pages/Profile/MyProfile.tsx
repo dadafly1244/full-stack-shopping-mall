@@ -27,7 +27,8 @@ const initUserInfo = {
   id: "",
   user_id: "",
   email: "",
-  password: "",
+  currentPassword: "",
+  newPassword: "",
   confirmPassword: "",
   name: "",
   gender: Gender.PREFER_NOT_TO_SAY,
@@ -53,6 +54,7 @@ const MyProfile = () => {
   const [isInfoErrorOpen, setIsInfoErrorOpen] = useState(false);
   const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false);
   const [isUpdateErrorOpen, setIsUpdateErrorOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [userInfoFc, { data: userInfo, error, loading }] = useLazyQuery(GET_SIGN_IN_USER_INFO, {
     fetchPolicy: "network-only",
   });
@@ -73,6 +75,9 @@ const MyProfile = () => {
             setOriginalState(userInfo.myProfile);
           }
         },
+        onError: () => {
+          setIsInfoErrorOpen(true);
+        },
       });
     }
   }, [navigate, userInfoFc, userInfo?.myProfile, token]);
@@ -90,20 +95,14 @@ const MyProfile = () => {
   const [deleteFc, { data: deletedUserInfo, loading: deletedLoading, error: deleteError }] =
     useMutation(WITHDRAWAL_USER);
 
-  const [updateFc, { loading: updateLoading, error: updateError }] =
-    useMutation(UPDATE_USER_My_PROFILE);
-
-  useEffect(() => {
-    if (error) {
-      setIsInfoErrorOpen(true);
+  const [updateFc, { loading: updateLoading, error: updateError }] = useMutation(
+    UPDATE_USER_My_PROFILE,
+    {
+      onError: () => {
+        setIsUpdateErrorOpen(true);
+      },
     }
-  }, [error]);
-
-  useEffect(() => {
-    if (updateError) {
-      setIsUpdateErrorOpen(true);
-    }
-  }, [updateError]);
+  );
 
   const myProfileFrom: FormItem[] = [
     {
@@ -118,27 +117,20 @@ const MyProfile = () => {
     },
     {
       type: "determineInput",
-      key: "user_id",
-      label: "ID",
-      placeholder: "ID를 알파벳 6~20자 사이로 입력하세요.",
-      wrongMessage: "다시 입력하세요.",
-      rightMessage: " ",
-      isRight: (id: string): boolean => /^[a-zA-Z0-9]{6,20}$/.test(id.trim()),
+      key: "currentPassword",
+      label: "현재비밀번호",
+      placeholder:
+        "비밀번호를 영어 소문자, 숫자, 특수문자(!@#$%^&*) 포함해서 8~30 글자 입력하세요.",
+      wrongMessage:
+        "비밀번호를 영어 소문자, 숫자, 특수문자(!@#$%^&*) 포함해서 8~30 글자 입력하세요.",
+      rightMessage: "사용가능합니다.",
+      isRight: (password: string): boolean =>
+        /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(password.trim()),
       isRequired: false,
-      button: "중복확인",
-      buttonClick: async () => {
-        try {
-          const result = await checkIdFc({ variables: { user_id: formState.user_id } });
-          return result.data.isDuplicated.duplicated;
-        } catch (error) {
-          console.error("Error checking ID:", error);
-          return false;
-        }
-      },
     },
     {
       type: "determineInput",
-      key: "password",
+      key: "newPassword",
       label: "비밀번호",
       placeholder:
         "비밀번호를 영어 소문자, 숫자, 특수문자(!@#$%^&*) 포함해서 8~30 글자 입력하세요.",
@@ -157,10 +149,11 @@ const MyProfile = () => {
       wrongMessage: "비밀번호가 일치하지 않습니다.",
       rightMessage: "비밀번호가 일치합니다.",
       isRight: (confirmPassword: string): boolean =>
-        confirmPassword === formState.password &&
+        confirmPassword === formState.newPassword &&
         /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(confirmPassword.trim()),
       isRequired: false,
     },
+
     {
       type: "determineInput",
       key: "email",
@@ -208,7 +201,7 @@ const MyProfile = () => {
   ];
   const isPasswordMatch = (confirmPassword: string): boolean => {
     return (
-      confirmPassword === formState.password &&
+      confirmPassword === formState.newPassword &&
       /^(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[a-z\d!@#$%^&*]{8,30}$/.test(confirmPassword.trim())
     );
   };
@@ -244,6 +237,15 @@ const MyProfile = () => {
       (key) => formState[key as keyof myProfileType] !== originalState[key as keyof myProfileType]
     );
 
+    // 비밀번호 변경 시 현재 비밀번호 확인
+    if (
+      (changedFields.includes("password") || changedFields.includes("confirmPassword")) &&
+      !currentPassword
+    ) {
+      alert("비밀번호 변경 시 현재 비밀번호 입력이 필요합니다.");
+      return;
+    }
+
     const validationResults = await Promise.all(
       changedFields.map(async (key) => {
         const typedKey = key as keyof myProfileType;
@@ -278,10 +280,14 @@ const MyProfile = () => {
           return acc;
         }, {} as Partial<myProfileType>);
 
+        if (currentPassword) {
+          updateData.currentPassword = currentPassword;
+        }
         updateFc({
           variables: updateData,
           onCompleted: () => {
             setOriginalState(formState);
+            setCurrentPassword("");
             alert("프로필이 성공적으로 업데이트되었습니다.");
 
             userInfoFc({
@@ -291,7 +297,13 @@ const MyProfile = () => {
                   setOriginalState(userInfo.myProfile);
                 }
               },
+              onError: () => {
+                setIsInfoErrorOpen(true);
+              },
             });
+          },
+          onError: () => {
+            setIsUpdateErrorOpen(true);
           },
         });
       } catch (error) {
@@ -336,10 +348,14 @@ const MyProfile = () => {
     }
   };
   const handleInputChange = (key: keyof myProfileType, value: myProfileType | string) => {
-    setFormState((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    if (key === "currentPassword") {
+      setCurrentPassword(value as string);
+    } else {
+      setFormState((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+    }
   };
   const handleChangeWithdrawalIdForm = (value: string) => {
     setWithdrawalFormState((prev) => ({
@@ -363,13 +379,13 @@ const MyProfile = () => {
       <NotificationDialog
         isOpen={isInfoErrorOpen}
         title="ERROR!!"
-        message={`에러가 발생했습니다. 사용자 정보를 불러올 수 없습니다.`}
+        message={`에러가 발생했습니다. 사용자 정보를 불러올 수 없습니다.${error?.message}`}
         onClose={() => setIsInfoErrorOpen(false)}
       />
       <NotificationDialog
         isOpen={isUpdateErrorOpen}
         title="ERROR!!"
-        message={`에러가 발생했습니다. 사용자 정보 수정에 에러가 발생했습니다.`}
+        message={`에러가 발생했습니다. 사용자 정보 수정에 에러가 발생했습니다.${updateError?.message}`}
         onClose={() => setIsUpdateErrorOpen(false)}
       />
       <ConfirmationDialog
@@ -464,24 +480,25 @@ const MyProfile = () => {
                   }
                   return null;
                 })}
-                <div className="flex justify-end items-end p-7">
-                  <span className="text-xs p-1">최근 사용자 정보 수정일: {updatedAt}</span>
-                  <Button type="submit" className="px-8 py-3 rounded-md" loading={updateLoading}>
-                    <span>수정</span>
-                  </Button>
+                <div className="grid-cols-2">
+                  <div className="flex justify-end items-end p-4">
+                    <span className="text-xs p-1">최근 사용자 정보 수정일: {updatedAt}</span>
+                    <Button type="submit" className="px-8 py-3 rounded-md" loading={updateLoading}>
+                      <span>수정</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
+              <div className="absolute bottom-2 left-1 flex justify-start items-end ">
+                <Button
+                  className="text-xs font-thin"
+                  variant="text"
+                  onClick={handleOpenWithdrawalDialog}
+                >
+                  회원 탈퇴
+                </Button>
+              </div>
             </form>
-          </div>
-
-          <div className="absolute p-2 bottom-1 left-1">
-            <Button
-              className="text-xs font-thin"
-              variant="text"
-              onClick={handleOpenWithdrawalDialog}
-            >
-              회원 탈퇴
-            </Button>
           </div>
         </div>
       )}

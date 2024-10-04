@@ -1,5 +1,4 @@
 import { MouseEvent, useEffect, useState, useCallback } from "react";
-import Table from "#/common/Table";
 import { PAGINATED_USER_LIST } from "#/apollo/query";
 import { useLazyQuery, useMutation } from "@apollo/client";
 import { ACTIVE_USER_ADMIN, SUSPENDED_USER_ADMIN } from "#/apollo/mutation";
@@ -16,11 +15,12 @@ import Modal from "#/common/Modal";
 import UpdateUserForm from "#/common/UpdateUserForm";
 import { useSearchParams } from "react-router-dom";
 import SearchUser from "./SearchUser";
-import { Button } from "@material-tailwind/react";
+import { Button, Select, Option } from "@material-tailwind/react";
 import Breadcrumb from "#/common/Breadcrumb";
 import { cn } from "#/utils/utils";
 import CircularPagination from "#/common/Pagenation";
 import { NavLink } from "react-router-dom";
+import UserTable from "#/pages/Admin/UserTable";
 
 const PAGE_SIZE = 10;
 const init_user = {
@@ -58,6 +58,13 @@ const predefinedOptions: PredefinedOptionsType = {
   },
 };
 
+const GenderDisplay = {
+  [Gender.MALE]: "남성",
+  [Gender.FEMALE]: "여성",
+  [Gender.OTHER]: "기타",
+  [Gender.PREFER_NOT_TO_SAY]: "선택안함",
+};
+
 type PredefinedOptionKeys = keyof PredefinedOptionsType;
 function isPredefinedOption(option: string): option is PredefinedOptionKeys {
   return option in predefinedOptions;
@@ -85,6 +92,16 @@ const UserInfoTab = () => {
     useLazyQuery(PAGINATED_USER_LIST);
 
   useEffect(() => {
+    const pageParam = Number(searchParams.get("pageStatus")) || 1;
+    setPageStatus(pageParam);
+
+    if (!searchParams.get("pageStatus")) {
+      searchParams.set("pageStatus", String(pageParam));
+      setSearchParams(searchParams);
+    }
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
     paginatedUsersQuery({
       variables: {
         page: pageStatus,
@@ -97,7 +114,9 @@ const UserInfoTab = () => {
       },
       fetchPolicy: "network-only",
     });
-  }, []);
+    searchParams.set("pageStatus", String(pageStatus));
+    setSearchParams(searchParams);
+  }, [pageStatus, paginatedUsersQuery, searchParams, setSearchParams]);
 
   const [suspendedUser] = useMutation(SUSPENDED_USER_ADMIN, {
     refetchQueries: [{ query: PAGINATED_USER_LIST }],
@@ -151,8 +170,7 @@ const UserInfoTab = () => {
     setClickedUser(init_user);
   };
 
-  const handleStatus = (e: MouseEvent, status: UserStatus | undefined, id: string | undefined) => {
-    e.stopPropagation();
+  const handleStatus = (status: UserStatus | undefined, id: string | undefined) => {
     if (!status || !id) return alert("사용자 상태 변경 실패");
     if (status === "ACTIVE") {
       handleUserSuspended(id);
@@ -227,9 +245,9 @@ const UserInfoTab = () => {
       header: "User ID",
       key: "user_id",
       render: (user: UserType) => (
-        <Button variant="text" className="underline" onClick={() => handleRowClick(user)}>
-          {user.name}
-        </Button>
+        <button className="underline" onClick={() => handleRowClick(user)}>
+          {user.user_id}
+        </button>
       ),
     },
     { header: "Name", key: "name" },
@@ -239,33 +257,23 @@ const UserInfoTab = () => {
       header: "Status",
       key: "status",
       render: (user: UserType) => (
-        <div className="flex justify-between w-36">
-          <span
-            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-            ${
-              user.status === "ACTIVE"
-                ? "bg-green-50 text-green-500"
-                : user.status === "SUSPENDED"
-                ? "bg-yellow-100 text-yellow-500"
-                : "bg-red-50 text-red-500"
-            }`}
+        <div className="w-28" onClick={(e) => e.stopPropagation()}>
+          <Select
+            variant="outlined"
+            label="상태"
+            onChange={(v) => handleStatus(v as UserStatus, user.id)}
+            value={user.status}
+            className="!max-w-[7rem]"
+            containerProps={{
+              className: "min-w-[7rem] max-w-[7rem]",
+            }}
           >
-            {user.status}
-          </span>
-          <button
-            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-            ${
-              user.status === "SUSPENDED"
-                ? "bg-green-500 text-white"
-                : user.status === "ACTIVE"
-                ? "bg-yellow-500 text-white"
-                : "bg-red-500 text-white"
-            }`}
-            type="button"
-            onClick={(e) => handleStatus(e, user.status, user.id)}
-          >
-            변경
-          </button>
+            <Option value={UserStatus.ACTIVE}>활성화</Option>
+            <Option value={UserStatus.SUSPENDED}>정지</Option>
+            <Option disabled value={UserStatus.INACTIVE}>
+              탈퇴
+            </Option>
+          </Select>
         </div>
       ),
     },
@@ -281,7 +289,11 @@ const UserInfoTab = () => {
         </span>
       ),
     },
-    { header: "Gender", key: "gender" },
+    {
+      header: "Gender",
+      key: "gender",
+      render: (user) => <div>{GenderDisplay[user.gender as Gender] as string}</div>,
+    },
   ];
 
   if (loading) return <p>Loading...</p>;
@@ -322,7 +334,7 @@ const UserInfoTab = () => {
         />
         {data.users && (
           <>
-            <Table<UserType, sortingItem>
+            <UserTable<UserType, sortingItem>
               data={data?.users}
               columns={columns}
               onSelectionChange={handleSelectionChange}
