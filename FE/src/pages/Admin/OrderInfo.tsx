@@ -1,73 +1,44 @@
 import { useEffect, useState, useCallback } from "react";
-import Table from "#/common/Table";
-import { GET_ALL_ORDERS, SEARCH_ORDER } from "#/apollo/query";
-import { useQuery, useLazyQuery } from "@apollo/client";
+import { GET_ALL_ORDERS, SEARCH_ORDERS_ADMIN } from "#/apollo/query";
+import { useLazyQuery, useMutation } from "@apollo/client";
 import {
-  sortingItem,
-  SortState,
   TableColumn,
   OrderStatus,
-  Gender,
-  UserStatus,
-  ProductStatus,
+  // Gender,
+  // UserStatus,
+  // ProductStatus,
   OrderType,
   OrdersInfoType,
 } from "#/utils/types";
-import Modal from "#/common/Modal";
-import UpdateOrderForm from "#/common/UpdateOrderForm";
-import { useSearchParams } from "react-router-dom";
-import { PAGE_SIZE } from "./ProductInfo";
-import CircularPagination from "#/common/Pagenation";
-import { Button, Input, Spinner } from "@material-tailwind/react";
-import UserOrderModal from "./OrderDetailForm";
 
-const init_order: OrderType = {
-  id: "",
-  user_id: "",
-  status: OrderStatus.READY_TO_ORDER as OrderStatus,
-  address: "",
-  is_deleted: false,
-  total_price: "",
-  created_at: "",
-  updated_at: "",
-  user: {
-    id: "",
-    user_id: "",
-    name: "",
-    email: "",
-    gender: Gender.PREFER_NOT_TO_SAY as Gender,
-    phone_number: "",
-    status: UserStatus.ACTIVE as UserStatus,
-  },
-  order_details: [
-    {
-      id: "",
-      quantity: 0,
-      price_at_order: 0,
-      product: {
-        id: "",
-        name: "",
-        sale: 0,
-        price: 0,
-        desc: "",
-        main_image_path: "",
-        desc_images_path: [],
-        is_deleted: false,
-        status: ProductStatus.AVAILABLE as ProductStatus,
-      },
-    },
-  ],
-};
+import { useNavigate, useSearchParams } from "react-router-dom";
+import CircularPagination from "#/common/Pagenation";
+import { Button, Input, Select, Spinner, Tooltip, Option } from "@material-tailwind/react";
+import OrderTable from "#/pages/Admin/OrderTable";
+import { formatNumber } from "#/utils/formatter";
+import Breadcrumb from "#/common/Breadcrumb";
+import { UPDATE_ORDER_STATUS_ADMIN } from "#/apollo/mutation";
+import NotificationDialog from "#/common/NotificationDialog";
+import OrderSearchComponent from "./SearchOrder";
+
+const PAGE_SIZE = 10;
 
 const OrderInfoTab = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [shouldSearch, setShouldSearch] = useState(searchParams.get("searchOpen") === "true");
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [pageState, setPageState] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [clickedOrder, setClickedOrder] = useState(init_order);
-  const [isOpenOrderDetailsModal, setIsOpenOrderDetailsModal] = useState(false);
+  const [pageState, setPageState] = useState(() => {
+    const pageParam = searchParams.get("pageState");
+    return pageParam ? parseInt(pageParam, 10) : 1;
+  });
+
+  const [isErrorOpen, setIsErrorOpen] = useState(false);
+  const [isUpdateErrorOpen, setIsUpdateErrorOpen] = useState(false);
+  const [isSearchErrorOpen, setIsSearchErrorOpen] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState<string>(searchParams.get("searchTerm") || "");
+  const [field, setField] = useState<string>(searchParams.get("searchField") || "");
+
   const [data, setData] = useState<OrdersInfoType>({
     orders: [],
     pageInfo: {
@@ -77,137 +48,262 @@ const OrderInfoTab = () => {
       totalPages: 1,
     },
   });
-  const [sortState] = useState<SortState<sortingItem>>({
-    user_id: "none",
-    name: "none",
-    email: "none",
-    phone_number: "none",
-  });
 
-  const [searchTerm, setSearchTerm] = useState<string>(searchParams.get("searchTerm") || "");
+  const [getAllOrders, { loading: allOrdersLoading, error: allOrdersError }] =
+    useLazyQuery(GET_ALL_ORDERS);
+  const [searchOrders, { loading: searchOrdersLoading, error: searchOrdersError }] =
+    useLazyQuery(SEARCH_ORDERS_ADMIN);
 
-  const {
-    data: allData,
-    loading,
-    error,
-  } = useQuery(GET_ALL_ORDERS, {
-    variables: {
-      page: pageState,
-      pageSize: PAGE_SIZE,
-    },
-  });
-
-  const [filteredOrder, { loading: filteredLoading, error: filteredError }] =
-    useLazyQuery(SEARCH_ORDER);
-
-  const performSearch = useCallback(async () => {
-    const { data: ordersData } = await filteredOrder({
-      variables: {
-        searchTerm: searchParams.get("searchTerm"),
-      },
-    });
-    if (ordersData?.searchOrders) {
-      setData((prev) => ({ ...prev, orders: ordersData.searchOrders }));
+  const [updateStateFc, { loading: updateLoading, error: updateError }] =
+    useMutation(UPDATE_ORDER_STATUS_ADMIN);
+  const fetchOrders = useCallback(async () => {
+    try {
+      const { data: ordersData } = await getAllOrders({
+        variables: {
+          page: pageState,
+          pageSize: PAGE_SIZE,
+          status: field === "status" ? searchTerm : undefined,
+        },
+      });
+      if (ordersData?.getAllOrders) {
+        setData(ordersData.getAllOrders);
+      }
+    } catch (error) {
+      setIsErrorOpen(true);
     }
-  }, [filteredOrder, searchParams]);
+  }, [getAllOrders, pageState, field, searchTerm]);
 
   useEffect(() => {
-    if (isInitialLoad) {
-      if (searchParams.get("searchTerm")) {
-        performSearch();
-      } else {
-        if (allData?.getAllOrders) {
-          setData(allData.getAllOrders);
-        }
-      }
-      setIsInitialLoad(false);
-    }
-  }, [isInitialLoad, searchParams, allData, performSearch]);
+    fetchOrders();
+    searchParams.set("pageState", String(pageState));
+    setSearchParams(searchParams);
+  }, [pageState, fetchOrders, searchParams, setSearchParams]);
 
-  const handleRowClick = (order: OrderType) => {
-    console.log("Clicked user:", order);
-    // openModal(order);
+  const performSearch = useCallback(async () => {
+    if (field === "status") {
+      fetchOrders();
+    } else {
+      try {
+        const { data: ordersData } = await searchOrders({
+          variables: {
+            searchTerm: searchTerm,
+          },
+        });
+        if (ordersData?.searchOrders) {
+          setData((prev) => ({ ...prev, orders: ordersData.searchOrders }));
+        }
+      } catch (error) {
+        setIsSearchErrorOpen(true);
+      }
+    }
+  }, [field, fetchOrders, searchOrders, searchTerm, setData]);
+  const handleSearch = () => {
+    searchParams.set("searchTerm", searchTerm);
+    searchParams.set("searchField", field);
+    setSearchParams(searchParams);
+    performSearch();
+  };
+  const handleChangePage = (p: number) => {
+    setPageState(p);
+    searchParams.set("pageState", String(p));
+    setSearchParams(searchParams);
   };
 
-  const handleSelectionChange = (selectedUsers: OrderType[]) => {
-    console.log("Selected users:", selectedUsers);
+  const handleRowClick = (order: OrderType) => {
+    navigate(`/admin/order-info/edit/${order.id}`);
+  };
+
+  const handleSelectionChange = (selectedOrders: OrderType[]) => {
+    console.log("Selected orders:", selectedOrders);
   };
 
   const handleResetSearch = () => {
     setSearchTerm("");
+    setField("");
     setSearchParams(new URLSearchParams());
+    fetchOrders();
   };
 
-  const handleOpenOrderDetail = () => {
-    setIsOpenOrderDetailsModal(true);
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const columns: TableColumn<OrderType, sortingItem>[] = [
-    { header: "ID", key: "id" },
-    { header: "User ID", key: "user_id", sort: sortState.user_id as keyof sortingItem },
-    { header: "status", key: "status" },
-    { header: "address", key: "address" },
-    { header: "Total Price", key: "total_price" },
-    { header: "Is Deleted", key: "is_deleted" },
-    { header: "CreatedAt", key: "created_at" },
-    { header: "UpdatedAt", key: "updated_at" },
+  const columns: TableColumn<OrderType>[] = [
     {
-      header: "Details",
-      key: "order_details",
-      render: (Order: OrderType) => (
-        <div onClick={(e) => e.stopPropagation()}>
-          <Button onClick={handleOpenOrderDetail}>상세보기</Button>
-          <UserOrderModal
-            user={Order.user}
-            orderDetails={Order.order_details}
-            isOpen={isOpenOrderDetailsModal}
-            onClose={(p: boolean) => setIsOpenOrderDetailsModal(p)}
-          />
+      header: "주문번호",
+      key: "id",
+      render: (order) => (
+        <Tooltip content={order?.id} placement="bottom">
+          <Button
+            variant="text"
+            className="underline max-w-32 p-2"
+            onClick={() => handleRowClick(order)}
+          >
+            <div className="overflow-x-hidden overflow-ellipsis">{order?.id}</div>
+          </Button>
+        </Tooltip>
+      ),
+    },
+    {
+      header: "User",
+      key: "user_id",
+      render: (order: OrderType) => {
+        return (
+          <Tooltip content={order.user_id} placement="bottom">
+            {order?.user.name}
+          </Tooltip>
+        );
+      },
+    },
+    {
+      header: "상태",
+      key: "status",
+      render: (order: OrderType) => (
+        <div className="w-28" onClick={(e) => e.stopPropagation()}>
+          <Select
+            variant="outlined"
+            label="상태"
+            onChange={(v) => handleUpdateState(v as OrderStatus, order?.id)}
+            value={order?.status}
+            className="!max-w-[7rem]"
+            containerProps={{
+              className: "min-w-[7rem] max-w-[7rem]",
+            }}
+          >
+            <Option value={OrderStatus.READY_TO_ORDER}>주문 확인 전</Option>
+            <Option value={OrderStatus.ORDER}>주문</Option>
+            <Option value={OrderStatus.DELIVERED}>배송중</Option>
+            <Option value={OrderStatus.CANCELLED}>주문 취소</Option>
+            <Option value={OrderStatus.REFUND}>환불 완료</Option>
+            <Option value={OrderStatus.UNKNOWN}>상세불명</Option>
+          </Select>
         </div>
       ),
     },
+    {
+      header: "Total Price",
+      key: "total_price",
+      render: (order: OrderType) => <div>{formatNumber(order?.total_price)}원</div>,
+    },
+    {
+      header: "삭제",
+      key: "is_deleted",
+      render: (order) => (
+        <div>
+          {order?.is_deleted && "삭제"}
+          {!order?.is_deleted && "저장"}
+        </div>
+      ),
+    },
+    {
+      header: "address",
+      key: "address",
+      render: (order) => (
+        <Tooltip content={order?.address} placement="bottom">
+          <div className="overflow-x-hidden   max-w-32 p-2 overflow-ellipsis">{order?.address}</div>
+        </Tooltip>
+      ),
+    },
+    {
+      header: "변경일",
+      key: "updated_at",
+      render: (order) => {
+        const date = new Intl.DateTimeFormat("ko-KR", {
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }).format(new Date(order?.updated_at));
+        return <div className="overflow-x-hidden overflow-ellipsis">{date}</div>;
+      },
+    },
+    {
+      header: "생성일",
+      key: "created_at",
+      render: (order) => {
+        const date = new Intl.DateTimeFormat("ko-KR", {
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }).format(new Date(order?.created_at));
+        return <div className="overflow-x-hidden overflow-ellipsis">{date}</div>;
+      },
+    },
   ];
 
-  const handleSearch = () => {
-    searchParams.set("searchTerm", searchTerm);
-    setSearchParams(searchParams);
-    performSearch();
-  };
+  const handleUpdateState = async (v: OrderStatus, id: string) => {
+    try {
+      updateStateFc({
+        variables: {
+          order_id: id,
+          status: v,
+        },
+        onCompleted: () => {
+          const fetchOrders = async () => {
+            try {
+              const { data: ordersData } = await getAllOrders({
+                variables: {
+                  page: pageState,
+                  pageSize: PAGE_SIZE,
+                },
+              });
+              if (ordersData?.getAllOrders) {
+                setData(ordersData.getAllOrders);
+              }
+            } catch (error) {
+              setIsErrorOpen(true);
+            }
+          };
 
-  if (error || filteredError) return <p>Error: {error?.message || filteredError?.message}</p>;
+          fetchOrders();
+          searchParams.set("pageState", String(pageState));
+          setSearchParams(searchParams);
+        },
+        onError: () => {
+          setIsUpdateErrorOpen(true);
+        },
+      });
+    } catch (error) {
+      throw new Error(`주문의 상태를 업데이트하는데 실패했습니다.${error}`);
+    }
+  };
 
   return (
     <div className="pt-5 pb-10">
-      {/* <UpdateUserModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        order={clickedOrder as OrderType}
-      /> */}
-      <div className="flex justify-start content-center">
-        <Input
-          onChange={handleChange}
-          placeholder="새로운 카테고리 이름을 입력해 주세요"
-          crossOrigin={undefined}
-          value={searchTerm}
-        />
-        <Button loading={filteredLoading} size="sm" className="break-keep" onClick={handleSearch}>
-          검색
-        </Button>
-        <Button size="sm" className="break-keep" onClick={handleResetSearch}>
-          초기화
-        </Button>
+      <NotificationDialog
+        isOpen={isErrorOpen}
+        title="ERROR!!"
+        message={`에러가 발생했습니다. 주문 정보를 불러올 수 없습니다.${allOrdersError?.message}`}
+        onClose={() => setIsErrorOpen(false)}
+      />
+
+      <NotificationDialog
+        isOpen={isSearchErrorOpen}
+        title="ERROR!!"
+        message={`에러가 발생했습니다. 주문 정보를 검색할 수 없습니다.${searchOrdersError?.message}`}
+        onClose={() => setIsSearchErrorOpen(false)}
+      />
+      <NotificationDialog
+        isOpen={isUpdateErrorOpen}
+        title="ERROR!!"
+        message={`에러가 발생했습니다. 주문 정보를 수정할 수 없습니다.${updateError?.message}`}
+        onClose={() => setIsUpdateErrorOpen(false)}
+      />
+      <OrderSearchComponent
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
+        field={field}
+        onFieldChange={setField}
+        onSearch={handleSearch}
+        onReset={handleResetSearch}
+      />
+      <div className="py-5">
+        <Breadcrumb />
       </div>
-      {loading && <Spinner />}
-      <Table<OrderType, sortingItem>
-        title="Order List"
+
+      {(allOrdersLoading || updateLoading || searchOrdersLoading) && <Spinner />}
+      <OrderTable<OrderType>
         data={data?.orders}
-        sortState={sortState}
         columns={columns}
-        // onSortClick={handleSortClick}
         onRowClick={handleRowClick}
         onSelectionChange={handleSelectionChange}
       />
@@ -215,25 +311,11 @@ const OrderInfoTab = () => {
         <CircularPagination
           currentPage={pageState}
           totalPages={data?.pageInfo?.totalPages || 1}
-          onPageChange={(p) => setPageState(p)}
+          onPageChange={handleChangePage}
         />
       </div>
     </div>
   );
 };
-
-// interface UpdateUserModalProps {
-//   isOpen: boolean;
-//   onClose: () => void;
-//   order: OrderType;
-// }
-
-// export const UpdateUserModal: React.FC<UpdateUserModalProps> = ({ isOpen, onClose, order }) => {
-//   return (
-//     <Modal isOpen={isOpen} title="사용자 정보 수정" onClose={onClose}>
-//       <UpdateOrderForm order={order} onClose={onClose} />
-//     </Modal>
-//   );
-// };
 
 export default OrderInfoTab;

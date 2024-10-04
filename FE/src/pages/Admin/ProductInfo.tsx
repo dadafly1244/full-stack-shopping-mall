@@ -34,7 +34,7 @@ const ProductInfoTab = () => {
   const handleCloseDrawer = () => setOpenDrawer(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get("searchTerm") || "");
-  const [field, setField] = useState<string>(searchParams.get("searchField") || "");
+  const [field, setField] = useState<string>("");
 
   const [pageStatus, setPageStatus] = useState(Number(searchParams.get("pageStatus")) || 1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

@@ -18,7 +18,6 @@ const ORDER_STATE = {
 };
 const OrderDetail = () => {
   const { userId, orderId } = useParams();
-  const navigate = useNavigate();
   const [orderInfo, setOrderInfo] = useState();
   const [isErrorOpen, setIsErrorOpen] = useState(false);
   const [getOrderDetailFc, { loading, error }] = useLazyQuery(GET_USER_ORDER);

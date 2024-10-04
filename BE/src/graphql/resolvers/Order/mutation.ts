@@ -218,5 +218,44 @@ export const OrderMutation = extendType({
         });
       },
     });
+
+    //Admin 상태로 주문 검색하기
+    t.field("searchOrdersByStatus", {
+      type: nonNull("PaginatedOrdersResult"),
+      args: {
+        status: nonNull(arg({ type: "OrderStatus" })),
+        page: nonNull(intArg({ default: 1 })),
+        pageSize: nonNull(intArg({ default: 10 })),
+      },
+      authorize: isAdmin,
+      resolve: async (_, { status, page, pageSize }, context) => {
+        const whereClause = {
+          status,
+          is_deleted: false,
+        };
+
+        const totalCount = await context.prisma.order.count({
+          where: whereClause,
+        });
+
+        const orders = await context.prisma.order.findMany({
+          where: whereClause,
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          include: { order_details: { include: { product: true } } },
+          orderBy: { created_at: "desc" },
+        });
+
+        return {
+          orders,
+          pageInfo: {
+            currentPage: page,
+            pageSize: pageSize,
+            totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+          },
+        };
+      },
+    });
   },
 });

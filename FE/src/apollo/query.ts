@@ -293,8 +293,8 @@ export const SEARCH_CATEGORIES = gql`
 
 // 전체 주문 조회
 export const GET_ALL_ORDERS = gql`
-  query GetAllOrders($page: Int!, $pageSize: Int!) {
-    getAllOrders(page: $page, pageSize: $pageSize) {
+  query GetAllOrders($page: Int!, $pageSize: Int!, $status: OrderStatus) {
+    getAllOrders(page: $page, pageSize: $pageSize, status: $status) {
       orders {
         id
         user_id
@@ -341,8 +341,8 @@ export const GET_ALL_ORDERS = gql`
 `;
 
 export const GET_ORDER = gql`
-  query GetOrder($id: String!) {
-    getOrder(id: $id) {
+  query GetOrder($order_id: String!) {
+    getOrder(order_id: $order_id) {
       id
       user_id
       status
@@ -727,6 +727,10 @@ export const GET_ALL_ORDERS_ADMIN = gql`
           quantity
           price_at_order
         }
+        user {
+          id
+          name
+        }
       }
       pageInfo {
         currentPage
@@ -754,6 +758,40 @@ export const SEARCH_ORDERS_ADMIN = gql`
         product_id
         quantity
         price_at_order
+      }
+      user {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const SEARCH_ORDER_BY_STATUS_ADMIN = gql`
+  query SearchOrdersByStatus($status: OrderStatus!, $page: Int!, $pageSize: Int!) {
+    searchOrdersByStatus(status: $status, page: $page, pageSize: $pageSize) {
+      orders {
+        id
+        status
+        total_price
+        created_at
+        user {
+          name
+          email
+        }
+        order_details {
+          product {
+            name
+          }
+          quantity
+          price_at_order
+        }
+      }
+      pageInfo {
+        currentPage
+        pageSize
+        totalCount
+        totalPages
       }
     }
   }

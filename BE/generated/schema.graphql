@@ -85,6 +85,7 @@ type Mutation {
   refresh(refresh_token: String!): AuthPayload!
   removeFromCart(cart_item_id: ID!): CartItem!
   renameCategory(categoryId: Int!, newName: String!): Category!
+  searchOrdersByStatus(page: Int! = 1, pageSize: Int! = 10, status: OrderStatus!): PaginatedOrdersResult!
   signin(password: String!, user_id: String!): AuthPayload!
   signout(id: String!): User!
   signup(email: String!, gender: Gender!, name: String!, password: String!, permissions: UserPermissions!, phone_number: String, status: UserStatus!, user_id: String!): AuthPayload!
@@ -200,6 +201,7 @@ type Query {
   getAllOrders(page: Int! = 1, pageSize: Int! = 10, status: OrderStatus): PaginatedOrdersResult!
   getAllProducts(page: Int! = 1, pageSize: Int! = 10): PaginatedProductsResult!
   getAllProductsForHomePage(category: String): ProductsResultFormHome!
+  getOrder(order_id: String!): Order
   getProduct(id: String!): Product
   getProductDetailForHome(id: String!): Product
   getUserCart(user_id: String): Cart

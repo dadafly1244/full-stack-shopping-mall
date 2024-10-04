@@ -572,3 +572,23 @@ export const CANCEL_ORDER = gql`
     }
   }
 `;
+
+export const UPDATE_ORDER_STATUS_ADMIN = gql`
+  mutation UpdateOrderStatus($order_id: String!, $status: OrderStatus!) {
+    updateOrderStatus(order_id: $order_id, status: $status) {
+      id
+      status
+      updated_at
+    }
+  }
+`;
+
+export const DELETE_ORDER_ADMIN = gql`
+  mutation DeleteOrder($orderId: String!) {
+    deleteOrder(orderId: $orderId) {
+      id
+      is_deleted
+      updated_at
+    }
+  }
+`;

@@ -22,6 +22,7 @@ import Cart from "#/pages/Profile/Cart";
 import MyProfile from "#/pages/Profile/MyProfile";
 import UserIndexRedirect from "#/pages/Profile/UserIndexRedirect";
 import OrderIndexRedirect from "#/pages/Profile/OrderIndexRedirect";
+import AdminOrderDetail from "./pages/Admin/AdminOrderDetail";
 
 const routes = [
   {
@@ -140,8 +141,21 @@ const routes = [
       },
       {
         path: "order-info",
-        element: <OrderInfoTab />,
-        handle: { title: "주문 정보" },
+
+        handle: { title: "주문" },
+        children: [
+          {
+            index: true,
+            path: "",
+            element: <OrderInfoTab />,
+            handle: { action: "view" },
+          },
+          {
+            path: "edit/:orderId",
+            element: <AdminOrderDetail />,
+            handle: { title: "주문 상세 및 수정", action: "edit" },
+          },
+        ],
       },
       { index: true, element: <Navigate to="/admin/user-info" replace /> },
     ],

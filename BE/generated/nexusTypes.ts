@@ -267,6 +267,7 @@ export interface NexusGenFieldTypes {
     refresh: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     removeFromCart: NexusGenRootTypes['CartItem']; // CartItem!
     renameCategory: NexusGenRootTypes['Category']; // Category!
+    searchOrdersByStatus: NexusGenRootTypes['PaginatedOrdersResult']; // PaginatedOrdersResult!
     signin: NexusGenRootTypes['AuthPayload']; // AuthPayload!
     signout: NexusGenRootTypes['User']; // User!
     signup: NexusGenRootTypes['AuthPayload']; // AuthPayload!
@@ -356,6 +357,7 @@ export interface NexusGenFieldTypes {
     getAllOrders: NexusGenRootTypes['PaginatedOrdersResult']; // PaginatedOrdersResult!
     getAllProducts: NexusGenRootTypes['PaginatedProductsResult']; // PaginatedProductsResult!
     getAllProductsForHomePage: NexusGenRootTypes['ProductsResultFormHome']; // ProductsResultFormHome!
+    getOrder: NexusGenRootTypes['Order'] | null; // Order
     getProduct: NexusGenRootTypes['Product'] | null; // Product
     getProductDetailForHome: NexusGenRootTypes['Product'] | null; // Product
     getUserCart: NexusGenRootTypes['Cart'] | null; // Cart
@@ -481,6 +483,7 @@ export interface NexusGenFieldTypeNames {
     refresh: 'AuthPayload'
     removeFromCart: 'CartItem'
     renameCategory: 'Category'
+    searchOrdersByStatus: 'PaginatedOrdersResult'
     signin: 'AuthPayload'
     signout: 'User'
     signup: 'AuthPayload'
@@ -570,6 +573,7 @@ export interface NexusGenFieldTypeNames {
     getAllOrders: 'PaginatedOrdersResult'
     getAllProducts: 'PaginatedProductsResult'
     getAllProductsForHomePage: 'ProductsResultFormHome'
+    getOrder: 'Order'
     getProduct: 'Product'
     getProductDetailForHome: 'Product'
     getUserCart: 'Cart'
@@ -734,6 +738,11 @@ export interface NexusGenArgTypes {
       categoryId: number; // Int!
       newName: string; // String!
     }
+    searchOrdersByStatus: { // args
+      page: number; // Int!
+      pageSize: number; // Int!
+      status: NexusGenEnums['OrderStatus']; // OrderStatus!
+    }
     signin: { // args
       password: string; // String!
       user_id: string; // String!
@@ -844,6 +853,9 @@ export interface NexusGenArgTypes {
     }
     getAllProductsForHomePage: { // args
       category?: string | null; // String
+    }
+    getOrder: { // args
+      order_id: string; // String!
     }
     getProduct: { // args
       id: string; // String!

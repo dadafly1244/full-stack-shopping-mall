@@ -312,7 +312,7 @@ const SignupPage = () => {
               })}
             </div>
             {error && <p style={{ color: "red" }}>An error occurred: {error.message}</p>}
-            <div className="w-2/5 ml-auto">
+            <div className="w-1/5 ml-auto">
               <Button
                 loading={loading}
                 type="submit"
