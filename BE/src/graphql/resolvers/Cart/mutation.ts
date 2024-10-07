@@ -55,7 +55,13 @@ export const AuthenticatedCartMutations = extendType({
         // Find or create cart
         let cart = await ctx.prisma.cart.findUnique({
           where: { user_id },
-          include: { items: true },
+          include: {
+            items: {
+              orderBy: {
+                created_at: "desc",
+              },
+            },
+          },
         });
 
         if (!cart) {
@@ -69,7 +75,13 @@ export const AuthenticatedCartMutations = extendType({
                 },
               },
             },
-            include: { items: true },
+            include: {
+              items: {
+                orderBy: {
+                  created_at: "desc",
+                },
+              },
+            },
           });
         } else {
           const existingCartItem = cart.items.find(
@@ -94,7 +106,13 @@ export const AuthenticatedCartMutations = extendType({
           // Fetch the updated cart
           cart = await ctx.prisma.cart.findUnique({
             where: { id: cart.id },
-            include: { items: true },
+            include: {
+              items: {
+                orderBy: {
+                  created_at: "desc",
+                },
+              },
+            },
           });
         }
 

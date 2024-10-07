@@ -3,7 +3,7 @@ import BreadcrumbComponent from "#/common/Breadcrumb";
 import Counter from "#/common/Counter";
 import ProductImage from "#/common/ProductImage";
 import { calculateDiscountPercentage, formatNumber } from "#/utils/formatter";
-import { ProductType } from "#/utils/types";
+import { CartItemType, ProductType } from "#/utils/types";
 import { useMutation, useQuery } from "@apollo/client";
 import {
   Button,
@@ -293,7 +293,11 @@ const ProductDetail = () => {
         quantity: count,
       },
       onCompleted: (data) => {
-        const singleItemString = encodeURIComponent(JSON.stringify([data.addToCart.items[0]]));
+        const filteredData = data.addToCart.items.filter(
+          (c: CartItemType) => c.product_id === product.id
+        );
+
+        const singleItemString = encodeURIComponent(JSON.stringify(filteredData));
         const cartIdString = encodeURIComponent(JSON.stringify(data.addToCart?.id));
 
         navigate(`/user/${currentUserInfo.userId}/order/sheet`, {

@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import {
-  Navbar,
-  Typography,
-  Collapse,
-  Button,
-  Input,
-  IconButton,
-  Alert,
-} from "@material-tailwind/react";
+import { Navbar, Typography, Collapse, Button, IconButton, Alert } from "@material-tailwind/react";
 import { SIGNOUT_USER_ADMIN } from "#/apollo/mutation";
 import { useMutation } from "@apollo/client";
 import { jwtDecode } from "jwt-decode";
@@ -99,6 +91,12 @@ const Header = () => {
         >
           장바구니
         </NavLink>
+        <NavLink to="/signin" className="text-black">
+          Sign in
+        </NavLink>
+        <NavLink to="/signup" className="text-black">
+          Sign up
+        </NavLink>
       </Typography>
     </ul>
   );
@@ -109,47 +107,6 @@ const Header = () => {
         <NavLink to="/" className="flex flex-start items-center space-x-3 rtl:space-x-reverse">
           <img src={LogoImage} alt="infofla(인포플라) 로고" className="h-8" />
         </NavLink>
-
-        <Typography
-          as="li"
-          variant="small"
-          color="blue-gray"
-          className="flex items-center gap-x-2 p-1 font-medium"
-        >
-          <div className="flex flex-col gap-x-2 sm:flex-row sm:items-center ml-20">
-            <div className="relative w-full gap-2 md:w-max">
-              <Input
-                type="search"
-                placeholder="Search"
-                crossOrigin={undefined}
-                containerProps={{
-                  className: "min-w-[288px]",
-                }}
-                className=" !border-t-blue-gray-300 placeholder:text-blue-gray-300 focus:!border-blue-gray-300"
-                labelProps={{
-                  className: "before:content-none after:content-none",
-                }}
-              />
-              <div className="!absolute left-3 top-[13px]">
-                <svg
-                  width="13"
-                  height="14"
-                  viewBox="0 0 14 15"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M13 13.5L9 9.5M10.3333 6.16667C10.3333 6.7795 10.2126 7.38634 9.97811 7.95252C9.74358 8.51871 9.39984 9.03316 8.9665 9.4665C8.53316 9.89984 8.01871 10.2436 7.45252 10.4781C6.88634 10.7126 6.2795 10.8333 5.66667 10.8333C5.05383 10.8333 4.447 10.7126 3.88081 10.4781C3.31462 10.2436 2.80018 9.89984 2.36683 9.4665C1.93349 9.03316 1.58975 8.51871 1.35523 7.95252C1.12071 7.38634 1 6.7795 1 6.16667C1 4.92899 1.49167 3.742 2.36683 2.86683C3.242 1.99167 4.42899 1.5 5.66667 1.5C6.90434 1.5 8.09133 1.99167 8.9665 2.86683C9.84167 3.742 10.3333 4.92899 10.3333 6.16667Z"
-                    stroke="#CFD8DC"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </Typography>
         <div className="flex items-center gap-x-1">
           {token && refreshToken ? (
             <>
@@ -215,39 +172,6 @@ const Header = () => {
       </ul>
 
       <div className="flex">
-        <div className="hidden sm:flex flex-row justify-end gap-x-2 sm:flex-row sm:items-center ml-auto lg:hidden">
-          <div className="relative w-full gap-2 md:w-max">
-            <Input
-              type="search"
-              placeholder="Search"
-              crossOrigin={undefined}
-              containerProps={{
-                className: "min-w-[288px]",
-              }}
-              className=" !border-t-blue-gray-300 pl-9 placeholder:text-blue-gray-300 focus:!border-blue-gray-300"
-              labelProps={{
-                className: "before:content-none after:content-none",
-              }}
-            />
-            <div className="!absolute left-3 top-[13px]">
-              <svg
-                width="13"
-                height="14"
-                viewBox="0 0 14 15"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M13 13.5L9 9.5M10.3333 6.16667C10.3333 6.7795 10.2126 7.38634 9.97811 7.95252C9.74358 8.51871 9.39984 9.03316 8.9665 9.4665C8.53316 9.89984 8.01871 10.2436 7.45252 10.4781C6.88634 10.7126 6.2795 10.8333 5.66667 10.8333C5.05383 10.8333 4.447 10.7126 3.88081 10.4781C3.31462 10.2436 2.80018 9.89984 2.36683 9.4665C1.93349 9.03316 1.58975 8.51871 1.35523 7.95252C1.12071 7.38634 1 6.7795 1 6.16667C1 4.92899 1.49167 3.742 2.36683 2.86683C3.242 1.99167 4.42899 1.5 5.66667 1.5C6.90434 1.5 8.09133 1.99167 8.9665 2.86683C9.84167 3.742 10.3333 4.92899 10.3333 6.16667Z"
-                  stroke="#CFD8DC"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
         <IconButton
           variant="text"
           className="bg-red-300 ml-5 h-6 w-6 text-inherit hover:bg-transparent focus:bg-transparent active:bg-transparent lg:hidden sm:block"
@@ -301,14 +225,7 @@ const Header = () => {
                   </Button>
                 </div>
               ) : (
-                <>
-                  <NavLink to="/signin" className="text-black">
-                    Sign in
-                  </NavLink>
-                  <NavLink to="/signup" className="text-black">
-                    Sign up
-                  </NavLink>
-                </>
+                <></>
               )}
             </div>
           </div>
