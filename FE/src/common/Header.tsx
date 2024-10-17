@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Navbar, Typography, Collapse, Button, IconButton, Alert } from "@material-tailwind/react";
+import {
+  Navbar,
+  Typography,
+  Collapse,
+  Button,
+  IconButton,
+  Alert,
+} from "@material-tailwind/react";
 import { SIGNOUT_USER_ADMIN } from "#/apollo/mutation";
 import { useMutation } from "@apollo/client";
 import { jwtDecode } from "jwt-decode";
@@ -21,7 +28,8 @@ const Header = () => {
   }, [location]);
 
   const refreshToken = localStorage.getItem("refresh_token") || "";
-  const [signout, { loading, error: signoutError }] = useMutation(SIGNOUT_USER_ADMIN);
+  const [signout, { loading, error: signoutError }] =
+    useMutation(SIGNOUT_USER_ADMIN);
   const handleSignout = async () => {
     if (token) {
       try {
@@ -57,7 +65,10 @@ const Header = () => {
     <Alert color="red">로그아웃을 다시 시도해 주세요.</Alert>;
   }
   useEffect(() => {
-    window.addEventListener("resize", () => window.innerWidth >= 960 && setOpenNav(false));
+    window.addEventListener(
+      "resize",
+      () => window.innerWidth >= 960 && setOpenNav(false)
+    );
   }, []);
 
   const navList = (
@@ -82,7 +93,10 @@ const Header = () => {
             fill="#90A4AE"
           />
         </svg>
-        <NavLink to={`/user/${currentId}/profile`} className="flex items-center">
+        <NavLink
+          to={`/user/${currentId}/profile`}
+          className="flex items-center"
+        >
           My
         </NavLink>
         <NavLink
@@ -104,8 +118,11 @@ const Header = () => {
   return (
     <Navbar className="sticky top-0 z-10 h-max max-w-full rounded-none px-4 py-2 lg:px-8 lg:py-4 shadow-none bg-white border-b border-solid border-blue-gray-50">
       <ul className="hidden mt-1 mb-2 lg:flex flex-row lg:mb-0 lg:mt-0 justify-center lg:content-center lg:max-w-screen-xl lg:w-full lg:mx-auto lg:justify-between">
-        <NavLink to="/" className="flex flex-start items-center space-x-3 rtl:space-x-reverse">
-          <img src={LogoImage} alt="infofla(인포플라) 로고" className="h-8" />
+        <NavLink
+          to="/"
+          className="flex flex-start items-center space-x-3 rtl:space-x-reverse"
+        >
+          <img src={LogoImage} alt="로고" className="h-16" />
         </NavLink>
         <div className="flex items-center gap-x-1">
           {token && refreshToken ? (
@@ -151,7 +168,11 @@ const Header = () => {
                   장바구니
                 </NavLink>
               </Typography>
-              <NavLink to="/" onClick={handleSignout} className="text-black text-sm">
+              <NavLink
+                to="/"
+                onClick={handleSignout}
+                className="text-black text-sm"
+              >
                 Sign out
               </NavLink>
             </>
@@ -187,7 +208,11 @@ const Header = () => {
               stroke="#90A4AE"
               strokeWidth={2}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           ) : (
             <svg
@@ -197,7 +222,11 @@ const Header = () => {
               stroke="#90A4AE"
               strokeWidth={2}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           )}
         </IconButton>
