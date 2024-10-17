@@ -17,7 +17,7 @@ REFRESH_TOKEN_SECRET="3654386a6585157fe2f9f4474598bb3ae0ec50bd6fe87500ed6000a88c
 
 ```shell
 $ npm run starddt # 서버 실행
-$ npx npx prisma migrate dev --name 스키마이름 # prisma 스키마 변경한 경우
+$ npx prisma migrate dev --name 스키마이름 # prisma 스키마 변경한 경우
 
 ```
 
@@ -92,6 +92,20 @@ $ openssl rand -hex 64
 npx prisma migrate dev --name
 ```
 
+### test환경과 똑같은 데이터 setting을 위해서 MySQL Workbench로 데이터 가져오기.
+
+1. [MySQL Workbench 설치](https://dev.mysql.com/downloads/workbench/)
+2. Mysql 설치.
+3. 다음 명령어 실행
+
+```
+   npx prisma migrate deploy # 마이그레이션을 실행하여 데이터베이스 스키마를 최신 상태로 만들기
+   npx prisma generate # 새로운 스키마에 맞춰 Prisma 클라이언트를 업데이트
+```
+
+4. be 실행
+5. workbench에서 /Dump20241007폴더에 있는 데이터 import하기.
+
 ---
 
 ## 프로젝트 설명
@@ -134,10 +148,11 @@ npx prisma migrate dev --name
   - 관리자: 전체 카테고리 조회, 단일 카테고리 조회, 카텐고리 이름 검색, 카테고리 깊이 3까지 생성, 같은 깊이의 카테고리 새로운 이름으로 합치는 기능, 카테고리 이름 변경기능, 카테고리 삭제 기능.
 
 ### 프로젝트를 하면서...
-- 처음 erd와 달라진 부분이 좀 있다. cart의 경우 처음에 cart db만 만들었는데, 그렇게 하니까 제품이 하나밖에 추기되지 않아서 다른 코드를 더 찾아보니 cart와 cart Item이 둘다 필요한 것을 알게 되었다. 그래서 cart, order에 item table을 추가해서 관리하는 방식으로 문제를 해결하게 되었다. 
-- api는 설계하였지만, fe에서 반영하지 못한 api가 다수 있어 많은 아쉬움이 남는다. 하지만 api의 경우 Altair GraphQL Client로 실패하는 케이스, 성공하는 케이스를 나누어 test를 거쳤다. 
-- 다음에 be를 작성하게 된다면 test 코드와 api문서를 작성하고 싶다. 혼자서 api를 설계하고 fe코딩을 하는데에도 불구하고 매개변수 등을 한번에 정리해서 볼 수 있다면 더 좋을 것 같다. 
-- [nexus](https://nexusjs.org/)를 사용하면서 나는 편한 점이 많다고 생각했는데, 뭔가 현업에서 많이 사용하지 않는 것 같아 nexus를 사용하지 않고도 be 코드 작성을 한번 도전해 보아야 겠다는 생긱이 들었다. 
+
+- 처음 erd와 달라진 부분이 좀 있다. cart의 경우 처음에 cart db만 만들었는데, 그렇게 하니까 제품이 하나밖에 추기되지 않아서 다른 코드를 더 찾아보니 cart와 cart Item이 둘다 필요한 것을 알게 되었다. 그래서 cart, order에 item table을 추가해서 관리하는 방식으로 문제를 해결하게 되었다.
+- api는 설계하였지만, fe에서 반영하지 못한 api가 다수 있어 많은 아쉬움이 남는다. 하지만 api의 경우 Altair GraphQL Client로 실패하는 케이스, 성공하는 케이스를 나누어 test를 거쳤다.
+- 다음에 be를 작성하게 된다면 test 코드와 api문서를 작성하고 싶다. 혼자서 api를 설계하고 fe코딩을 하는데에도 불구하고 매개변수 등을 한번에 정리해서 볼 수 있다면 더 좋을 것 같다.
+- [nexus](https://nexusjs.org/)를 사용하면서 나는 편한 점이 많다고 생각했는데, 뭔가 현업에서 많이 사용하지 않는 것 같아 nexus를 사용하지 않고도 be 코드 작성을 한번 도전해 보아야 겠다는 생긱이 들었다.
 
 ## ERROR
 
