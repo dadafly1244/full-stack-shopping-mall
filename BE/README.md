@@ -1,6 +1,6 @@
 # BE
 
-# mariaDB
+# mysql
 
 ## 사용 방법
 
@@ -26,15 +26,15 @@ $ npx npx prisma migrate dev --name 스키마이름 # prisma 스키마 변경한
 ```shell
 $ brew update
 $ brew upgrade
-$ brew install mariadb
+$ brew install mysql
 ```
 
 ### db server 시작, 재시작, 종료
 
 ```shell
-$ brew services start mariadb
-$ brew services restart mariadb
-$ brew services stop mariadb
+$ brew services start mysql
+$ brew services restart mysql
+$ brew services stop mysql
 ```
 
 ### mariaDB server 연결 및 mysql db 시작
@@ -91,6 +91,53 @@ $ openssl rand -hex 64
 ```shell
 npx prisma migrate dev --name
 ```
+
+---
+
+## 프로젝트 설명
+
+간단한 쇼핑몰 사이트 만들기.
+프로젝트 기획, 디자인, 코딩을 모두 스스로 함.
+프로젝트 기간: 39일 (약 2달)
+
+### 기술스택
+
+- Node.js
+- express
+- graphql
+- apollo/server
+- mysql
+- nexus
+- prisma
+- ...
+
+### 구현 기술 설명.
+
+- 사용자 관리
+  - 로그인, 로그아웃, id와 email 중복체크
+  - 관리자: 사용자 조회, 수정, 검색
+  - 사용자: 정보 조회, 수정, 회원탈퇴
+- 상품 관리
+  - 관리자: 전체 상품 조회, 단일 상품 조회, 검색, 제품 생성, 제품 상태 변경, 제품 정보 수정 제품 삭제
+  - 사용자: homepage 상품 조회 api, 단일 상품 조회,
+- 주문 관리
+  - 관리자: 모든 주문 조회, 주문 검색, 주문 상태 변경, 주문 삭제, 주문 상태로 주문 검색,
+  - 사용자: 전체 사용자 주문 조회, 사용자 주문 검색, 단건 사용자 주문 조회, 장바구니 전체 주문, 장바구니 속 제품 개별 주문, 주문 취소,
+- 리뷰 관리
+  - 관리자: 리뷰 생성(대댓글 달기), 리뷰 삭제(soft delete, hard delete)
+  - 사용자: 리뷰 조회, 리뷰 생성, 리뷰 수정
+- 장바구니 관리
+  - 사용자: 장바구니 조회, 생성, 장바구니에 제품 추가, 장바구니 제품 수량 변경, 장바구니 제품 삭제
+- 판매처 관리
+  - 관리자: 모든 판매처 조회, id로 판매처 검색, 판매처 검색, 사업자번호 중복 체크, 판매처 생성, 판매처 수정, 판매처에 연관 상품 있는지 확인 후 판매처 삭제
+- 카테고리 관리
+  - 관리자: 전체 카테고리 조회, 단일 카테고리 조회, 카텐고리 이름 검색, 카테고리 깊이 3까지 생성, 같은 깊이의 카테고리 새로운 이름으로 합치는 기능, 카테고리 이름 변경기능, 카테고리 삭제 기능.
+
+### 프로젝트를 하면서...
+- 처음 erd와 달라진 부분이 좀 있다. cart의 경우 처음에 cart db만 만들었는데, 그렇게 하니까 제품이 하나밖에 추기되지 않아서 다른 코드를 더 찾아보니 cart와 cart Item이 둘다 필요한 것을 알게 되었다. 그래서 cart, order에 item table을 추가해서 관리하는 방식으로 문제를 해결하게 되었다. 
+- api는 설계하였지만, fe에서 반영하지 못한 api가 다수 있어 많은 아쉬움이 남는다. 하지만 api의 경우 Altair GraphQL Client로 실패하는 케이스, 성공하는 케이스를 나누어 test를 거쳤다. 
+- 다음에 be를 작성하게 된다면 test 코드와 api문서를 작성하고 싶다. 혼자서 api를 설계하고 fe코딩을 하는데에도 불구하고 매개변수 등을 한번에 정리해서 볼 수 있다면 더 좋을 것 같다. 
+- [nexus](https://nexusjs.org/)를 사용하면서 나는 편한 점이 많다고 생각했는데, 뭔가 현업에서 많이 사용하지 않는 것 같아 nexus를 사용하지 않고도 be 코드 작성을 한번 도전해 보아야 겠다는 생긱이 들었다. 
 
 ## ERROR
 
@@ -183,9 +230,3 @@ sudo rm -rf /Library/PreferencePanes/My*
 [prisma](https://www.prisma.io/docs/orm/overview/prisma-in-your-stack/graphql)에 참고할 글 많음
 
 ---
-
-240826
-
-1. 정확한 정책(기능?을 주석으로 작성하고 함수 작성) 필요.
-2. 회원탈퇴의 경우 지금은 table에서 삭제를 해버리는데 -> 그 사람이 작성한 댓글 등은 어떻게 처리할 지 정책을 정해야함.
-3. debug 모드 사용으로 console.log 없이도 값을 볼 수 있어서 신세계!
